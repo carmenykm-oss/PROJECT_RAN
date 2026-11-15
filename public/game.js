@@ -267,6 +267,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.userData.ranModel = model;
     target.userData.ranPivot = pivot;
     target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
+    window.__ranCharacterDebugRoot = model;
 
     // Update the complete player/model hierarchy BEFORE evaluating any
     // skinned vertices. Stale boneMatrices can collapse evaluated bounds.
