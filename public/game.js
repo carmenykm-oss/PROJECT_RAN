@@ -156,6 +156,39 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     }
     model.updateMatrixWorld(true);
 
+    // The original male X vertices are already stored in character bind-pose
+    // coordinates. Their imported frame parents and legacy inverse-bind matrices
+    // apply the offsets a second time in Three.js, collapsing the visible model.
+    // Keep each original part separate, but mount its raw bind-pose geometry under
+    // the character root with identity transform. This intentionally gives a
+    // faithful T-pose preview while the runtime skinning conversion is refined.
+    let bakedMeshCount = 0;
+    if (requestedCharacter === 'male') {
+      const sourceParts = [];
+      model.traverse((obj) => { if (obj.isSkinnedMesh) sourceParts.push(obj); });
+      for (const source of sourceParts) {
+        const geometry = source.geometry.clone();
+        for (const attribute of ['skinIndex', 'skinWeight', 'skinIndex1', 'skinWeight1']) {
+          if (geometry.hasAttribute(attribute)) geometry.deleteAttribute(attribute);
+        }
+        if (!geometry.getAttribute('normal')) geometry.computeVertexNormals();
+        const staticPart = new THREE.Mesh(geometry, source.material);
+        staticPart.name = source.name + '_original_bindpose';
+        staticPart.castShadow = true;
+        staticPart.receiveShadow = true;
+        staticPart.frustumCulled = false;
+        staticPart.position.set(0, 0, 0);
+        staticPart.quaternion.identity();
+        staticPart.scale.set(1, 1, 1);
+        staticPart.matrix.identity();
+        staticPart.matrixAutoUpdate = true;
+        model.add(staticPart);
+        source.parent.remove(source);
+        bakedMeshCount++;
+      }
+      model.updateMatrixWorld(true);
+    }
+
     let meshCount = 0, skinnedMeshCount = 0;
     model.traverse((obj) => {
       if (obj.isMesh) {
@@ -193,10 +226,9 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
           // in-game visibility pass. This avoids a valid skinned mesh becoming black
           // from reconstructed normals / lighting while preserving its UV texture.
           const visible = new THREE.MeshBasicMaterial({
-            // Diagnostic untextured silhouette pass: if geometry is healthy,
-            // this makes the complete character visible independently of DDS/UV issues.
-            map: null,
-            color: 0xff55bb,
+            // Preserve the original RAN skin texture on the bind-pose mesh.
+            map: mat?.map || null,
+            color: 0xffffff,
             side: THREE.DoubleSide,
             transparent: false,
             opacity: 1,
@@ -230,57 +262,12 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.updateMatrixWorld(true);
     model.updateMatrixWorld(true);
 
-    // CPU-bake the evaluated bind pose into ordinary static meshes. This bypasses
-    // any GPU skinning shader/bind-matrix incompatibility in the legacy GLB while
-    // preserving the original vertex positions, indices and UV coordinates.
-    const skinnedSources = [];
-    model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) skinnedSources.push(obj); });
-    let bakedMeshCount = 0;
-    for (const sourceMesh of skinnedSources) {
-      const sourcePosition = sourceMesh.geometry.attributes.position;
-      if (!sourcePosition?.count) continue;
-      const bakedPositions = new Float32Array(sourcePosition.count * 3);
-      const vertex = new THREE.Vector3();
-      for (let vertexIndex = 0; vertexIndex < sourcePosition.count; vertexIndex++) {
-        sourceMesh.getVertexPosition(vertexIndex, vertex);
-        bakedPositions[vertexIndex * 3] = vertex.x;
-        bakedPositions[vertexIndex * 3 + 1] = vertex.y;
-        bakedPositions[vertexIndex * 3 + 2] = vertex.z;
-      }
-      const bakedGeometry = new THREE.BufferGeometry();
-      bakedGeometry.setAttribute('position', new THREE.BufferAttribute(bakedPositions, 3));
-      for (const [attributeName, attribute] of Object.entries(sourceMesh.geometry.attributes)) {
-        if (attributeName !== 'position' && attributeName !== 'normal') bakedGeometry.setAttribute(attributeName, attribute);
-      }
-      if (sourceMesh.geometry.index) bakedGeometry.setIndex(sourceMesh.geometry.index);
-      bakedGeometry.clearGroups();
-      bakedGeometry.computeVertexNormals();
-      bakedGeometry.computeBoundingBox();
-      bakedGeometry.computeBoundingSphere();
-      const bakedMesh = new THREE.Mesh(
-        bakedGeometry,
-        new THREE.MeshBasicMaterial({ color: 0xff55bb, side: THREE.DoubleSide, depthTest: false, depthWrite: true, toneMapped: false })
-      );
-      bakedMesh.name = sourceMesh.name + '_CPU_SKIN_BAKED';
-      bakedMesh.frustumCulled = false;
-      bakedMesh.renderOrder = 50;
-      // Preserve the complete imported node transform, including hidden helper
-      // parents, by moving the baked part directly under the normalization pivot.
-      sourceMesh.updateWorldMatrix(true, false);
-      pivot.updateWorldMatrix(true, false);
-      const bakedLocalMatrix = pivot.matrixWorld.clone().invert().multiply(sourceMesh.matrixWorld);
-      bakedMesh.matrix.copy(bakedLocalMatrix);
-      bakedMesh.matrixAutoUpdate = false;
-      bakedMesh.matrixWorldNeedsUpdate = true;
-      pivot.add(bakedMesh);
-      bakedMesh.visible = true;
-      sourceMesh.visible = false;
-      bakedMeshCount++;
-    }
+    // Male bind-pose parts were detached from the legacy frame transforms above.
     target.updateMatrixWorld(true);
     model.updateMatrixWorld(true);
 
-    // Re-center with evaluated skinned geometry rather than raw source vertices.
+    // Re-center using the visible bind-pose geometry.
+
     let evaluatedBounds = new THREE.Box3().setFromObject(pivot, true);
     const evaluatedSize = evaluatedBounds.getSize(new THREE.Vector3());
     if (Number.isFinite(evaluatedSize.y) && evaluatedSize.y > 0.2) {
