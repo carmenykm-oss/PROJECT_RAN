@@ -168,6 +168,7 @@ jobs:
           git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/*.png
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
+            git pull --rebase origin main
             git push
           fi
 
