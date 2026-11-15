@@ -136,11 +136,24 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       if (obj.isMesh) {
         obj.frustumCulled = false;
         obj.visible = true;
-        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-        for (const mat of mats) if (mat) {
-          mat.side = THREE.DoubleSide;
-          mat.needsUpdate = true;
-        }
+        const sourceMats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        const visibleMats = sourceMats.map((mat) => {
+          // Keep the original skin texture, but use an unlit material for the first
+          // in-game visibility pass. This avoids a valid skinned mesh becoming black
+          // from reconstructed normals / lighting while preserving its UV texture.
+          const visible = new THREE.MeshBasicMaterial({
+            map: mat?.map || null,
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            transparent: false,
+            opacity: 1,
+            depthWrite: true,
+            toneMapped: false
+          });
+          visible.name = (mat?.name || 'RAN skin') + '_visible_pass';
+          return visible;
+        });
+        obj.material = Array.isArray(obj.material) ? visibleMats : visibleMats[0];
       }
     });
     target.userData.ranModel = model;
