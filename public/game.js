@@ -294,11 +294,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       bakedMesh.name = sourceMesh.name + '_CPU_SKIN_BAKED';
       bakedMesh.frustumCulled = false;
       bakedMesh.renderOrder = 50;
-      sourceMesh.updateMatrix();
+      // updateMatrixWorld above already refreshed auto-updated transforms; do not
+      // overwrite an imported matrix when matrixAutoUpdate is disabled.
       bakedMesh.matrix.copy(sourceMesh.matrix);
       bakedMesh.matrixAutoUpdate = false;
       bakedMesh.matrixWorldNeedsUpdate = true;
       sourceMesh.parent.add(bakedMesh);
+      bakedMesh.visible = true;
       sourceMesh.visible = false;
       bakedMeshCount++;
     }
@@ -347,10 +349,22 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bakedMeshCount,
+      bakedMeshes: [],
       sourceBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
       worldBounds: { min: measuredBounds.min.toArray(), max: measuredBounds.max.toArray() }
     };
 
+    model.traverse((obj) => {
+      if (obj.name?.endsWith('_CPU_SKIN_BAKED')) {
+        window.__ranCharacterDebug.bakedMeshes.push({
+          name: obj.name, visible: obj.visible,
+          vertices: obj.geometry.attributes.position?.count || 0,
+          indices: obj.geometry.index?.count || 0,
+          drawCount: obj.geometry.drawRange.count,
+          localMatrix: obj.matrix.elements.slice()
+        });
+      }
+    });
     // Only hide the temporary mannequin after the normalized GLB is attached.
     target.children.forEach((child) => {
       if (child !== pivot && child !== ranCoordinateProof && !child.isSprite) child.visible = false;
