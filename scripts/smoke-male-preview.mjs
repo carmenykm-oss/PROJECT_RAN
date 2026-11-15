@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 
 const base = process.env.PREVIEW_URL || 'https://carmenykm-oss.github.io/PROJECT_RAN/';
-const url = new URL('?preview=1&character=male&v=5511', base).href;
+const url = new URL('?preview=1&character=male&v=5515', base).href;
 await mkdir('preview-screenshots', { recursive: true });
 
 const browser = await chromium.launch({
@@ -30,9 +30,9 @@ try {
   await page.waitForTimeout(1800);
   await page.screenshot({ path: 'preview-screenshots/male-game-preview.png' });
   if (!status.includes('男戰士已載入') || !debug) throw new Error('Male GLB failed to load: ' + status);
-  if (debug.meshCount < 6 || debug.bakedMeshCount < 6 ||
+  if (debug.meshCount < 6 || debug.skinnedMeshCount < 6 || debug.reboundSkinCount < 6 ||
       debug.boneCount < 16 || !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2) {
-    throw new Error('Male bind-pose mesh bake incomplete: ' + JSON.stringify(debug));
+    throw new Error('Male rebound skinning incomplete: ' + JSON.stringify(debug));
   }
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
   console.log(JSON.stringify({ status: 'PASS', url, modelStatus: status, debug, screenshot: 'preview-screenshots/male-game-preview.png' }, null, 2));
