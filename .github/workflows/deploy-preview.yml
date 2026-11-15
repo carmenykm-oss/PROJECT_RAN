@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ran-male-rebound-skinning-preview
-          path: preview-screenshots/male-rebound-skinning-preview.png
+          path: preview-screenshots/male-rebound-*.png
           if-no-files-found: ignore
           retention-days: 14
 
