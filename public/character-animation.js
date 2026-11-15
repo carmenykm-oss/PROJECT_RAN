@@ -18,6 +18,7 @@ export function createRanCharacterAnimator(model, THREE) {
     z: new THREE.Vector3(0,0,1)
   };
   const offset = new THREE.Quaternion();
+  const baseY = model.position.y;
   let clock = 0;
   let attackClock = 10;
   let skillClock = 10;
@@ -82,7 +83,7 @@ export function createRanCharacterAnimator(model, THREE) {
       pose('Bip01_L_Forearm','x',-.22-Math.max(0,swing)*.16);
       pose('Bip01_R_Forearm','x',-.22-Math.max(0,-swing)*.16);
       pose('Bip01_Neck','x',.025*Math.sin(phase));
-      model.position.y = bob;
+      model.position.y = baseY + bob;
     } else {
       const breath = Math.sin(clock*2.15);
       pose('Bip01_Spine','x',-.018 + breath*.018);
@@ -91,7 +92,7 @@ export function createRanCharacterAnimator(model, THREE) {
       pose('Bip01_Head','y',Math.sin(clock*.55)*.025);
       pose('Bip01_L_UpperArm','x',Math.sin(clock*1.1)*.018);
       pose('Bip01_R_UpperArm','x',-Math.sin(clock*1.1)*.018);
-      model.position.y = 0;
+      model.position.y = baseY;
     }
   }
   return { update, triggerAttack, triggerSkill, boneCount: bones.size };
