@@ -354,7 +354,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, reboundSkinCount, recoveredMeshNodes,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
-      evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics,
+      evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bindPosePartDiagnostics,
       bakedMeshes: [],
       sourceBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
       worldBounds: { min: measuredBounds.min.toArray(), max: measuredBounds.max.toArray() }
