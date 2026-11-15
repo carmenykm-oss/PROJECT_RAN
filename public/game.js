@@ -158,14 +158,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     }
     model.updateMatrixWorld(true);
 
-    // The original male X vertices are already stored in character bind-pose
-    // coordinates. Their imported frame parents and legacy inverse-bind matrices
-    // apply the offsets a second time in Three.js, collapsing the visible model.
-    // Keep each original part separate, but mount its raw bind-pose geometry under
-    // the character root with identity transform. This intentionally gives a
-    // faithful T-pose preview while the runtime skinning conversion is refined.
+    // The original X body and head vertices are already stored in shared
+    // character bind-pose coordinates. Their imported frame parents and legacy
+    // inverse-bind matrices apply offsets a second time in Three.js. Keep every
+    // original part separate, but mount raw bind-pose geometry under the model
+    // root with identity transform for a faithful in-game T-pose preview.
     let bakedMeshCount = 0;
-    if (requestedCharacter === 'male') {
+    if (requestedCharacter === 'male' || requestedCharacter === 'female') {
       const sourceParts = [];
       model.traverse((obj) => { if (obj.isSkinnedMesh) sourceParts.push(obj); });
       for (const source of sourceParts) {
@@ -329,9 +328,11 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         });
       }
     });
-    // Only hide the temporary mannequin after the normalized GLB is attached.
+    // Hide the placeholder mannequin, its name tag and the diagnostic cage;
+    // the real bind-pose meshes are now the only visible player geometry.
+    ranCoordinateProof.visible = false;
     target.children.forEach((child) => {
-      if (child !== pivot && child !== ranCoordinateProof && !child.isSprite) child.visible = false;
+      if (child !== pivot) child.visible = false;
     });
     console.info(`RAN ${requestedCharacter} loaded:`, { url: resolvedUrl, meshCount, skinnedMeshCount, recoveredMeshNodes, sourceHeight: size.y, appliedScale: scale, bones: target.userData.ranAnimator.boneCount, pivotPosition: pivot.position.toArray() });
     if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = `${characterLabel}已載入`;
