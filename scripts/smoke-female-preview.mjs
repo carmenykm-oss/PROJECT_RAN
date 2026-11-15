@@ -27,13 +27,13 @@ try {
 
   const status = (await page.locator('#connection').innerText()).trim();
   const debug = await page.evaluate(() => window.__ranCharacterDebug || null);
+  await page.waitForTimeout(1800);
+  await page.screenshot({ path: 'preview-screenshots/female-game-preview.png' });
   if (!status.includes('女角色已載入') || !debug) throw new Error('Female GLB failed to load: ' + status);
   if (debug.meshCount < 6 || debug.skinnedMeshCount < 6 || debug.recoveredMeshNodes < 4) {
     throw new Error('Female mesh recovery incomplete: ' + JSON.stringify(debug));
   }
 
-  await page.waitForTimeout(1800);
-  await page.screenshot({ path: 'preview-screenshots/female-game-preview.png' });
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
   console.log(JSON.stringify({ status: 'PASS', url, modelStatus: status, debug, screenshot: 'preview-screenshots/female-game-preview.png' }, null, 2));
 } finally {
