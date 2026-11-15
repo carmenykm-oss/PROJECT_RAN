@@ -49,3 +49,12 @@ npm run test:animation
 The test checks the female GLB bone names and finite normalized quaternion output for idle, walk, run, attack and skill controller states.
 
 JavaScript syntax has been checked. Browser rendering, live WebSocket login, and visual pose quality still require an actual browser session before they can be marked verified.
+
+## Publish the preview online
+
+The repository's GitHub Pages site has not been enabled yet. To publish the static preview once:
+1. Open repository **Settings → Pages**.
+2. Set **Build and deployment → Source** to **GitHub Actions**.
+3. Open **Actions → Deploy PROJECT RAN character preview → Run workflow**.
+
+The deployed URL will be `https://carmenykm-oss.github.io/PROJECT_RAN/?preview=1`.
