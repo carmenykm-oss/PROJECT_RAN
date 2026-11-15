@@ -125,7 +125,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     return null;
   }
 }
-loadRANCharacter('/models/ran-female.glb', me);
+loadRANCharacter('./models/ran-female.glb', me);
 const mentor = avatar(0xb28a45, '學園導師'); mentor.position.set(0,0,-8); scene.add(mentor);
 function makeQuestMarker() {
   const canvas=document.createElement('canvas'); canvas.width=128; canvas.height=128;
@@ -731,6 +731,33 @@ document.getElementById('logoutButton').onclick = () => { authToken = null; sess
 function enterGame() {
   if (gameStarted) return; gameStarted = true;
   document.getElementById('game').classList.remove('game-hidden');
+  if (new URLSearchParams(location.search).get('preview') === '1') return;
   connect();
 }
 loop();
+
+// Static preview mode: opens the real campus scene and the female GLB without
+// account creation or a WebSocket server. Combat input still plays the rig pose.
+if (new URLSearchParams(location.search).get('preview') === '1') {
+  document.getElementById('authScreen').hidden = true;
+  document.getElementById('characterScreen').hidden = true;
+  me.position.set(0, 0, 3);
+  me.rotation.y = Math.PI;
+  setMyNameTag('預覽角色');
+  document.getElementById('playerName').textContent = '鳳凰學園・預覽角色';
+  document.getElementById('connection').textContent = 'PREVIEW';
+  const previewPlayer = {
+    id:'preview-player', name:'預覽角色', academy:'鳳凰學園',
+    job:'warrior', jobName:'戰士', level:1, exp:0,
+    hp:100, maxHp:100, mp:80, maxMp:80, sp:100, maxSp:100,
+    attack:30, defense:20, speed:100, statPoints:0, gold:1000,
+    attributes:{str:12,agi:5,spi:3,vit:10,end:5},
+    equipment:{weapon:null,head:null,armor:null,gloves:null,boots:null},
+    inventory:[], hotbar:[], skills:[], dead:false
+  };
+  renderStats(previewPlayer);
+  renderQuest({id:'campus_slime_hunt',title:'校園清潔任務',description:'測試用訓練目標',target:5,progress:0,status:'not_started',reward:'150 EXP'});
+  updateMob({id:'preview-slime',name:'校園史萊姆',type:'slime',level:1,x:0,z:-3,hp:60,maxHp:60,alive:true});
+  enterGame();
+  notice('預覽模式：WASD 移動、Shift 跑步、空白鍵或攻擊按鈕測試動作。此模式不連接伺服器。');
+}
