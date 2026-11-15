@@ -30,8 +30,9 @@ try {
   await page.waitForTimeout(1800);
   await page.screenshot({ path: 'preview-screenshots/male-game-preview.png' });
   if (!status.includes('男戰士已載入') || !debug) throw new Error('Male GLB failed to load: ' + status);
-  if (debug.meshCount < 6 || debug.skinnedMeshCount < 6 || debug.boneCount < 16) {
-    throw new Error('Male head/body rig incomplete: ' + JSON.stringify(debug));
+  if (debug.meshCount < 6 || debug.skinnedMeshCount < 4 || debug.staticHeadCount < 2 ||
+      debug.boneCount < 16 || !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2) {
+    throw new Error('Male head/body mesh integration incomplete: ' + JSON.stringify(debug));
   }
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
   console.log(JSON.stringify({ status: 'PASS', url, modelStatus: status, debug, screenshot: 'preview-screenshots/male-game-preview.png' }, null, 2));
