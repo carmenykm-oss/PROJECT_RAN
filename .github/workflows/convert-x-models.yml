@@ -27,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p converted_glb logs
-          mapfile -t files < <(find source_assets -type f | grep -Ei '\\.x$' | sort || true)
+          mapfile -t files < <(find source_assets -type f | grep -Ei '\.x$' | sort || true)
           if [ ${#files[@]} -eq 0 ]; then
             echo "No .X files found anywhere under source_assets/" | tee logs/ERROR.txt
             exit 2
