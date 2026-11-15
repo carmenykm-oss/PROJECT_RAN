@@ -1,4 +1,4 @@
-name: Convert original RAN X models to GLB
+name: Convert original RAN X models to GLB and deploy preview
 
 on:
   workflow_dispatch:
@@ -8,25 +8,35 @@ on:
       - '.github/workflows/convert-x-models.yml'
 
 permissions:
-  contents: read
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ran-model-conversion
+  cancel-in-progress: false
 
 jobs:
-  convert:
+  convert-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     steps:
       - name: Checkout source assets
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
-      - name: Install Assimp
+      - name: Install Assimp and DDS image support
         run: |
           sudo apt-get update
-          sudo apt-get install -y assimp-utils
+          sudo apt-get install -y assimp-utils python3-pil
 
       - name: Convert every X model to GLB
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p converted_glb logs
+          mkdir -p converted_glb logs public/models
           mapfile -t files < <(find source_assets -type f -iname '*.x' | sort)
           if [ ${#files[@]} -eq 0 ]; then
             echo "No .X files found anywhere under source_assets/" | tee logs/ERROR.txt
@@ -45,12 +55,99 @@ jobs:
               failed=1
             fi
           done
-          mkdir -p converted_glb/textures
-          while IFS= read -r -d '' tex; do
-            cp -f "$tex" converted_glb/textures/
-          done < <(find source_assets -type f -iname '*.dds' -print0)
-          echo "Attempted ${#files[@]} X files; conversion failure flag=${failed}" | tee -a logs/result.txt
-          echo "${failed}" > logs/conversion-failed.flag
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Convert DDS textures and make GLB browser-compatible
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json, struct
+
+          source = Path("source_assets")
+          out_dir = Path("public/models")
+          out_dir.mkdir(parents=True, exist_ok=True)
+
+          converted = 0
+          for dds in source.rglob("*"):
+              if dds.is_file() and dds.suffix.lower() == ".dds":
+                  image = Image.open(dds).convert("RGBA")
+                  image.save(out_dir / (dds.stem + ".png"), optimize=True)
+                  converted += 1
+          if converted == 0:
+              raise SystemExit("No DDS textures were converted")
+
+          for glb in Path("converted_glb").glob("*.glb"):
+              raw = glb.read_bytes()
+              if raw[:4] != b"glTF":
+                  raise SystemExit(f"Invalid GLB header: {glb}")
+              version, total = struct.unpack_from("<II", raw, 4)
+              offset = 12
+              chunks = []
+              while offset < len(raw):
+                  length, kind = struct.unpack_from("<I4s", raw, offset)
+                  offset += 8
+                  payload = raw[offset:offset+length]
+                  offset += length
+                  if kind == b"JSON":
+                      doc = json.loads(payload.decode("utf-8").rstrip(" \\0"))
+                      for item in doc.get("images", []):
+                          uri = item.get("uri", "")
+                          if uri.lower().endswith(".dds"):
+                              item["uri"] = Path(uri).stem + ".png"
+                      payload = json.dumps(doc, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+                      payload += b" " * ((4 - len(payload) % 4) % 4)
+                  chunks.append((kind, payload))
+              body = bytearray()
+              for kind, payload in chunks:
+                  body += struct.pack("<I4s", len(payload), kind)
+                  body += payload
+              result = b"glTF" + struct.pack("<II", version, 12 + len(body)) + body
+              glb.write_bytes(result)
+
+          import shutil
+          shutil.copy2("converted_glb/m_ss_war.glb", out_dir / "ran-male-original.glb")
+          shutil.copy2("converted_glb/s_m_a_zt.glb", out_dir / "ran-warrior-male-a.glb")
+          shutil.copy2("converted_glb/s_m_f_zt.glb", out_dir / "ran-warrior-male-f.glb")
+          print(f"Converted {converted} DDS textures and patched all GLB texture references.")
+          PY
+
+      - name: Validate warrior GLB structure and female animation rig
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, struct
+          from pathlib import Path
+          files = [
+              Path("public/models/ran-male-original.glb"),
+              Path("public/models/ran-warrior-male-a.glb"),
+              Path("public/models/ran-warrior-male-f.glb"),
+          ]
+          for path in files:
+              raw = path.read_bytes()
+              if raw[:4] != b"glTF":
+                  raise SystemExit(f"Bad GLB: {path}")
+              length = struct.unpack_from("<I", raw, 12)[0]
+              doc = json.loads(raw[20:20+length].decode("utf-8").rstrip(" "))
+              skins = doc.get("skins", [])
+              meshes = doc.get("meshes", [])
+              if not skins or not meshes:
+                  raise SystemExit(f"Missing skin or mesh: {path}")
+              for mesh in meshes:
+                  for primitive in mesh.get("primitives", []):
+                      attrs = primitive.get("attributes", {})
+                      if "JOINTS_0" not in attrs or "WEIGHTS_0" not in attrs or "TEXCOORD_0" not in attrs:
+                          raise SystemExit(f"Missing skin weights or UVs: {path}")
+              for image in doc.get("images", []):
+                  if image.get("uri", "").lower().endswith(".dds"):
+                      raise SystemExit(f"Unconverted DDS reference in {path}")
+              print(f"PASS {path.name}: {len(meshes)} meshes, {len(skins[0]['joints'])} joints, {len(doc.get('images', []))} textures")
+          PY
 
       - name: Upload converted models and logs
         if: always()
@@ -59,15 +156,29 @@ jobs:
           name: ran-x-to-glb-test
           path: |
             converted_glb/
+            public/models/
             logs/
           if-no-files-found: error
           retention-days: 14
 
-      - name: Fail if any X model conversion failed
-        if: always()
-        shell: bash
+      - name: Publish converted GLBs to repository
         run: |
-          if [ -f logs/conversion-failed.flag ] && [ "$(cat logs/conversion-failed.flag)" = "1" ]; then
-            echo "One or more X model conversions failed. See the uploaded logs artifact."
-            exit 1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/*.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Add converted original RAN warrior models and textures"
+            git push
           fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static game preview
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy game preview
+        id: deployment
+        uses: actions/deploy-pages@v4
