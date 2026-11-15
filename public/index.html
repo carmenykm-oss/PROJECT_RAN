@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>PROJECT RAN – CLASSIC 1.3.1</title><link rel="stylesheet" href="/style.css">
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+  <div id="game" class="game-hidden"></div>
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-brand">PROJECT RAN <span>CLASSIC · ONLINE 1.3.1</span></div>
+      <h1 id="authTitle">登入遊戲</h1>
+      <p id="authSubtitle">歡迎回到鳳凰學園</p>
+      <form id="authForm">
+        <label>玩家帳號<input id="authUsername" autocomplete="username" minlength="3" maxlength="16" required placeholder="3–16 位英數字或底線"></label>
+        <label>密碼<input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" required placeholder="至少 8 位"></label>
+        <button id="authSubmit" type="submit">登入</button>
+      </form>
+      <div class="auth-switch"><span id="authSwitchText">還沒有帳號？</span> <button id="authSwitch" type="button">建立帳號</button></div>
+      <p id="authError" class="auth-error" role="alert"></p>
+      <div class="auth-foot">Prototype 1.3.1 · 角色資料儲存在本機伺服器</div>
+    </div>
+  </section>
+  <section id="characterScreen" class="auth-screen" hidden>
+    <div class="auth-card">
+      <div class="auth-brand">PHOENIX CAMPUS</div><h1>建立你的角色</h1>
+      <p>選擇一個名字，開始你的校園冒險。</p>
+      <form id="characterForm">
+        <label>角色名稱<input id="characterName" maxlength="12" required placeholder="2–12 個中文字或英數字"></label>
+        <label>選擇職業<select id="characterJob"><option value="warrior">戰士｜近戰・高攻防</option><option value="archer">弓箭部｜敏捷・遠程攻擊</option><option value="fighter">格鬥家｜力量・均衡</option><option value="mage">氣功部｜精神・遠程攻擊</option></select></label>
+        <div class="job-hint" id="jobHint">戰士：高力量與體力，適合正面近戰。</div>
+        <button type="submit">建立角色並進入遊戲</button>
+      </form>
+      <p id="characterError" class="auth-error" role="alert"></p>
+      <button id="logoutButton" class="text-button" type="button">返回登入</button>
+    </div>
+  </section>
+  <div class="brand">PROJECT RAN <span>CLASSIC · PROTOTYPE 1.3.1</span></div>
+  <div class="hud">
+    <div class="player-card"><div class="stats">
+      <div class="player-heading"><strong id="playerName">Student</strong><strong class="player-level">Lv. <b id="level">1</b></strong></div>
+      <div class="meter"><div class="bar hp"><i id="hpBar"></i><span id="hpText" class="bar-value">HP 0 / 0</span></div></div>
+      <div class="meter"><div class="bar mp"><i id="mpBar"></i><span id="mpText" class="bar-value">MP 0 / 0</span></div></div>
+      <div class="meter"><div class="bar sp"><i id="spBar"></i><span id="spText" class="bar-value">SP 100 / 100</span></div></div>
+      <div class="meter"><div class="bar exp"><i id="expBar"></i><span id="expText" class="bar-value">EXP 0 / 100</span></div></div>
+    </div></div><div class="status" id="connection">CONNECTING…</div>
+  </div>
+  <div class="utility-toggles"><button class="stats-toggle" id="statsToggle">角色 <kbd>C</kbd></button><button class="bag-toggle" id="bagToggle">背包 <kbd>B</kbd></button><button class="quest-toggle" id="taskToggle">任務 <kbd>Q</kbd></button><button class="shop-toggle" id="shopToggle">交易 <kbd>T</kbd></button></div>
+  <section class="stats-panel" id="statsPanel" hidden>
+    <header><strong>角色</strong><button id="statsClose" aria-label="關閉">✕</button></header>
+    <div class="character-profile">
+      <div class="character-heading"><strong id="charName">Student</strong><span id="charJob">戰士</span><strong>Lv.<span id="charLevel">1</span></strong></div>
+      <div class="character-exp-line"><span>EXP</span><span id="charExpText">0 / 100</span></div>
+      <div class="resource-track character-exp-track"><i id="charExpBar"></i></div>
+    </div>
+    <div class="character-combat-stats" id="characterCombatStats"></div>
+    <div class="stat-points-row"><strong>可用點數：<span id="availableStatPoints">0</span></strong><button id="confirmStats" type="button" disabled>確定</button></div>
+    <div id="attributeList" class="attribute-list"></div>
+    <p class="stat-help">按 + / − 調整分配，按「確定」後正式套用。</p>
+  </section>
+  <section class="bag-panel" id="bagPanel" hidden>
+    <header><strong>角色裝備 / 背包</strong><button id="bagClose" aria-label="關閉">✕</button></header>
+    <div class="gold-line">持有金幣：<strong id="goldCount">500</strong> G　·　背包容量：<strong id="bagCount">0 / 24</strong></div>
+    <div class="bag-columns"><div class="bag-column"><div class="equipment-title">已穿戴裝備</div><div class="equipment" id="equipment"></div></div><div class="bag-column"><div class="inventory-title">背包物品</div><div class="tab-strip" id="bagTabs"><button class="active" data-bag-tab="equipment">裝備</button><button data-bag-tab="other">其他物品</button></div><div class="inventory" id="inventory"><div class="empty">背包目前沒有物品。</div></div></div></div>
+  </section>
+  <section class="shop-panel" id="shopPanel" hidden><header><strong>鳳凰學園交易所</strong><button id="shopClose" type="button" aria-label="關閉">✕</button></header><div class="shop-gold">持有金幣：<strong id="shopGold">500</strong> G</div><div class="shop-note">向學園商人購買補給與裝備，亦可出售背包物品。</div><div class="tab-strip" id="shopTabs"><button class="active" data-shop-tab="equipment">裝備</button><button data-shop-tab="other">其他物品</button></div><div id="shopCatalog" class="shop-catalog"></div></section>
+  <section class="task-panel" id="taskPanel" hidden><header><strong>任務紀錄</strong><button id="taskClose" type="button" aria-label="關閉">✕</button></header><div id="taskList" class="task-list"><div class="empty">目前沒有任務紀錄。</div></div></section>
+  <section class="quest-panel" id="questPanel" hidden><header><strong id="questNpcTitle">學園導師</strong><button id="questClose" type="button" aria-label="關閉">✕</button></header><p id="questDialogText">同學，請幫忙清除校園史萊姆！</p><div class="quest-progress" id="questProgress"></div><div class="quest-actions"><button id="questAccept" type="button">接取任務</button><button id="questTurnIn" type="button" hidden>領取獎勵</button></div></section>
+  <div class="npc-hint" id="npcHint" hidden>按 E 與學園導師交談</div>
+  <div class="help">WASD：移動　·　滑鼠拖曳：轉動視角　·　Space：普通攻擊　·　1–4：職業技能　·　拖拉藥水到快捷欄　·　T：交易</div>
+  <div class="mobile-controls"><div class="dpad"><button data-key="w">▲</button><div><button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button></div></div></div>
+  <div class="potion-hotbar" id="potionHotbar"><div class="hotbar-slot" data-hotbar="0"><span>拖放藥水</span></div><div class="hotbar-slot" data-hotbar="1"><span>拖放藥水</span></div><div class="hotbar-slot" data-hotbar="2"><span>拖放藥水</span></div><div class="hotbar-slot" data-hotbar="3"><span>拖放藥水</span></div></div>
+  <div class="action-wheel" id="skillHotbar"><button class="skill-slot" id="skill1" data-skill-index="0" type="button"><kbd>1</kbd><strong>技能1</strong><small>MP --</small></button><button class="skill-slot" id="skill2" data-skill-index="1" type="button"><kbd>2</kbd><strong>技能2</strong><small>MP --</small></button><button class="skill-slot" id="skill3" data-skill-index="2" type="button"><kbd>3</kbd><strong>技能3</strong><small>MP --</small></button><button class="skill-slot" id="skill4" data-skill-index="3" type="button"><kbd>4</kbd><strong>技能4</strong><small>MP --</small></button><button class="attack" id="attackBtn" type="button" aria-label="普通攻擊"><kbd class="attack-hotkey">SPACE</kbd><span class="attack-icon">⚔</span></button></div>
+  <div class="chat"><div id="chatLog"><div class="system">鳳凰學園練功區：點擊攻擊或技能，角色會自動接近可施放距離。</div></div><form id="chatForm"><input id="chatInput" maxlength="120" placeholder="輸入訊息…"><button>送出</button></form></div>
+  <div class="death-overlay" id="deathOverlay" hidden><div class="death-card"><strong>角色倒下了</strong><p>你被怪物擊敗，正在等待復活…</p><div id="respawnCountdown">6</div><small>復活後 HP / MP 將會恢復</small></div></div><div class="crosshair">+</div><script type="module" src="/game.js"></script>
+</body></html>

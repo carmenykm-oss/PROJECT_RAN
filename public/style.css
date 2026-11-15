@@ -1,0 +1,605 @@
+*{box-sizing:border-box}html,body,#game{margin:0;width:100%;height:100%;overflow:hidden;background:#101923;font-family:Arial,"Noto Sans TC",sans-serif}canvas{display:block}.brand{position:fixed;top:18px;left:22px;color:#fff;letter-spacing:3px;font-size:16px;font-weight:800;text-shadow:0 2px 12px #000;pointer-events:none}.brand span{display:block;font-size:9px;letter-spacing:2px;color:#9bb2c8;margin-top:4px}.hud{position:fixed;top:18px;right:20px;display:flex;gap:12px}.player-card{display:flex;gap:10px;padding:10px 14px;background:#08121dcc;border:1px solid #91a9bc55;border-radius:10px;color:#fff;min-width:235px}.avatar{width:42px;height:42px;border-radius:8px;background:linear-gradient(145deg,#d2b47c,#70583a);display:grid;place-items:center;font-weight:bold;font-size:20px;color:#17202a}.stats{flex:1;font-size:12px}.stats strong{display:block;font-size:14px;margin-bottom:3px}.stats small{display:block;color:#b6c5d1;margin-top:2px}.bar{height:5px;background:#293541;margin-top:6px;border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;width:100%}.hp i{background:#d94d58}.exp i{background:#e5c15d;width:0%}.status{color:#d6e5ef;font-size:10px;background:#08121dcc;border:1px solid #91a9bc55;border-radius:20px;padding:8px 10px;align-self:flex-start}.help{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);color:#e4edf4;background:#08121dcc;padding:9px 14px;border-radius:20px;font-size:11px;white-space:nowrap}.attack,#mobileAttack{border:1px solid #f2d28b;background:linear-gradient(#b78b4c,#72502b);color:white;border-radius:50%;width:76px;height:76px;font-weight:bold;box-shadow:0 5px 20px #0008}.attack{position:fixed;right:24px;bottom:26px}.bag-toggle{position:fixed;right:26px;bottom:118px;border:1px solid #d9bd83;background:#152536eF;color:#fff;padding:10px 15px;border-radius:9px;font-weight:bold}.bag-toggle span{color:#e8ca7d;margin-left:7px}.bag-panel{position:fixed;right:22px;top:112px;width:310px;max-height:calc(100vh - 150px);overflow:auto;background:#101e2df2;border:1px solid #c7aa70;border-radius:12px;color:#f4f0e5;padding:13px;box-shadow:0 12px 35px #0009}.bag-panel[hidden]{display:none}.bag-panel header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid #ffffff25}.bag-panel header button{background:none;border:0;color:white;font-size:18px}.equipment{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.equip-slot{background:#263747;border:1px solid #ffffff22;border-radius:7px;padding:8px 4px;text-align:center;font-size:11px;min-height:56px}.equip-slot b{display:block;color:#e8ca7d;margin-bottom:4px}.inventory-title{font-size:12px;color:#e8ca7d;margin:12px 0 7px}.inventory{display:grid;grid-template-columns:1fr 1fr;gap:7px}.item{background:#263747;border:1px solid #ffffff26;border-radius:7px;padding:8px;text-align:left;color:#fff;font-size:11px;cursor:pointer}.item strong{display:block;margin-bottom:4px}.item small{color:#c5d2dc}.empty{grid-column:1/-1;color:#aab9c5;font-size:11px;line-height:1.6;padding:12px 4px}.chat{position:fixed;left:20px;bottom:18px;width:270px;color:white;background:#08121dcc;border:1px solid #91a9bc55;border-radius:9px;overflow:hidden}#chatLog{height:90px;overflow:auto;padding:8px;font-size:11px;color:#d7e2eb}.system{color:#d7bd84}.chatline{margin:3px 0}#chatForm{display:flex;border-top:1px solid #91a9bc44}#chatInput{flex:1;min-width:0;border:0;outline:0;background:#101d2a;color:#fff;padding:9px;font-size:11px}#chatForm button{border:0;background:#30485c;color:#fff;padding:0 12px;font-size:11px}.crosshair{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff8;font-size:20px;pointer-events:none}.mobile-controls{display:none;position:fixed;bottom:25px;left:20px;right:20px;justify-content:space-between;align-items:flex-end;pointer-events:none}.mobile-controls button{pointer-events:auto;border:1px solid #ffffff55;color:#fff;background:#142536cc;border-radius:12px;min-width:48px;min-height:44px;font-size:18px}.dpad{display:flex;flex-direction:column;align-items:center;gap:4px}.dpad div{display:flex;gap:4px}@media(pointer:coarse),(max-width:700px){.mobile-controls{display:flex}.help,.attack{display:none}.chat{width:190px;bottom:125px;left:12px}.hud{top:62px;right:10px}.player-card{min-width:170px;padding:7px}.status{position:fixed;top:18px;right:10px}.brand{top:18px;left:12px}.bag-toggle{right:14px;bottom:205px}.bag-panel{right:10px;top:115px;width:min(310px,calc(100vw - 20px));max-height:55vh}}
+.game-hidden{visibility:hidden}.auth-screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at 50% 35%,#334b5d 0,#142333 52%,#080f19 100%);color:#f5f0e6}.auth-screen[hidden]{display:none}.auth-card{width:min(420px,100%);padding:34px;background:#0b1725ed;border:1px solid #c7aa7066;border-radius:16px;box-shadow:0 22px 70px #0009}.auth-brand{font-size:18px;font-weight:900;letter-spacing:4px;color:#f0d69a}.auth-brand span{display:block;font-size:9px;letter-spacing:3px;color:#91a9bc;margin-top:5px}.auth-card h1{font-size:25px;margin:28px 0 6px}.auth-card p{color:#aebdca;font-size:13px}.auth-card label{display:block;margin:18px 0 0;font-size:12px;color:#d9c99e}.auth-card input{display:block;width:100%;margin-top:7px;padding:13px;border-radius:8px;border:1px solid #607487;background:#101f30;color:white;outline:none}.auth-card input:focus{border-color:#d8b66e}.auth-card form>button{width:100%;margin-top:22px;padding:13px;border:0;border-radius:8px;background:linear-gradient(#d5b77c,#987342);color:#17202a;font-weight:800;cursor:pointer}.auth-switch{margin-top:18px;text-align:center;color:#aebdca;font-size:12px}.auth-switch button,.text-button{border:0;background:none;color:#e6c77f;cursor:pointer;font-weight:bold}.auth-error{min-height:18px;color:#ff9292!important;margin:12px 0 0}.auth-foot{border-top:1px solid #ffffff20;padding-top:15px;margin-top:15px;color:#71869a;font-size:10px;text-align:center}
+
+.auth-card select{display:block;width:100%;margin-top:7px;padding:13px;border-radius:8px;border:1px solid #607487;background:#101f30;color:white;outline:none}.job-hint{margin-top:8px;color:#aebdca;font-size:11px;line-height:1.5}.stats-toggle{position:fixed;right:26px;bottom:174px;border:1px solid #d9bd83;background:#152536ef;color:#fff;padding:10px 15px;border-radius:9px;font-weight:bold}.stats-toggle span{color:#e8ca7d;margin-left:7px}.stats-panel{position:fixed;right:22px;top:112px;width:310px;background:#101e2df2;border:1px solid #c7aa70;border-radius:12px;color:#f4f0e5;padding:13px;box-shadow:0 12px 35px #0009}.stats-panel[hidden]{display:none}.stats-panel header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid #ffffff25}.stats-panel header button{background:none;border:0;color:white;font-size:18px}.job-summary{padding:10px 0;color:#e8ca7d;font-size:13px}.attribute-list{display:grid;gap:7px}.attribute-row{display:flex;align-items:center;justify-content:space-between;background:#263747;border:1px solid #ffffff20;border-radius:7px;padding:8px 10px;font-size:12px}.attribute-row strong{color:#fff}.attribute-row button{border:1px solid #d9bd83;background:#72502b;color:white;border-radius:6px;width:28px;height:26px;font-weight:bold}.attribute-row button:disabled{opacity:.35}.stat-help{font-size:11px;color:#aebdca;line-height:1.5;margin:10px 0 0}@media(pointer:coarse),(max-width:700px){.stats-toggle{right:14px;bottom:260px}.stats-panel{right:10px;top:115px;width:min(310px,calc(100vw - 20px))}}
+
+.mp i{background:#4a9bd5;width:0%}
+.skill-bar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:flex;gap:8px;z-index:5}
+.skill-button{position:relative;min-width:112px;padding:10px 12px 9px 38px;border:1px solid #a9c6d9;background:linear-gradient(#233e55ee,#101f30ee);border-radius:9px;color:#fff;text-align:left;box-shadow:0 5px 18px #0007;cursor:pointer}
+.skill-button kbd{position:absolute;left:9px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:23px;height:25px;border:1px solid #d9bd83;border-radius:5px;color:#f1d38f;font-weight:bold}
+.skill-button strong,.skill-button small{display:block}.skill-button strong{font-size:12px}.skill-button small{font-size:10px;color:#b6c5d1;margin-top:3px}.skill-button:disabled{opacity:.48;filter:grayscale(.65)}
+.mobile-skills{display:flex;flex-direction:column;gap:6px;align-items:center}.mobile-skills button{border:1px solid #d9bd83;background:#152536eF;color:#fff;padding:8px 10px;border-radius:9px;font-size:11px;min-width:94px}.mobile-skills button:disabled{opacity:.45}
+@media(pointer:coarse),(max-width:700px){.skill-bar{bottom:105px;left:auto;right:12px;transform:none;flex-direction:column;gap:5px}.skill-button{min-width:105px;padding:7px 8px 7px 32px}.skill-button kbd{left:6px}.mobile-skills{display:flex;flex-direction:column;gap:6px;align-items:center}.mobile-skills button{border:1px solid #d9bd83;background:#152536eF;color:#fff;padding:8px 10px;border-radius:9px;font-size:11px;min-width:94px}.mobile-skills button:disabled{opacity:.45}.help{display:none}}
+
+/* 0.6.1: numeric HP and mobile-MMO action wheel */
+.bar-value{font-size:10px!important;color:#ffd4d7!important;display:block;margin-top:2px;font-weight:700;letter-spacing:.2px}
+.action-wheel{position:fixed;right:22px;bottom:22px;width:194px;height:178px;z-index:6;pointer-events:none}
+.action-wheel button{pointer-events:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.action-wheel .attack{position:absolute;right:0;bottom:0;width:86px;height:86px;border:2px solid #ffe2a1;background:radial-gradient(circle at 35% 28%,#d9ae69,#875522 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 5px 18px #0009,inset 0 0 0 3px #ffffff20}
+.attack-icon{font-size:29px;line-height:30px;text-shadow:0 2px 4px #0008}
+.action-wheel .attack strong{font-size:12px;letter-spacing:1px}
+.action-wheel .wheel-skill{position:absolute;width:70px;height:70px;min-width:70px;padding:8px 4px 6px;border-radius:50%;border:2px solid #c5d8e6;background:radial-gradient(circle at 35% 25%,#527795,#14283c 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;box-shadow:0 4px 14px #0009,inset 0 0 0 3px #ffffff18}
+.action-wheel .skill-one{right:99px;bottom:80px}
+.action-wheel .skill-two{right:13px;bottom:103px}
+.action-wheel .wheel-skill kbd{position:static;transform:none;width:17px;height:17px;border-radius:50%;font-size:10px;line-height:15px;border-color:#e5c77e;background:#0b1725}
+.action-wheel .wheel-skill strong{font-size:10px;line-height:1.15;max-width:62px;white-space:normal}
+.action-wheel .wheel-skill small{font-size:9px;line-height:1;color:#d5e1eb;margin-top:1px}
+.action-wheel .wheel-skill:disabled{opacity:.48;filter:grayscale(.8)}
+.action-wheel .attack:active,.action-wheel .wheel-skill:active{transform:scale(.94)}
+@media(pointer:coarse),(max-width:700px){
+  .action-wheel{right:12px;bottom:18px;transform:scale(.94);transform-origin:bottom right}
+  .mobile-controls{left:12px;right:auto;bottom:22px}
+  .dpad button{width:48px;height:46px;min-width:48px;min-height:46px;border-radius:13px!important;background:#142536d9!important;box-shadow:0 3px 10px #0007}
+  .chat{bottom:130px}
+  .help{display:none}
+}
+@media(max-width:390px){.action-wheel{transform:scale(.82)}.player-card{min-width:155px}.hud{right:6px}.chat{width:165px}}
+
+
+/* 0.6.2 HUD layout refresh */
+.hud{left:18px;right:auto;top:18px;align-items:flex-start;z-index:8}
+.player-card{min-width:255px;max-width:290px}
+.brand{left:300px;top:22px}
+.meter{margin-top:5px}
+.meter-head{display:flex;justify-content:space-between;align-items:center;gap:10px;line-height:1.1}
+.meter-head small:first-child{color:#d5e0e8;font-size:10px;font-weight:700;letter-spacing:.6px}
+.meter-head .bar-value{margin:0;text-align:right;font-size:10px!important;color:#fff!important}
+.meter .bar{margin-top:3px;height:6px}
+.mp i{background:#4a9bd5}
+.exp i{background:#e5c15d}
+.utility-toggles{position:fixed;top:18px;right:20px;z-index:12;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.utility-toggles .stats-toggle,.utility-toggles .bag-toggle{position:static;right:auto;bottom:auto;top:auto;white-space:nowrap;min-width:128px;text-align:left;box-shadow:0 4px 14px #0006}
+.stats-panel,.bag-panel{top:112px;right:20px;z-index:11}
+.action-wheel .attack{display:flex}
+.attack-key{font-size:9px;line-height:1;color:#ffe8bd;margin-top:2px;letter-spacing:1px}
+@media(pointer:coarse),(max-width:700px){
+  .hud{left:10px;right:auto;top:12px}
+  .player-card{min-width:205px;max-width:230px;padding:8px 10px}
+  .brand{left:auto;right:10px;top:12px;text-align:right;font-size:11px;letter-spacing:1.5px}
+  .brand span{font-size:8px}
+  .utility-toggles{top:75px;right:10px;gap:6px}
+  .utility-toggles .stats-toggle,.utility-toggles .bag-toggle{min-width:112px;padding:8px 10px;font-size:11px}
+  .stats-panel,.bag-panel{top:126px;right:10px;width:min(310px,calc(100vw - 20px));max-height:55vh}
+  .status{top:12px;right:10px;left:auto}
+}
+@media(max-width:390px){.hud{left:6px;top:8px}.player-card{min-width:190px;max-width:205px}.brand{display:none}.utility-toggles{top:12px;right:8px}.stats-panel,.bag-panel{top:108px}}
+
+/* 0.7 NPC and quest interface */
+.quest-panel{position:fixed;left:50%;top:86px;transform:translateX(-50%);z-index:14;width:min(360px,calc(100vw - 24px));padding:14px 16px;background:#101e2df2;border:1px solid #d2b16f;border-radius:12px;color:#f4f0e5;box-shadow:0 12px 35px #0009}
+.quest-panel[hidden],.npc-hint[hidden]{display:none}
+.quest-panel header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #ffffff25}
+.quest-panel header button{border:0;background:none;color:#fff;font-size:18px}
+.quest-panel p{font-size:12px;line-height:1.6;color:#d9e3eb;margin:10px 0}
+.quest-progress{font-size:12px;color:#f0d18c;background:#263747;border-radius:7px;padding:9px;margin:8px 0}
+.quest-actions{display:flex;gap:8px;justify-content:flex-end}
+.quest-actions button{border:1px solid #e0c17f;border-radius:7px;background:linear-gradient(#c7a568,#806039);color:#17202a;font-weight:800;padding:8px 13px;cursor:pointer}
+.quest-actions button[hidden]{display:none}
+.npc-hint{position:fixed;left:50%;top:58%;transform:translateX(-50%);z-index:7;padding:8px 13px;border-radius:20px;background:#08121ddd;border:1px solid #e0c17f;color:#ffe7ae;font-size:12px;pointer-events:none}
+@media(max-width:700px){.quest-panel{top:115px}.npc-hint{top:54%}}
+
+
+/* 0.8 quest journal and NPC overhead marker */
+.utility-toggles .quest-toggle{position:static;right:auto;bottom:auto;top:auto;white-space:nowrap;min-width:128px;text-align:left;box-shadow:0 4px 14px #0006;border:1px solid #d9bd83;background:#152536ef;color:#fff;padding:10px 15px;border-radius:9px;font-weight:bold}
+.quest-toggle span{float:right;color:#f2ce79;margin-left:12px}.quest-toggle span[hidden]{display:none}
+.task-panel{position:fixed;right:20px;top:112px;width:310px;max-height:min(55vh,520px);overflow:auto;z-index:11;padding:13px;background:#101e2df2;border:1px solid #c7aa70;border-radius:12px;color:#f4f0e5;box-shadow:0 12px 35px #0009}
+.task-panel[hidden]{display:none}.task-panel header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid #ffffff25}.task-panel header button{background:none;border:0;color:white;font-size:18px}
+.task-entry{margin-top:10px;padding:11px;background:#263747;border:1px solid #ffffff20;border-radius:8px}.task-entry strong{display:block;color:#f0d18c;font-size:13px}.task-entry p{font-size:11px;line-height:1.5;color:#d5e0e8;margin:7px 0}.task-entry .task-state{font-size:11px;color:#9ed7a8}.task-entry .task-state.ready{color:#f4ce76}.task-empty{font-size:12px;color:#aebdca;padding:14px 4px}
+.npc-quest-marker{font-weight:900}
+@media(pointer:coarse),(max-width:700px){.utility-toggles .quest-toggle{min-width:112px;padding:8px 10px;font-size:11px}.task-panel{top:126px;right:10px;width:min(310px,calc(100vw - 20px));max-height:55vh}}
+@media(max-width:390px){.task-panel{top:108px}}
+
+/* 0.9 monster combat and death / respawn feedback */
+.death-overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#190e12b8,#070a10d9);backdrop-filter:blur(3px);color:#fff;text-align:center}
+.death-overlay[hidden]{display:none}.death-card{width:min(340px,calc(100vw - 36px));padding:25px 22px;border:1px solid #bd7777;border-radius:14px;background:#171b24f2;box-shadow:0 18px 50px #000b}.death-card strong{font-size:24px;color:#f0b6b6;letter-spacing:2px}.death-card p{font-size:13px;color:#d4d9df}.death-card #respawnCountdown{font-size:54px;font-weight:900;color:#f3d18b;line-height:1.3}.death-card small{color:#aeb9c4}.damage-flash:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:25;background:#d6282838;animation:damageFlash .28s ease-out forwards}@keyframes damageFlash{from{opacity:1}to{opacity:0}}
+
+/* 1.0 item rarity presentation */
+.item.rarity-普通{border-color:#aab5bd}.item.rarity-稀有{border-color:#55a9e8;box-shadow:inset 0 0 0 1px #55a9e833}.item.rarity-史詩{border-color:#b77be8;box-shadow:inset 0 0 0 1px #b77be855}.item.rarity-稀有 strong{color:#8fd0ff}.item.rarity-史詩 strong{color:#d5a5ff}
+
+/* 1.1 equipment and enhancement */
+.gold-line{margin:10px 0 7px;padding:8px 10px;border-radius:7px;background:#283b4b;color:#d9e4ec;font-size:12px}.gold-line strong{color:#f0cf78;font-size:15px}.equipment-title{font-size:11px;color:#e8ca7d;margin:10px 0 6px}.equipment{grid-template-columns:repeat(2,minmax(0,1fr))}.equip-slot{display:flex;flex-direction:column;gap:5px;min-width:0}.equip-slot span{font-weight:700;overflow-wrap:anywhere}.equip-slot small{font-size:10px;color:#c5d2dc;line-height:1.4}.equip-actions{display:flex;gap:4px;margin-top:3px}.equip-actions button{flex:1;min-width:0;border:1px solid #ffffff2a;border-radius:5px;padding:5px 2px;background:#344e62;color:#fff;font-size:10px;cursor:pointer}.equip-actions button:first-child{background:#73572f;border-color:#c9a35d}.equip-slot.rarity-稀有{border-color:#55a9e8}.equip-slot.rarity-史詩{border-color:#b77be8}.item{min-width:0}.bag-panel{z-index:12}
+
+
+/* 1.1.1 HUD and menu layout refinement */
+.player-card{min-width:245px;max-width:275px;padding:10px 13px}
+.player-card .stats{width:100%}
+.player-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:7px;min-width:0}
+.player-heading strong{display:block;margin:0;font-size:14px;line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-heading .player-level{flex:0 0 auto;color:#e8ca7d;font-size:13px;text-align:right}
+.player-heading .player-level b{font-weight:800}
+.player-card .meter:first-of-type{margin-top:0}
+.utility-toggles{flex-direction:row;align-items:center;gap:7px}
+.utility-toggles .stats-toggle,.utility-toggles .bag-toggle,.utility-toggles .quest-toggle{min-width:0;text-align:center;padding:10px 14px}
+.stats-panel,.bag-panel,.task-panel{top:66px;right:20px;left:auto;z-index:13;width:330px;max-width:calc(100vw - 24px);max-height:calc(100vh - 86px)}
+@media(pointer:coarse),(max-width:700px){
+  .hud{left:10px;right:auto;top:12px}
+  .player-card{min-width:205px;max-width:235px;padding:8px 10px}
+  .player-heading{margin-bottom:5px}
+  .player-heading strong{font-size:13px}
+  .player-heading .player-level{font-size:12px}
+  .brand{display:none}
+  .utility-toggles{top:112px;left:10px;right:10px;justify-content:stretch;gap:6px}
+  .utility-toggles .stats-toggle,.utility-toggles .bag-toggle,.utility-toggles .quest-toggle{flex:1;padding:9px 6px;font-size:11px;white-space:nowrap}
+  .stats-panel,.bag-panel,.task-panel{top:158px;left:10px;right:10px;width:auto;max-width:none;max-height:calc(100vh - 176px)}
+}
+@media(max-width:390px){
+  .hud{left:8px;top:8px}
+  .player-card{min-width:190px;max-width:210px}
+  .utility-toggles{top:106px;left:8px;right:8px}
+  .utility-toggles .stats-toggle,.utility-toggles .bag-toggle,.utility-toggles .quest-toggle{padding:8px 4px;font-size:10px}
+  .stats-panel,.bag-panel,.task-panel{top:148px;left:8px;right:8px;max-height:calc(100vh - 164px)}
+}
+
+
+/* 1.1.2 glass windows and draggable title bars */
+.stats-panel,.bag-panel,.task-panel{
+  background:rgba(12,25,39,.78);
+  -webkit-backdrop-filter:blur(14px) saturate(125%);
+  backdrop-filter:blur(14px) saturate(125%);
+  border-color:rgba(224,190,125,.78);
+  box-shadow:0 16px 44px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.08);
+}
+.stats-panel header,.bag-panel header,.task-panel header{
+  cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;
+}
+.stats-panel header:active,.bag-panel header:active,.task-panel header:active{cursor:grabbing}
+.utility-toggles kbd{
+  display:inline-block;margin-left:5px;padding:1px 4px;border:1px solid #ffffff55;
+  border-radius:4px;background:#07132188;color:#e8ca7d;font:700 9px/1.35 Arial,sans-serif;
+  vertical-align:1px;
+}
+
+/* 1.1.3 trading, potion hotbar, split inventory and five attributes */
+.utility-toggles .shop-toggle{border:1px solid #d9bd83;background:#152536ef;color:#fff;padding:10px 14px;border-radius:9px;font-weight:bold;}
+.shop-toggle kbd{display:inline-block;margin-left:5px;padding:1px 4px;border:1px solid #ffffff55;border-radius:4px;background:#07132188;color:#e8ca7d;font:700 9px/1.35 Arial,sans-serif;}
+.shop-panel{position:fixed;top:66px;right:20px;z-index:14;width:370px;max-width:calc(100vw - 24px);max-height:calc(100vh - 86px);overflow:auto;padding:13px;border:1px solid rgba(224,190,125,.78);border-radius:12px;color:#f4f0e5;background:rgba(12,25,39,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 16px 44px #0008;}
+.shop-panel[hidden]{display:none}.shop-panel header{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid #ffffff25;cursor:grab;touch-action:none;user-select:none}.shop-panel header button{background:none;border:0;color:white;font-size:18px}.shop-gold{margin:10px 0;padding:8px;background:#283b4b;border-radius:7px;font-size:12px}.shop-gold strong{color:#f0cf78;font-size:16px}.shop-note{font-size:11px;color:#aebdca;margin-bottom:8px}.shop-catalog{display:grid;gap:6px}.shop-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px;background:#263747;border:1px solid #ffffff20;border-radius:7px}.shop-item strong,.shop-item small{display:block}.shop-item strong{font-size:12px}.shop-item small{font-size:10px;color:#c5d2dc;margin-top:3px}.shop-item button,.item-actions button{border:1px solid #c9a35d;background:#73572f;color:#fff;border-radius:5px;padding:6px 8px;font-size:10px;white-space:nowrap;cursor:pointer}.shop-item button:disabled{opacity:.4;cursor:not-allowed}
+.bag-columns{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:10px;margin-top:8px}.bag-column{min-width:0}.bag-columns .equipment-title,.bag-columns .inventory-title{margin-top:4px}.bag-columns .equipment{display:grid;grid-template-columns:1fr;max-height:360px;overflow:auto}.bag-columns .inventory{display:grid;grid-template-columns:1fr;max-height:430px;overflow:auto}.item-card{min-width:0;padding:8px;background:#263747;border:1px solid #ffffff25;border-radius:7px;color:#fff}.item-card strong,.item-card small{display:block}.item-card strong{font-size:11px;overflow-wrap:anywhere}.item-card small{font-size:10px;color:#c5d2dc;line-height:1.4;margin-top:4px}.item-actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.item-actions button{padding:5px 6px}.attribute-row{gap:7px}.attribute-info{flex:1;min-width:0}.attribute-info strong,.attribute-info small{display:block}.attribute-info small{font-size:10px;color:#b7c6d2;line-height:1.35;margin-top:3px}.attribute-value{min-width:20px;text-align:center;color:#f1d18b;font-weight:700}.potion-hotbar{position:fixed;left:50%;bottom:25px;transform:translateX(-50%);display:flex;gap:7px;z-index:10}.hotbar-slot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:64px;height:56px;border:1px solid #d9bd83;border-radius:8px;background:#0d1d2ddd;color:#fff;font-size:10px;cursor:pointer;box-shadow:0 4px 14px #0007}.hotbar-slot kbd{position:absolute;top:3px;left:5px;color:#e8ca7d;font-size:9px}.hotbar-slot span{max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-top:7px}.hotbar-slot.has-item{background:#29465aee;border-color:#f0cf78}
+.shop-panel header:active{cursor:grabbing}
+@media(pointer:coarse),(max-width:700px){.utility-toggles .shop-toggle{flex:1;padding:9px 6px;font-size:11px;white-space:nowrap}.shop-panel{top:158px;left:10px;right:10px;width:auto;max-width:none;max-height:calc(100vh - 176px)}.bag-columns{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:6px}.bag-columns .equipment,.bag-columns .inventory{max-height:260px}.potion-hotbar{bottom:100px;left:50%;gap:4px}.hotbar-slot{width:54px;height:50px}.help{bottom:165px}}
+/* Give the side-by-side equipment and inventory columns enough room on desktop. */
+.bag-panel{width:560px}
+@media(pointer:coarse),(max-width:700px){.bag-panel{width:auto}}
+
+/* 1.1.4 character sheet, category tabs, drag potion bar and eight skill keys */
+.character-profile{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:#263747;border-radius:8px}.character-profile small,.character-combat-stats small{display:block;color:#aebdca;font-size:10px}.character-profile strong{display:block;color:#f5d99d;font-size:12px;margin-top:3px}.character-exp{grid-column:1/-1}.character-combat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.character-combat-stats>div,.character-vitals>div{padding:8px;background:#263747;border:1px solid #ffffff20;border-radius:7px;text-align:center}.character-combat-stats b{display:block;color:#f4d28c;font-size:16px;margin-top:3px}.character-vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.character-vitals b{font-size:10px;color:#fff}.tab-strip{display:flex;gap:5px;margin:7px 0}.tab-strip button{flex:1;border:1px solid #8397a8;background:#1b2b3a;color:#dce7ef;border-radius:6px;padding:7px;font-size:11px}.tab-strip button.active{background:#765a32;border-color:#e1c17d;color:#fff}.item-card[draggable="true"]{cursor:grab}.item-card[draggable="true"]:active{cursor:grabbing}.hotbar-slot.drag-over{outline:2px solid #ffe08a;background:#536b7a}.potion-hotbar .hotbar-slot span{padding:0;max-width:58px;text-align:center;white-space:normal;line-height:1.2}.skill-hotbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:grid;grid-template-columns:repeat(8,66px);gap:5px;z-index:7}.skill-slot{height:58px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid #a9c6d9;background:linear-gradient(#233e55ee,#101f30ee);border-radius:8px;color:#fff;cursor:pointer;min-width:0;padding:5px 3px}.skill-slot kbd{position:absolute;left:4px;top:3px;color:#f1d38f;font-size:10px}.skill-slot strong{font-size:10px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.skill-slot small{font-size:9px;color:#b6c5d1}.skill-slot:disabled{opacity:.45;filter:grayscale(.7)}.attack{position:fixed;right:22px;bottom:22px;z-index:8}.potion-hotbar{bottom:88px}.bag-columns{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.bag-columns .inventory{grid-template-columns:1fr;max-height:340px;overflow:auto}
+@media(max-width:760px){.skill-hotbar{left:50%;bottom:18px;grid-template-columns:repeat(4,58px);gap:4px;transform:translateX(-50%)}.skill-slot{height:48px}.attack{right:12px;bottom:205px;width:64px;height:64px}.potion-hotbar{bottom:130px}.chat{bottom:200px}.character-vitals{grid-template-columns:1fr}.bag-columns{grid-template-columns:.8fr 1.2fr}}
+
+/* 1.1.4 character sheet, category tabs, drag potion bar and eight skill keys */
+.character-profile{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:#263747;border-radius:8px}.character-profile small,.character-combat-stats small{display:block;color:#aebdca;font-size:10px}.character-profile strong{display:block;color:#f5d99d;font-size:12px;margin-top:3px}.character-exp{grid-column:1/-1}.character-combat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.character-combat-stats>div,.character-vitals>div{padding:8px;background:#263747;border:1px solid #ffffff20;border-radius:7px;text-align:center}.character-combat-stats b{display:block;color:#f4d28c;font-size:16px;margin-top:3px}.character-vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.character-vitals b{font-size:10px;color:#fff}.tab-strip{display:flex;gap:5px;margin:7px 0}.tab-strip button{flex:1;border:1px solid #8397a8;background:#1b2b3a;color:#dce7ef;border-radius:6px;padding:7px;font-size:11px}.tab-strip button.active{background:#765a32;border-color:#e1c17d;color:#fff}.item-card[draggable="true"]{cursor:grab}.item-card[draggable="true"]:active{cursor:grabbing}.hotbar-slot.drag-over{outline:2px solid #ffe08a;background:#536b7a}.potion-hotbar .hotbar-slot span{padding:0;max-width:58px;text-align:center;white-space:normal;line-height:1.2}.skill-hotbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:grid;grid-template-columns:repeat(8,66px);gap:5px;z-index:7}.skill-slot{height:58px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid #a9c6d9;background:linear-gradient(#233e55ee,#101f30ee);border-radius:8px;color:#fff;cursor:pointer;min-width:0;padding:5px 3px}.skill-slot kbd{position:absolute;left:4px;top:3px;color:#f1d38f;font-size:10px}.skill-slot strong{font-size:10px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.skill-slot small{font-size:9px;color:#b6c5d1}.skill-slot:disabled{opacity:.45;filter:grayscale(.7)}.attack{position:fixed;right:22px;bottom:22px;z-index:8}.potion-hotbar{bottom:88px}.bag-columns{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.bag-columns .inventory{grid-template-columns:1fr;max-height:340px;overflow:auto}
+@media(max-width:760px){.skill-hotbar{left:50%;bottom:18px;grid-template-columns:repeat(4,58px);gap:4px;transform:translateX(-50%)}.skill-slot{height:48px}.attack{right:12px;bottom:205px;width:64px;height:64px}.potion-hotbar{bottom:130px}.chat{bottom:200px}.character-vitals{grid-template-columns:1fr}.bag-columns{grid-template-columns:.8fr 1.2fr}}
+
+
+/* 1.1.5 compact HUD, SP meter, vertical potions and 10-skill dual ring */
+.player-card{min-width:220px;max-width:235px;padding:8px 10px}
+.player-card .stats{font-size:11px}
+.player-heading{margin-bottom:4px}
+.meter{margin-top:3px}
+.meter .bar{height:5px;margin-top:2px}
+.sp i{background:#54c7a2;width:100%}
+.potion-hotbar{position:fixed;left:18px;top:178px;bottom:auto;transform:none;display:flex;flex-direction:column;gap:5px;z-index:10}
+.hotbar-slot{width:78px;height:48px;min-height:42px;font-size:9px}
+.potion-hotbar .hotbar-slot span{max-width:70px}
+.action-wheel{position:fixed;right:16px;bottom:14px;width:360px;height:360px;z-index:8;pointer-events:none;transform:none}
+.action-wheel button{pointer-events:auto;touch-action:manipulation}
+.action-wheel .skill-slot{position:absolute;width:56px;height:56px;min-width:56px;padding:4px 2px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;border:1px solid #b8d2e4;background:radial-gradient(circle at 35% 25%,#547a98,#10263a 75%);box-shadow:0 4px 14px #0009,inset 0 0 0 2px #ffffff18}
+.action-wheel .skill-slot kbd{position:absolute;left:4px;top:3px;width:15px;height:15px;display:grid;place-items:center;border:1px solid #e5c77e;border-radius:50%;background:#071321;color:#f6d995;font-size:9px;line-height:1}
+.action-wheel .skill-slot strong{font-size:9px;line-height:1.1;max-width:49px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.action-wheel .skill-slot small{font-size:8px;line-height:1;color:#d5e1eb;margin:0}
+.action-wheel .skill-slot:disabled{opacity:.42;filter:grayscale(.8)}
+.action-wheel #skill1{left:152px;top:0}.action-wheel #skill2{left:270px;top:60px}.action-wheel #skill3{left:270px;top:230px}.action-wheel #skill4{left:152px;top:304px}.action-wheel #skill5{left:34px;top:230px}.action-wheel #skill6{left:34px;top:60px}
+.action-wheel #skill7{left:154px;top:76px;width:48px;height:48px}.action-wheel #skill8{left:228px;top:154px;width:48px;height:48px}.action-wheel #skill9{left:154px;top:228px;width:48px;height:48px}.action-wheel #skill10{left:80px;top:154px;width:48px;height:48px}
+.action-wheel .attack{position:absolute;left:146px;top:146px;right:auto;bottom:auto;width:68px;height:68px;border:2px solid #ffe2a1;background:radial-gradient(circle at 35% 28%,#d9ae69,#875522 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
+.action-wheel .attack-icon{font-size:23px;line-height:24px}.action-wheel .attack strong{font-size:10px}.action-wheel .attack-key{font-size:7px}
+@media(pointer:coarse),(max-width:760px){
+ .player-card{min-width:190px;max-width:205px;padding:7px 8px}
+ .potion-hotbar{left:8px;top:168px;gap:4px}.hotbar-slot{width:62px;height:43px}
+ .action-wheel{right:5px;bottom:8px;transform:scale(.78);transform-origin:bottom right}
+ .chat{bottom:18px;left:82px;width:170px}
+ .help{display:none}
+}
+@media(max-width:430px){.action-wheel{transform:scale(.65)}.potion-hotbar{top:160px}.chat{width:145px;left:76px}}
+
+/* 1.1.6: compact inline meters, task highlight and quarter action wheel */
+.player-card{padding:7px 9px;min-width:205px}
+.player-card .stats{font-size:11px}
+.player-card .player-heading{display:flex;justify-content:space-between;align-items:center;margin:0 0 4px}
+.player-card .player-heading strong{margin:0;font-size:13px}
+.player-card .meter{margin-top:3px}
+.player-card .bar{position:relative;height:13px;margin:0;border-radius:4px;background:#17232fdd;border:1px solid #ffffff22}
+.player-card .bar i{height:100%;opacity:.82}
+.player-card .bar-value{position:absolute;inset:0;display:flex!important;align-items:center;justify-content:center;margin:0!important;color:#fff!important;font-size:9px!important;line-height:1;font-weight:800;text-shadow:0 1px 2px #000;z-index:1;letter-spacing:.25px}
+.player-card .hp i{background:#d94d58}.player-card .mp i{background:#368ed0}.player-card .sp i{background:#269b78}.player-card .exp i{background:#c59c36}
+.bag-toggle span{display:none!important}
+.bag-panel .gold-line{font-size:11px;color:#d4e0e9;margin:9px 0 5px}
+.utility-toggles .quest-toggle.has-task-update{background:#e7c66f!important;color:#1b2630!important;border-color:#fff0b0!important;box-shadow:0 0 0 2px #e7c66f55,0 0 16px #e7c66f88;font-weight:900}
+.utility-toggles .quest-toggle.has-task-update kbd{background:#172636;color:#ffe7a1}
+.action-wheel{position:fixed;right:12px;bottom:10px;width:350px;height:340px;z-index:8;pointer-events:none;transform:none}
+.action-wheel button{pointer-events:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.action-wheel .skill-slot{position:absolute;width:54px;height:54px;min-width:54px;padding:4px 2px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;border:1px solid #c3d9e8;background:radial-gradient(circle at 35% 25%,#547a98,#10263a 75%);box-shadow:0 4px 14px #0009,inset 0 0 0 2px #ffffff18}
+.action-wheel .skill-slot kbd{position:absolute;left:3px;top:3px;width:14px;height:14px;display:grid;place-items:center;border:1px solid #e5c77e;border-radius:50%;background:#071321;color:#f6d995;font-size:8px;line-height:1}
+.action-wheel .skill-slot strong{font-size:8px;line-height:1.05;max-width:47px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.action-wheel .skill-slot small{font-size:7px;line-height:1;color:#d5e1eb;margin:0}
+.action-wheel .skill-slot:disabled{opacity:.42;filter:grayscale(.8)}
+/* Four inner skills nearest the attack button */
+.action-wheel #skill1{left:202px;top:202px}.action-wheel #skill2{left:246px;top:151px}.action-wheel #skill3{left:202px;top:100px}.action-wheel #skill4{left:151px;top:151px}
+/* Six outer skills */
+.action-wheel #skill5{left:139px;top:266px}.action-wheel #skill6{left:76px;top:224px}.action-wheel #skill7{left:25px;top:165px}.action-wheel #skill8{left:76px;top:102px}.action-wheel #skill9{left:139px;top:43px}.action-wheel #skill10{left:220px;top:18px}
+.action-wheel .attack{position:absolute;left:277px;top:271px;right:auto;bottom:auto;width:66px;height:66px;border:2px solid #ffe2a1;background:radial-gradient(circle at 35% 28%,#e4bb78,#875522 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 5px 18px #0009,inset 0 0 0 3px #ffffff20}
+.action-wheel .attack-icon{font-size:22px;line-height:23px}.action-wheel .attack strong{font-size:10px}.action-wheel .attack-key{font-size:7px}
+@media(pointer:coarse),(max-width:760px){.player-card{min-width:174px;max-width:190px;padding:6px 7px}.action-wheel{right:4px;bottom:5px;transform:scale(.78);transform-origin:bottom right}.potion-hotbar{left:7px;top:160px}.chat{bottom:15px;left:78px;width:160px}}
+@media(max-width:430px){.action-wheel{transform:scale(.64)}.player-card{min-width:160px;max-width:170px}.potion-hotbar{top:154px}.chat{width:138px;left:72px}}
+
+
+/* 1.1.7: streamlined character stats and MOBA-style four-skill controls */
+.stats-toggle span{display:none!important}
+.stats-toggle.has-stat-points{background:linear-gradient(135deg,#d9bd83,#8e6a36)!important;border-color:#ffe5a8!important;color:#17202a!important;box-shadow:0 0 0 2px #f1d28b55,0 0 16px #e8c77a99!important}
+.stats-toggle.has-stat-points kbd{background:#17202a;color:#ffe4a1}
+.attribute-list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:repeat(3,auto);grid-auto-flow:column;gap:7px 9px}
+.attribute-row{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto 24px;gap:5px;padding:7px 6px;align-items:center}
+.attribute-info{min-width:0}.attribute-info strong{display:block;font-size:11px;white-space:nowrap}.attribute-info small{display:block;font-size:9px;line-height:1.25;color:#b7c6d2;margin-top:3px;white-space:normal}
+.attribute-value{font-size:11px;font-weight:800;color:#f4d28c;white-space:nowrap;font-variant-numeric:tabular-nums}
+.attribute-row button{width:23px;height:24px;padding:0}
+.action-wheel{position:fixed;right:20px;bottom:18px;width:270px;height:235px;z-index:8;pointer-events:none;transform:none}
+.action-wheel button{pointer-events:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.action-wheel .skill-slot{position:absolute;width:60px;height:60px;min-width:60px;padding:4px 3px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;border:2px solid #c5d8e6;background:radial-gradient(circle at 35% 25%,#527795,#14283c 72%);box-shadow:0 4px 14px #0009,inset 0 0 0 3px #ffffff18}
+.action-wheel .skill-slot kbd{position:absolute;left:4px;top:3px;width:15px;height:15px;display:grid;place-items:center;border:1px solid #e5c77e;border-radius:50%;background:#071321;color:#f6d995;font-size:9px;line-height:1}
+.action-wheel .skill-slot strong{font-size:9px;line-height:1.1;max-width:52px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.action-wheel .skill-slot small{font-size:8px;line-height:1;color:#d5e1eb;margin:0}
+.action-wheel .skill-slot:disabled{opacity:.42;filter:grayscale(.8)}
+.action-wheel #skill1{right:100px;bottom:2px}.action-wheel #skill2{right:170px;bottom:72px}.action-wheel #skill3{right:104px;bottom:140px}.action-wheel #skill4{right:28px;bottom:108px}
+.action-wheel .attack{position:absolute;right:0;bottom:0;left:auto;top:auto;width:82px;height:82px;border:2px solid #ffe2a1;background:radial-gradient(circle at 35% 28%,#e4bb78,#875522 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 5px 18px #0009,inset 0 0 0 3px #ffffff20}
+.action-wheel .attack-icon{font-size:27px;line-height:28px}.action-wheel .attack strong{font-size:11px}.action-wheel .attack-key{font-size:8px;line-height:1;color:#ffe8bd;margin-top:2px;letter-spacing:1px}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:8px;bottom:8px;transform:scale(.82);transform-origin:bottom right}.stats-panel{width:min(360px,calc(100vw - 20px))}}
+@media(max-width:430px){.action-wheel{transform:scale(.68)}.attribute-list{gap:6px 5px}.attribute-row{grid-template-columns:minmax(0,1fr) auto 22px;padding:6px 4px}.attribute-info strong{font-size:10px}.attribute-info small{font-size:8px}.attribute-value{font-size:10px}}
+
+/* 1.1.8: character resource bars and mobile-MOBA skill cluster */
+.character-profile{grid-template-columns:1fr 1fr;align-items:start}
+.character-identity{grid-column:1;min-width:0}
+.character-identity>strong{margin-bottom:7px}
+.character-resource-bars{display:grid;gap:4px;margin-top:7px;width:100%}
+.character-resource{height:9px;position:relative;overflow:hidden;border-radius:8px;background:#101923;border:1px solid #ffffff30}
+.character-resource i{display:block;height:100%;width:100%;transition:width .18s ease}
+.character-resource span{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;line-height:1;color:#fff;text-shadow:0 1px 2px #000;letter-spacing:.5px}
+.character-resource.hp i{background:linear-gradient(90deg,#a92d3c,#ed6570)}
+.character-resource.mp i{background:linear-gradient(90deg,#2465a0,#56b5ed)}
+.character-resource.sp i{background:linear-gradient(90deg,#187353,#4bd0a0)}
+.character-exp{grid-column:1/-1}
+.character-vitals{display:none!important}
+.attribute-info small{font-size:9px;line-height:1.2}
+.action-wheel{position:fixed;right:20px;bottom:18px;width:292px;height:196px;z-index:8;pointer-events:none;transform:none}
+.action-wheel button{pointer-events:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.action-wheel .skill-slot{position:absolute;width:62px;height:62px;min-width:62px;padding:4px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-align:center;border:2px solid #b9d4e7;background:radial-gradient(circle at 35% 25%,#456d8e,#102238 75%);box-shadow:0 4px 14px #000a,inset 0 0 0 3px #ffffff18;overflow:hidden}
+.action-wheel .skill-slot kbd{position:absolute;left:4px;top:3px;width:15px;height:15px;display:grid;place-items:center;border:1px solid #f1d18b;border-radius:50%;background:#071321;color:#ffe4a3;font-size:9px;line-height:1;z-index:2}
+.action-wheel .skill-icon{font-size:23px;line-height:24px;color:#fff4cf;text-shadow:0 2px 4px #000}
+.action-wheel .skill-slot strong{font-size:8px;line-height:1.1;max-width:54px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.action-wheel .skill-slot small{font-size:7px;line-height:1;color:#d6e5f0;margin:1px 0 0}
+.action-wheel .skill-slot:disabled{opacity:.52;filter:grayscale(.7)}
+.action-wheel .skill-slot .skill-cooldown{display:none;position:absolute;inset:0;background:#071321c9;color:#fff;font-size:18px;font-weight:900;align-items:center;justify-content:center;border-radius:50%;z-index:3}
+.action-wheel .skill-slot .skill-cooldown.active{display:flex}
+/* Three regular skills plus one larger special skill, grouped beside the attack button */
+.action-wheel #skill1{right:172px;bottom:0}
+.action-wheel #skill2{right:104px;bottom:72px}
+.action-wheel #skill3{right:34px;bottom:0}
+.action-wheel #skill4{right:178px;bottom:104px;width:68px;height:68px;min-width:68px;border-color:#f0ce83;background:radial-gradient(circle at 35% 25%,#98713d,#392719 75%)}
+.action-wheel #skill4 .skill-icon{font-size:27px}
+.action-wheel .attack{position:absolute;right:0;bottom:0;left:auto;top:auto;width:86px;height:86px;border:3px solid #ffe2a1;border-radius:50%;background:radial-gradient(circle at 35% 28%,#f0c27a,#98551e 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 5px 20px #000b,inset 0 0 0 4px #ffffff25}
+.action-wheel .attack-icon{font-size:29px;line-height:30px}.action-wheel .attack strong{font-size:10px}.action-wheel .attack-key{font-size:8px;line-height:1;color:#fff0cf;margin-top:2px;letter-spacing:1px}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:7px;bottom:7px;transform:scale(.84);transform-origin:bottom right}.character-profile{grid-template-columns:1fr 1fr}}
+@media(max-width:430px){.action-wheel{transform:scale(.72)}.stats-panel{width:min(360px,calc(100vw - 16px))}.character-resource{height:8px}}
+
+/* 1.1.9: compact typography and MOBA action cluster */
+html,body,#game{font-size:14px}
+body{font-size:13px}
+.brand{font-size:14px}.brand span{font-size:8px}
+.player-heading strong{font-size:12px!important}.player-heading .player-level{font-size:11px!important}
+.player-card,.utility-toggles button,.help,.chat,#chatLog,#chatInput,.bag-panel,.stats-panel,.task-panel,.shop-panel,.quest-panel{font-size:11px}
+.stats-panel strong,.bag-panel strong,.task-panel strong,.shop-panel strong{font-size:12px}
+.action-wheel{position:fixed;right:18px;bottom:18px;width:330px;height:250px;z-index:8;pointer-events:none;transform:none}
+.action-wheel button{pointer-events:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.action-wheel .skill-slot{position:absolute;width:58px;height:58px;min-width:58px;padding:4px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-align:center;border:2px solid #bfd6e7;background:radial-gradient(circle at 35% 25%,#527c9d,#102238 76%);box-shadow:0 4px 14px #000b,inset 0 0 0 3px #ffffff20;overflow:hidden}
+.action-wheel .skill-slot kbd{position:absolute;left:3px;top:3px;width:14px;height:14px;display:grid;place-items:center;border:1px solid #f1d18b;border-radius:50%;background:#071321;color:#ffe4a3;font-size:8px;line-height:1;z-index:4}
+.action-wheel .skill-icon{font-size:22px;line-height:23px;color:#fff4cf;text-shadow:0 2px 4px #000}
+.action-wheel .skill-slot strong{font-size:8px;line-height:1.05;max-width:49px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;z-index:1}
+.action-wheel .skill-slot small{font-size:7px;line-height:1;color:#d6e5f0;margin:1px 0 0;z-index:1}
+.action-wheel .skill-slot:disabled{filter:grayscale(.7)}
+.action-wheel .skill-slot .skill-cooldown{display:none;position:absolute;inset:0;border-radius:50%;z-index:3;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:900;background:conic-gradient(#071321d9 var(--cooldown-progress,0%),#07132130 0);text-shadow:0 2px 4px #000}
+.action-wheel .skill-slot .skill-cooldown.active{display:flex}
+/* Clockwise skill positions: 9, 10, 11 and 12 o'clock */
+.action-wheel #skill1{left:8px;top:112px}
+.action-wheel #skill2{left:61px;top:55px}
+.action-wheel #skill3{left:128px;top:12px}
+.action-wheel #skill4{left:207px;top:10px;width:62px;height:62px;min-width:62px;border-color:#f0ce83;background:radial-gradient(circle at 35% 25%,#98713d,#392719 75%)}
+.action-wheel #skill4 .skill-icon{font-size:25px}
+.action-wheel .attack{position:absolute;right:0;bottom:0;left:auto;top:auto;width:82px;height:82px;border:3px solid #ffe2a1;border-radius:50%;background:radial-gradient(circle at 35% 28%,#f0c27a,#98551e 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 5px 20px #000b,inset 0 0 0 4px #ffffff25}
+.action-wheel .attack-icon{font-size:27px;line-height:28px}.action-wheel .attack strong{font-size:10px}.action-wheel .attack-key{font-size:7px;line-height:1;color:#fff0cf;margin-top:2px;letter-spacing:1px}
+.action-wheel .action-extra{position:absolute;width:52px;height:52px;min-width:52px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;color:#fff;border:2px solid #c6d8e5;background:radial-gradient(circle at 35% 25%,#48667e,#152638 75%);box-shadow:0 4px 12px #000a,inset 0 0 0 2px #ffffff18}
+.action-wheel .action-extra span{font-size:19px;line-height:20px}.action-wheel .action-extra strong{font-size:9px;line-height:1.2}.action-wheel .action-extra small{font-size:7px;color:#e5d4a8;line-height:1;margin-top:2px}
+.action-wheel .attack:active,.action-wheel .skill-slot:active,.action-wheel .action-extra:active{transform:scale(.93)}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:8px;bottom:8px;transform:scale(.88);transform-origin:bottom right}.player-card{min-width:174px;max-width:190px;padding:6px 7px}}
+@media(max-width:430px){.action-wheel{transform:scale(.74)}.player-card{min-width:160px;max-width:170px}}
+
+/* 1.2.0: stronger global typography reduction, readable character resource values, classic mobile MMORPG controls */
+body :is(.brand,.hud,.player-card,.status,.help,.chat,.bag-panel,.stats-panel,.task-panel,.shop-panel,.quest-panel,.npc-hint,.utility-toggles,.potion-hotbar,.action-wheel),
+body :is(.brand,.hud,.player-card,.status,.help,.chat,.bag-panel,.stats-panel,.task-panel,.shop-panel,.quest-panel,.npc-hint,.utility-toggles,.potion-hotbar,.action-wheel) * {
+  font-size:10px !important;
+}
+body :is(.stats-panel header strong,.bag-panel header strong,.task-panel header strong,.shop-panel header strong,.quest-panel header strong,.player-heading strong) {font-size:12px !important}
+body :is(.brand) {font-size:12px !important}
+body .brand span {font-size:8px !important}
+body .action-wheel .skill-slot strong {font-size:9px !important}
+body .action-wheel .skill-slot small {font-size:8px !important}
+body .action-wheel .skill-slot kbd {font-size:8px !important}
+body .action-wheel .attack strong {font-size:10px !important}
+body .action-wheel .attack-key {font-size:8px !important}
+.character-resource span {font-size:9px !important;letter-spacing:0 !important}
+/* HP / MP / SP text is now displayed as current value / maximum value inside each bar. */
+.character-resource {height:13px !important}
+.character-resource span {padding:0 3px;white-space:nowrap}
+/* Familiar mobile MMORPG cluster: basic attack at lower-right; three regular skills and one special skill arc above-left. */
+.action-wheel {width:310px;height:248px;right:18px;bottom:18px}
+.action-wheel #skill1 {left:76px;top:157px;right:auto;bottom:auto}
+.action-wheel #skill2 {left:25px;top:101px;right:auto;bottom:auto}
+.action-wheel #skill3 {left:78px;top:45px;right:auto;bottom:auto}
+.action-wheel #skill4 {left:151px;top:13px;right:auto;bottom:auto;width:66px;height:66px;min-width:66px;border-width:2px;border-color:#f4d28c;background:radial-gradient(circle at 35% 25%,#a77b40,#392719 76%)}
+.action-wheel #skill4 .skill-icon {font-size:27px}
+.action-wheel .attack {right:0;bottom:0;left:auto;top:auto;width:86px;height:86px}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:8px;bottom:8px;width:310px;height:248px;transform:scale(.88);transform-origin:bottom right}}
+@media(max-width:430px){.action-wheel{transform:scale(.74)}}
+
+
+/* 1.2.1: explicit character HP/MP/SP readouts and a four-skill quarter arc */
+.character-resource-bars {display:grid !important;gap:8px !important;margin-top:9px !important;width:100% !important}
+.character-resource {display:grid !important;grid-template-rows:auto 10px !important;gap:3px !important;height:auto !important;overflow:visible !important;background:transparent !important;border:0 !important;border-radius:0 !important}
+.character-resource .resource-head {display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;line-height:1.2}
+.character-resource .resource-head b {font-size:10px !important;font-weight:900;letter-spacing:.6px;color:#e8edf2}
+.character-resource .resource-head strong {font-size:10px !important;font-weight:800;color:#fff !important;margin:0 !important;font-variant-numeric:tabular-nums}
+.character-resource .resource-track {height:10px;position:relative;overflow:hidden;border-radius:7px;background:#101923;border:1px solid #ffffff30}
+.character-resource .resource-track i {display:block;height:100%;width:100%;transition:width .18s ease}
+.character-resource.hp .resource-track i {background:linear-gradient(90deg,#a92d3c,#ed6570)}
+.character-resource.mp .resource-track i {background:linear-gradient(90deg,#2465a0,#56b5ed)}
+.character-resource.sp .resource-track i {background:linear-gradient(90deg,#187353,#4bd0a0)}
+/* Four equal skills form a 9-to-12 o'clock arc around the basic attack. */
+.action-wheel {width:350px !important;height:260px !important;right:18px !important;bottom:18px !important}
+.action-wheel .skill-slot {width:60px !important;height:60px !important;min-width:60px !important;border:2px solid #bfd6e7 !important;background:radial-gradient(circle at 35% 25%,#527c9d,#102238 76%) !important}
+.action-wheel #skill1 {left:181px !important;top:185px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill2 {left:207px !important;top:121px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill3 {left:253px !important;top:68px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill4 {left:277px !important;top:43px !important;right:auto !important;bottom:auto !important;width:60px !important;height:60px !important;min-width:60px !important;border:2px solid #bfd6e7 !important;background:radial-gradient(circle at 35% 25%,#527c9d,#102238 76%) !important}
+.action-wheel #skill4 .skill-icon {font-size:22px !important}
+.action-wheel .attack {right:0 !important;bottom:0 !important;left:auto !important;top:auto !important;width:86px !important;height:86px !important}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:8px !important;bottom:8px !important;width:350px !important;height:260px !important;transform:scale(.88) !important;transform-origin:bottom right !important}}
+@media(max-width:430px){.action-wheel{transform:scale(.74) !important}}
+
+
+/* 1.2.2: unified character resource rows and a full skill ring around attack */
+.character-resource-bars {display:grid !important;grid-template-columns:1fr !important;gap:7px !important;margin-top:9px !important;width:100% !important}
+.character-resource {display:grid !important;grid-template-columns:30px 76px minmax(0,1fr) !important;grid-template-rows:18px !important;align-items:center !important;column-gap:6px !important;height:18px !important;overflow:visible !important;background:transparent !important;border:0 !important;border-radius:0 !important}
+.character-resource>b {grid-column:1;grid-row:1;font-size:10px !important;font-weight:900 !important;letter-spacing:.4px;color:#e8edf2 !important;line-height:1 !important}
+.character-resource>strong {grid-column:2;grid-row:1;font-size:9px !important;font-weight:800 !important;color:#fff !important;margin:0 !important;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1 !important}
+.character-resource .resource-track {grid-column:3;grid-row:1;width:100%;height:11px !important;position:relative;overflow:hidden;border-radius:7px;background:#101923;border:1px solid #ffffff30}
+.character-resource .resource-track i {display:block;height:100%;width:100%;transition:width .18s ease}
+.character-resource.hp .resource-track i {background:linear-gradient(90deg,#a92d3c,#ed6570)}
+.character-resource.mp .resource-track i {background:linear-gradient(90deg,#2465a0,#56b5ed)}
+.character-resource.sp .resource-track i {background:linear-gradient(90deg,#187353,#4bd0a0)}
+.character-resource.exp .resource-track i {background:linear-gradient(90deg,#a77a20,#f2d36b)}
+/* Four skills sit around the central basic-attack button. */
+.action-wheel {width:252px !important;height:252px !important;right:22px !important;bottom:22px !important;transform:none !important}
+.action-wheel .attack {left:85px !important;top:85px !important;right:auto !important;bottom:auto !important;width:82px !important;height:82px !important;z-index:2}
+.action-wheel .skill-slot {width:58px !important;height:58px !important;min-width:58px !important}
+.action-wheel #skill1 {left:97px !important;top:0 !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill2 {left:194px !important;top:97px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill3 {left:97px !important;top:194px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill4 {left:0 !important;top:97px !important;right:auto !important;bottom:auto !important;width:58px !important;height:58px !important;min-width:58px !important}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:8px !important;bottom:8px !important;width:252px !important;height:252px !important;transform:scale(.9) !important;transform-origin:bottom right !important}}
+@media(max-width:430px){.character-resource {grid-template-columns:28px 68px minmax(0,1fr) !important;column-gap:4px !important}.action-wheel{transform:scale(.78) !important}}
+
+/* 1.2.3: full-width resource rows: label -> equal-length bar -> value */
+.character-profile{grid-template-columns:minmax(0,1fr) !important;gap:8px !important}
+.character-identity{width:100% !important;min-width:0}
+.character-resource-bars{display:grid !important;grid-template-columns:minmax(0,1fr) !important;gap:7px !important;width:100% !important;margin-top:9px !important}
+.character-resource{display:grid !important;grid-template-columns:30px minmax(0,1fr) auto !important;grid-template-rows:18px !important;align-items:center !important;column-gap:7px !important;width:100% !important;height:18px !important;overflow:visible !important;background:transparent !important;border:0 !important;border-radius:0 !important}
+.character-resource>b{grid-column:1 !important;grid-row:1 !important;font-size:10px !important;font-weight:900 !important;letter-spacing:.4px;color:#e8edf2 !important;line-height:1 !important}
+.character-resource .resource-track{grid-column:2 !important;grid-row:1 !important;width:100% !important;min-width:0 !important;height:11px !important;position:relative !important;overflow:hidden !important;border-radius:7px !important;background:#101923 !important;border:1px solid #ffffff30 !important}
+.character-resource>strong{grid-column:3 !important;grid-row:1 !important;font-size:9px !important;font-weight:800 !important;color:#fff !important;margin:0 !important;white-space:nowrap !important;font-variant-numeric:tabular-nums !important;line-height:1 !important;text-align:right !important}
+.character-resource .resource-track i{display:block;height:100%;transition:width .18s ease}
+.character-resource.hp .resource-track i{background:linear-gradient(90deg,#a92d3c,#ed6570)}
+.character-resource.mp .resource-track i{background:linear-gradient(90deg,#2465a0,#56b5ed)}
+.character-resource.sp .resource-track i{background:linear-gradient(90deg,#187353,#4bd0a0)}
+.character-resource.exp .resource-track i{background:linear-gradient(90deg,#a77a20,#f2d36b)}
+
+/* Compact quarter-arc controls: attack at lower-right, skills from 9 to 12 o'clock */
+.action-wheel{position:fixed !important;right:22px !important;bottom:22px !important;left:auto !important;top:auto !important;width:310px !important;height:280px !important;transform:none !important;background:transparent !important;border:0 !important;box-shadow:none !important}
+.action-wheel .attack{position:absolute !important;right:0 !important;bottom:0 !important;left:auto !important;top:auto !important;width:82px !important;height:82px !important;z-index:3 !important}
+.action-wheel .skill-slot{position:absolute !important;width:58px !important;height:58px !important;min-width:58px !important;border:2px solid #bfd6e7 !important;background:radial-gradient(circle at 35% 25%,#527c9d,#102238 76%) !important;border-radius:50% !important}
+.action-wheel #skill1{left:141px !important;top:209px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill2{left:155px !important;top:141px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill3{left:191px !important;top:81px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill4{left:239px !important;top:49px !important;right:auto !important;bottom:auto !important;width:58px !important;height:58px !important;min-width:58px !important;border:2px solid #bfd6e7 !important;background:radial-gradient(circle at 35% 25%,#527c9d,#102238 76%) !important}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:8px !important;bottom:8px !important;width:310px !important;height:280px !important;transform:scale(.88) !important;transform-origin:bottom right !important}}
+@media(max-width:430px){.character-resource{grid-template-columns:28px minmax(0,1fr) auto !important;column-gap:5px !important}.action-wheel{transform:scale(.76) !important}}
+
+/* 1.2.4: compact character sheet and tightly grouped quarter-arc controls */
+.stats-panel{max-height:calc(100dvh - 82px) !important;overflow-y:auto !important;padding:9px !important;scrollbar-width:thin}
+.stats-panel header{padding-bottom:5px !important}
+.character-profile{display:block !important;padding:7px !important;gap:4px !important}
+.character-identity{display:grid !important;grid-template-columns:1fr !important;gap:2px !important}
+.character-identity>small,.character-academy>small{font-size:9px !important;font-weight:400 !important;color:#aebdca !important}
+.character-identity>strong,.character-academy>strong{font-size:11px !important;font-weight:400 !important;margin:0 !important;color:#f5d99d !important}
+.character-academy{display:flex !important;align-items:center !important;gap:7px !important;margin:1px 0 3px !important}
+.character-resource-bars{display:grid !important;grid-template-columns:1fr !important;gap:4px !important;margin:2px 0 0 !important;width:100% !important}
+.character-resource{display:grid !important;grid-template-columns:25px minmax(0,1fr) auto !important;grid-template-rows:13px !important;align-items:center !important;gap:5px !important;height:13px !important;width:100% !important}
+.character-resource>b,.character-resource>strong{font-weight:400 !important;font-size:9px !important;letter-spacing:0 !important;line-height:1 !important}
+.character-resource .resource-track{height:10px !important;width:100% !important;min-width:0 !important}
+.character-resource>strong{font-variant-numeric:tabular-nums !important;text-align:right !important}
+.character-combat-stats{gap:4px !important;margin:5px 0 !important}
+.character-combat-stats>div{padding:5px !important}
+.character-combat-stats small{font-size:9px !important;font-weight:400 !important}
+.character-combat-stats b{font-size:13px !important;margin-top:1px !important}
+.job-summary{padding:4px 0 !important;font-size:10px !important}
+.attribute-list{gap:4px !important}
+.attribute-row{padding:5px 7px !important;font-size:10px !important;gap:5px !important}
+.attribute-info small{font-size:9px !important;margin-top:1px !important}
+.attribute-row button{width:23px !important;height:22px !important}
+.stat-help{font-size:9px !important;line-height:1.25 !important;margin:5px 0 0 !important}
+/* Skills hug the attack button along its upper-left quarter arc; skill 4 is no longer distant. */
+.action-wheel{width:300px !important;height:282px !important;right:18px !important;bottom:18px !important}
+.action-wheel .attack{right:0 !important;bottom:0 !important;left:auto !important;top:auto !important;width:82px !important;height:82px !important}
+.action-wheel .skill-slot{width:56px !important;height:56px !important;min-width:56px !important}
+.action-wheel #skill1{left:158px !important;top:208px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill2{left:181px !important;top:158px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill3{left:216px !important;top:116px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill4{left:250px !important;top:104px !important;right:auto !important;bottom:auto !important;width:56px !important;height:56px !important;min-width:56px !important}
+@media(pointer:coarse),(max-width:760px){.stats-panel{max-height:calc(100dvh - 176px) !important}.action-wheel{right:8px !important;bottom:8px !important;transform:scale(.88) !important;transform-origin:bottom right !important}}
+@media(max-width:430px){.action-wheel{transform:scale(.76) !important}.stats-panel{max-height:calc(100dvh - 168px) !important}}
+
+/* 1.2.5 character sheet: requested compact two-column layout */
+.stats-panel{width:340px !important;max-height:calc(100dvh - 84px) !important;overflow-y:auto !important;padding:10px !important}
+.character-profile{display:block !important;padding:8px !important;margin-top:7px !important}
+.character-heading{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;gap:4px;margin-bottom:8px}
+.character-heading>strong:first-child{text-align:left;color:#f5d99d;font-size:12px}
+.character-heading>span{text-align:center;color:#e8ca7d;font-size:11px}
+.character-heading>strong:last-child{text-align:right;color:#f5d99d;font-size:11px}
+.character-heading>strong:last-child span{font:inherit}
+.character-exp-line{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#dce6ef;margin-bottom:4px}
+.character-exp-track{height:10px;width:100%;overflow:hidden;border-radius:8px;background:#101923;border:1px solid #ffffff30}
+.character-exp-track i{display:block;height:100%;background:linear-gradient(90deg,#a77a20,#f2d36b);transition:width .18s ease}
+.character-combat-stats{display:grid !important;grid-template-columns:1fr 1fr !important;gap:5px !important;margin:7px 0 !important}
+.character-combat-stats>div{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px !important;background:#263747;border:1px solid #ffffff20;border-radius:6px;text-align:left}
+.character-combat-stats small{font-size:10px !important;color:#aebdca}
+.character-combat-stats b,.character-combat-stats span{font-size:11px !important;font-weight:400 !important;color:#f5d99d;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat-points-row{display:flex;align-items:center;justify-content:space-between;margin:7px 0 5px;padding:5px 7px;background:#263747;border:1px solid #ffffff20;border-radius:6px}
+.stat-points-row strong{font-size:11px;color:#f5d99d;font-weight:500}
+.stat-points-row button{min-width:58px;padding:5px 12px;border:1px solid #d9bd83;border-radius:6px;background:#72502b;color:#fff;font-size:11px}
+.stat-points-row button:disabled{opacity:.4}
+.attribute-list{display:grid !important;grid-template-columns:1fr !important;gap:4px !important}
+.attribute-row{display:grid !important;grid-template-columns:minmax(0,1fr) 28px 58px !important;align-items:center;gap:5px !important;padding:5px 7px !important}
+.attribute-info{min-width:0;display:flex;align-items:center;gap:8px}
+.attribute-info strong{font-size:10px !important;white-space:nowrap}
+.attribute-info small{font-size:9px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#aebdca}
+.attribute-value{font-size:11px;font-variant-numeric:tabular-nums;text-align:center;color:#f5d99d}
+.attribute-controls{display:flex;gap:4px;justify-content:flex-end}
+.attribute-row .attribute-controls button{width:26px !important;height:23px !important;padding:0;border-radius:5px;font-size:14px;line-height:1}
+.attribute-row .attribute-controls button:disabled{opacity:.3}
+.stat-help{margin:5px 0 0 !important;font-size:9px !important;line-height:1.3 !important}
+@media(pointer:coarse),(max-width:760px){.stats-panel{max-height:calc(100dvh - 176px) !important;width:min(340px,calc(100vw - 20px)) !important}}
+
+/* 1.2.6: clearer character sheet, swapped +/- order, and an evenly spaced quarter-arc action cluster */
+.stats-panel{width:360px !important;max-width:calc(100vw - 20px) !important;max-height:calc(100dvh - 84px) !important;overflow-y:auto !important}
+.character-heading{grid-template-columns:1fr 1fr 1fr !important;gap:6px !important;margin-bottom:10px !important}
+.character-heading>strong:first-child{font-size:16px !important;line-height:1.25 !important}
+.character-heading>span{font-size:14px !important;font-weight:700 !important}
+.character-heading>strong:last-child{font-size:14px !important}
+.character-exp-line{font-size:12px !important}
+.character-combat-stats>div{min-height:34px !important;padding:7px 9px !important}
+.character-combat-stats small{font-size:11px !important}
+.character-combat-stats b,.character-combat-stats span{font-size:12px !important}
+.stat-points-row{min-height:36px !important;padding:6px 9px !important}
+.stat-points-row strong{font-size:13px !important}
+.stat-points-row button{font-size:12px !important;min-width:64px !important}
+.attribute-list{grid-template-columns:minmax(0,1fr) !important;gap:5px !important}
+.attribute-row{grid-template-columns:minmax(0,1fr) 38px 66px !important;min-height:48px !important;gap:7px !important;padding:5px 8px !important}
+.attribute-info{display:flex !important;flex-direction:column !important;align-items:flex-start !important;justify-content:center !important;gap:2px !important;min-width:0 !important}
+.attribute-info strong{font-size:13px !important;line-height:1.15 !important;white-space:nowrap !important}
+.attribute-info small,.attribute-info .attribute-description{display:block !important;font-size:10px !important;line-height:1.2 !important;white-space:normal !important;overflow:visible !important;text-overflow:clip !important;color:#c3d0dc !important}
+.attribute-value{font-size:13px !important;font-weight:600 !important}
+.attribute-controls{display:flex !important;flex-direction:row !important;gap:5px !important;justify-content:flex-end !important}
+.attribute-row .attribute-controls button{width:30px !important;height:28px !important;min-width:30px !important;font-size:17px !important;line-height:1 !important;border:1px solid #d9bd83 !important;background:#72502b !important;color:#fff !important;border-radius:6px !important;touch-action:manipulation !important}
+.attribute-row .attribute-controls button:disabled{opacity:.3 !important}
+.stat-help{font-size:10px !important;line-height:1.35 !important;margin-top:7px !important}
+/* Attack button is the arc centre reference; all four skills have the same 130px centre radius. */
+.action-wheel{position:fixed !important;width:330px !important;height:250px !important;right:18px !important;bottom:18px !important;transform:none !important;pointer-events:none !important}
+.action-wheel .attack{position:absolute !important;left:244px !important;top:164px !important;right:auto !important;bottom:auto !important;width:86px !important;height:86px !important;z-index:3 !important}
+.action-wheel .skill-slot{position:absolute !important;width:58px !important;height:58px !important;min-width:58px !important;max-width:58px !important;padding:3px !important;border-radius:50% !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:2px !important;overflow:hidden !important;z-index:4 !important;touch-action:manipulation !important}
+.action-wheel #skill1{left:128px !important;top:178px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill2{left:145px !important;top:112px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill3{left:193px !important;top:64px !important;right:auto !important;bottom:auto !important}
+.action-wheel #skill4{left:258px !important;top:47px !important;right:auto !important;bottom:auto !important;width:58px !important;height:58px !important;min-width:58px !important}
+.action-wheel .skill-slot strong{font-size:9px !important;line-height:1.05 !important;max-width:50px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.action-wheel .skill-slot small{font-size:8px !important;line-height:1 !important}
+.action-wheel .skill-slot kbd{font-size:8px !important}
+@media(pointer:coarse),(max-width:760px){
+  .stats-panel{width:min(360px,calc(100vw - 20px)) !important;max-height:calc(100dvh - 176px) !important}
+  .action-wheel{right:8px !important;bottom:8px !important;transform:scale(.88) !important;transform-origin:bottom right !important}
+}
+@media(max-width:430px){
+  .stats-panel{max-height:calc(100dvh - 168px) !important}
+  .action-wheel{transform:scale(.84) !important}
+}
+/* Keep the original attribute columns in their original order: STR/AGI/SPI left, VIT/END right. */
+.attribute-list{grid-template-columns:repeat(2,minmax(0,1fr)) !important;grid-template-rows:repeat(3,auto) !important;grid-auto-flow:column !important;align-items:stretch !important;column-gap:7px !important;row-gap:5px !important}
+.attribute-row{grid-template-columns:minmax(0,1fr) 66px !important;grid-template-rows:auto auto !important;align-content:center !important;min-height:60px !important;gap:4px 3px !important;padding:6px 7px !important}
+.attribute-info{grid-column:1 / -1 !important;grid-row:1 !important;min-height:27px !important}
+.attribute-info strong{font-size:12px !important}
+.attribute-info small,.attribute-info .attribute-description{font-size:9px !important;line-height:1.2 !important}
+.attribute-value{grid-column:1 !important;grid-row:2 !important;justify-self:start !important;align-self:center !important;font-size:12px !important}
+.attribute-controls{grid-column:2 !important;grid-row:2 !important;justify-content:flex-end !important;gap:4px !important}
+.attribute-row .attribute-controls button{width:29px !important;height:26px !important;min-width:29px !important}
+
+/* 1.2.7: tighter, equal-size skill arc beside the attack button.
+   The four 52px skill buttons follow a 9-to-12 o'clock arc with
+   clear gaps between neighbours and the 82px attack button. */
+.action-wheel .skill-slot {
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  max-width:52px !important;
+  padding:3px 2px !important;
+  border-radius:50% !important;
+}
+.action-wheel #skill1 {left:156px !important;top:181px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill2 {left:170px !important;top:129px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill3 {left:209px !important;top:90px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill4 {left:261px !important;top:76px !important;right:auto !important;bottom:auto !important;width:52px !important;height:52px !important;min-width:52px !important;max-width:52px !important;}
+.action-wheel .skill-slot .skill-icon {font-size:20px !important;line-height:21px !important;}
+.action-wheel .skill-slot strong {font-size:8px !important;line-height:1.05 !important;max-width:46px !important;}
+.action-wheel .skill-slot small {font-size:7px !important;line-height:1 !important;}
+.action-wheel .skill-slot kbd {width:13px !important;height:13px !important;font-size:7px !important;left:3px !important;top:2px !important;}
+
+
+/* 1.2.8: unified character typography and icon-only, evenly spaced action arc. */
+.character-heading>strong:first-child,
+.character-heading>span,
+.character-heading>strong:last-child,
+.character-heading>strong:last-child span{font-size:14px !important;font-weight:700 !important;line-height:1.25 !important;font-family:Arial,"Noto Sans TC",sans-serif !important;}
+.stat-points-row strong,.stat-points-row strong span{font-size:13px !important;font-weight:600 !important;line-height:1.3 !important;font-family:Arial,"Noto Sans TC",sans-serif !important;font-variant-numeric:tabular-nums !important;}
+/* The four skill centres share one radius around the attack centre (1:1 distance). */
+.action-wheel{width:330px !important;height:250px !important;}
+.action-wheel .attack{left:244px !important;top:164px !important;right:auto !important;bottom:auto !important;width:86px !important;height:86px !important;display:flex !important;align-items:center !important;justify-content:center !important;}
+.action-wheel .attack strong,.action-wheel .attack-key{display:none !important;}
+.action-wheel .attack-hotkey{position:absolute;top:7px;left:50%;transform:translateX(-50%);font-size:8px;line-height:1;color:#fff0cf;background:#071321;border:1px solid #e5c77e;border-radius:8px;padding:3px 5px;}
+.action-wheel .attack-icon{font-size:36px !important;line-height:1 !important;margin-top:7px !important;}
+.action-wheel .skill-slot{width:52px !important;height:52px !important;min-width:52px !important;max-width:52px !important;padding:2px !important;display:flex !important;align-items:center !important;justify-content:center !important;gap:0 !important;}
+.action-wheel #skill1{left:145px !important;top:181px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill2{left:160px !important;top:123px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill3{left:203px !important;top:80px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill4{left:261px !important;top:65px !important;right:auto !important;bottom:auto !important;width:52px !important;height:52px !important;min-width:52px !important;max-width:52px !important;}
+.action-wheel .skill-slot .skill-icon{font-size:29px !important;line-height:1 !important;display:block !important;margin-top:5px !important;text-align:center !important;}
+.action-wheel .skill-slot kbd{position:absolute !important;left:3px !important;top:3px !important;width:14px !important;height:14px !important;font-size:8px !important;line-height:1 !important;z-index:4 !important;}
+.action-wheel .skill-slot strong,.action-wheel .skill-slot small{display:none !important;}
+.action-wheel .skill-slot .skill-cooldown{font-size:16px !important;}
+@media(pointer:coarse),(max-width:760px){.action-wheel{right:8px !important;bottom:8px !important;transform:scale(.88) !important;transform-origin:bottom right !important;}}
+@media(max-width:430px){.action-wheel{transform:scale(.84) !important;}}
+
+
+/* 1.3.0: four skills on a radius-85px arc around the attack centre.
+   Attack centre: (287,207). Skill centres use 37-degree steps (180,217,254,291).
+   Every skill centre is exactly 85px from the attack centre; adjacent skill centres
+   are about 53.94px apart, leaving a small gap between 52px skill buttons. */
+.action-wheel{width:350px !important;height:250px !important;}
+.action-wheel #skill1{left:176px !important;top:181px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill2{left:193.116px !important;top:129.846px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill3{left:237.571px !important;top:99.293px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill4{left:291.461px !important;top:101.646px !important;right:auto !important;bottom:auto !important;width:52px !important;height:52px !important;min-width:52px !important;max-width:52px !important;}
+@media(pointer:coarse),(max-width:760px){.action-wheel{width:350px !important;height:250px !important;}}
+
+
+/* 1.3.1: 70px chord spacing on a shared 85px attack-centred arc.
+   Attack centre remains (287,207); skill centres are equally spaced by 47.37 degrees. */
+.action-wheel{width:390px !important;height:250px !important;}
+.action-wheel #skill1{left:176px !important;top:181px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill2{left:204.824px !important;top:117.210px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill3{left:271.746px !important;top:96.682px !important;right:auto !important;bottom:auto !important;}
+.action-wheel #skill4{left:331.380px !important;top:133.339px !important;right:auto !important;bottom:auto !important;width:52px !important;height:52px !important;min-width:52px !important;max-width:52px !important;}
+.attribute-row .attribute-controls{gap:3px !important;}
+.attribute-row .attribute-controls button{width:18px !important;height:18px !important;min-width:18px !important;padding:0 !important;font-size:12px !important;line-height:16px !important;border-radius:4px !important;}
+@media(pointer:coarse),(max-width:760px){.action-wheel{width:390px !important;height:250px !important;}}
