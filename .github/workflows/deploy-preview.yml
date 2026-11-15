@@ -44,6 +44,20 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-female-preview.mjs
 
+      - name: Verify original male character and head in game scene
+        env:
+          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
+        run: node scripts/smoke-male-preview.mjs
+
+      - name: Upload male game preview screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ran-male-game-preview
+          path: preview-screenshots/male-game-preview.png
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload female game preview screenshot
         if: always()
         uses: actions/upload-artifact@v4
