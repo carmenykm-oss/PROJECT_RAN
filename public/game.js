@@ -165,7 +165,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // root with identity transform for a faithful in-game T-pose preview.
     let bakedMeshCount = 0, reboundSkinCount = 0;
     const useReboundSkinning = requestedCharacter === 'male' &&
-      new URLSearchParams(location.search).get('skinning') === '1';
+      new URLSearchParams(location.search).get('skinning') !== '0';
     if (useReboundSkinning) {
       const sourceParts = [];
       model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) sourceParts.push(obj); });
