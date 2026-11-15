@@ -210,10 +210,46 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.userData.ranPivot = pivot;
     target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
 
-    // TEMPORARY WORLD-SPACE DIAGNOSTICS:
-    // Show the game world's XYZ axes at the player's origin and a measured
-    // bounding box around the imported model. This distinguishes a coordinate/
-    // transform mismatch from a material or lighting problem.
+    // Update the complete player/model hierarchy BEFORE evaluating any
+    // skinned vertices. Stale boneMatrices can collapse evaluated bounds.
+    target.visible = true;
+    target.updateMatrixWorld(true);
+    model.updateMatrixWorld(true);
+    const skinDiagnostics = [];
+    model.traverse((obj) => {
+      if (!obj.isSkinnedMesh || !obj.skeleton) return;
+      obj.skeleton.update();
+      if (typeof obj.computeBoundingBox === 'function') obj.computeBoundingBox();
+      if (typeof obj.computeBoundingSphere === 'function') obj.computeBoundingSphere();
+      const skinSize = obj.boundingBox?.getSize(new THREE.Vector3()) || new THREE.Vector3();
+      skinDiagnostics.push({ name: obj.name, bones: obj.skeleton.bones.length, bindMode: obj.bindMode, size: skinSize.toArray() });
+    });
+    target.updateMatrixWorld(true);
+    model.updateMatrixWorld(true);
+
+    // Re-center with evaluated skinned geometry rather than raw source vertices.
+    let evaluatedBounds = new THREE.Box3().setFromObject(pivot, true);
+    const evaluatedSize = evaluatedBounds.getSize(new THREE.Vector3());
+    if (Number.isFinite(evaluatedSize.y) && evaluatedSize.y > 0.2) {
+      const evaluatedCenter = evaluatedBounds.getCenter(new THREE.Vector3());
+      const evaluatedBottom = new THREE.Vector3(evaluatedCenter.x, evaluatedBounds.min.y, evaluatedCenter.z);
+      const centerInPlayer = target.worldToLocal(evaluatedCenter.clone());
+      const bottomInPlayer = target.worldToLocal(evaluatedBottom);
+      pivot.position.x -= centerInPlayer.x;
+      pivot.position.y -= bottomInPlayer.y;
+      pivot.position.z -= centerInPlayer.z;
+      target.updateMatrixWorld(true);
+      model.updateMatrixWorld(true);
+      model.traverse((obj) => {
+        if (obj.isSkinnedMesh && obj.skeleton) {
+          obj.skeleton.update();
+          if (typeof obj.computeBoundingBox === 'function') obj.computeBoundingBox();
+          if (typeof obj.computeBoundingSphere === 'function') obj.computeBoundingSphere();
+        }
+      });
+    }
+
+    // TEMPORARY WORLD-SPACE DIAGNOSTICS: evaluated model bounds and world axes.
     const worldAxes = new THREE.AxesHelper(3.5);
     worldAxes.name = 'RAN_WORLD_AXES_DIAGNOSTIC';
     target.add(worldAxes);
@@ -224,17 +260,19 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     const boundsHelper = new THREE.Box3Helper(measuredBounds, 0xff33cc);
     boundsHelper.name = 'RAN_MODEL_BOUNDS_DIAGNOSTIC';
     scene.add(boundsHelper);
-    target.userData.ranDiagnostics = { sourceBounds: bounds, worldBounds: measuredBounds, sourceSize: size, scale, center, pivotPosition: pivot.position.clone() };
+    target.userData.ranDiagnostics = {
+      sourceBounds: bounds, worldBounds: measuredBounds, sourceSize: size, scale, center,
+      pivotPosition: pivot.position.clone(), evaluatedSize, skinDiagnostics
+    };
     window.__ranCharacterDebug = {
       character: requestedCharacter, meshCount, skinnedMeshCount, recoveredMeshNodes,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
+      evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics,
       sourceBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
       worldBounds: { min: measuredBounds.min.toArray(), max: measuredBounds.max.toArray() }
     };
 
-    target.visible = true;
-    target.updateMatrixWorld(true);
     // Only hide the temporary mannequin after the normalized GLB is attached.
     target.children.forEach((child) => {
       if (child !== pivot && child !== ranCoordinateProof && !child.isSprite) child.visible = false;
