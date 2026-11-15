@@ -113,6 +113,7 @@ ranCoordinateProof.add(proofAxes);
 const proofLabel = tag('COORDINATE TEST');
 proofLabel.position.y = 3.2;
 proofLabel.scale.set(3.5, .85, 1);
+proofLabel.visible = false;
 ranCoordinateProof.add(proofLabel);
 me.add(ranCoordinateProof);
 // Load the reconstructed RAN Online character assets into the live campus scene.
@@ -192,8 +193,10 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
           // in-game visibility pass. This avoids a valid skinned mesh becoming black
           // from reconstructed normals / lighting while preserving its UV texture.
           const visible = new THREE.MeshBasicMaterial({
-            map: mat?.map || null,
-            color: 0xffffff,
+            // Diagnostic untextured silhouette pass: if geometry is healthy,
+            // this makes the complete character visible independently of DDS/UV issues.
+            map: null,
+            color: 0xff55bb,
             side: THREE.DoubleSide,
             transparent: false,
             opacity: 1,
