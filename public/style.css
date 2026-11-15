@@ -672,3 +672,15 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080a0c;col
 .death-overlay{z-index:60}
 .auth-screen{z-index:80}
 @media(max-width:800px){.bag-panel{right:5px;width:205px}.chat{width:45vw}.action-wheel{width:auto;left:50%;right:auto;transform:translateX(-50%)}.help{display:none}.utility-toggles{left:214px}.potion-hotbar{right:5px;bottom:70px}}
+
+
+/* Compass and location readout matching the reference client */
+.classic-location{position:fixed;z-index:14;right:12px;top:8px;width:125px;text-align:center;color:#eee;text-shadow:1px 1px #000;font-size:10px;pointer-events:none}
+.classic-compass{position:relative;width:82px;height:82px;margin:0 auto 3px;border-radius:50%;border:4px ridge #777;background:radial-gradient(circle at 45% 38%,#777,#202020 58%,#080808 72%);box-shadow:0 0 0 2px #111, inset 0 0 8px #000}
+.classic-compass:before{content:"";position:absolute;inset:8px;border:1px solid #aaa;border-radius:50%;background:repeating-conic-gradient(from 0deg,#ddd 0deg 1deg,transparent 1deg 30deg)}
+.classic-compass span{position:absolute;font:bold 9px Arial;color:#fff}
+.classic-compass .north{top:2px;left:37px;color:#ffb0a0}.classic-compass .south{bottom:2px;left:37px}.classic-compass .east{right:3px;top:35px}.classic-compass .west{left:3px;top:35px}
+.classic-compass i{position:absolute;left:38px;top:13px;width:3px;height:27px;background:linear-gradient(#e33 0 50%,#ddd 50%);transform:rotate(18deg);transform-origin:bottom center;box-shadow:0 0 2px #000}
+.classic-compass b{position:absolute;left:34px;top:34px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#eee,#555 65%,#111);border:1px solid #bbb}
+.location-caption{font-size:11px;letter-spacing:.3px}
+.classic-location small{font-size:9px;color:#d7d0bd}
