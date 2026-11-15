@@ -156,6 +156,36 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     }
     model.updateMatrixWorld(true);
 
+    // The original male face/hair frames already carry their bind-pose placement.
+    // In the current legacy GLB their single-joint inverse-bind data expands the
+    // head meshes in Three.js. Preserve each frame's exact world transform, then
+    // attach the geometry as a normal mesh to Bip01_Head so it follows the rig.
+    let staticHeadCount = 0;
+    if (requestedCharacter === 'male') {
+      const headBone = model.getObjectByName('Bip01_Head');
+      const headParts = [];
+      model.traverse((obj) => {
+        if (obj.isSkinnedMesh && /^male_head_mesh_part_/.test(obj.name)) headParts.push(obj);
+      });
+      if (headBone && headParts.length) {
+        headBone.updateMatrixWorld(true);
+        for (const source of headParts) {
+          const parent = source.parent;
+          const worldMatrix = source.matrixWorld.clone();
+          const localMatrix = headBone.matrixWorld.clone().invert().multiply(worldMatrix);
+          const staticHead = new THREE.Mesh(source.geometry, source.material);
+          staticHead.name = source.name + '_head_bone_mesh';
+          staticHead.castShadow = true;
+          staticHead.receiveShadow = true;
+          localMatrix.decompose(staticHead.position, staticHead.quaternion, staticHead.scale);
+          headBone.add(staticHead);
+          parent.remove(source);
+          staticHeadCount++;
+        }
+        model.updateMatrixWorld(true);
+      }
+    }
+
     let meshCount = 0, skinnedMeshCount = 0;
     model.traverse((obj) => {
       if (obj.isMesh) {
@@ -313,7 +343,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       pivotPosition: pivot.position.clone(), evaluatedSize, skinDiagnostics
     };
     window.__ranCharacterDebug = {
-      character: requestedCharacter, meshCount, skinnedMeshCount, recoveredMeshNodes,
+      character: requestedCharacter, meshCount, skinnedMeshCount, staticHeadCount, recoveredMeshNodes,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bakedMeshCount,
