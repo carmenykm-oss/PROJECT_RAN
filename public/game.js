@@ -942,8 +942,11 @@ function loop() {
   me.userData.ranAnimator?.update(isMoving ? (keys.has('shift') && (forward || side) ? 'run' : 'walk') : 'idle', dt);
   const nearMentor = Math.hypot(me.position.x, me.position.z + 8) <= 4.5;
   document.getElementById('npcHint').hidden = !nearMentor || !document.getElementById('questPanel').hidden;
-  const target = new THREE.Vector3(me.position.x, 2.2, me.position.z);
-  const offset = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch) * 10, 3 + Math.sin(pitch) * 10, Math.cos(yaw) * Math.cos(pitch) * 10);
+  // Bring the player model closer to the center of the frame. The previous 10-unit
+  // orbit distance made the reconstructed original character too small to inspect.
+  const target = new THREE.Vector3(me.position.x, 1.45, me.position.z);
+  const cameraDistance = 7.5;
+  const offset = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch) * cameraDistance, 2.4 + Math.sin(pitch) * cameraDistance, Math.cos(yaw) * Math.cos(pitch) * cameraDistance);
   camera.position.lerp(target.clone().add(offset), .12); camera.lookAt(target);
   for (const remote of remotes.values()) remote.mesh.position.lerp(remote.target, .18);
   if (!myPlayer?.dead && Date.now() - lastSent > 80) { send({ type: 'move', x: me.position.x, z: me.position.z, yaw: me.rotation.y }); lastSent = Date.now(); }
