@@ -264,12 +264,15 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       bakedMesh.name = sourceMesh.name + '_CPU_SKIN_BAKED';
       bakedMesh.frustumCulled = false;
       bakedMesh.renderOrder = 50;
-      // updateMatrixWorld above already refreshed auto-updated transforms; do not
-      // overwrite an imported matrix when matrixAutoUpdate is disabled.
-      bakedMesh.matrix.copy(sourceMesh.matrix);
+      // Preserve the complete imported node transform, including hidden helper
+      // parents, by moving the baked part directly under the normalization pivot.
+      sourceMesh.updateWorldMatrix(true, false);
+      pivot.updateWorldMatrix(true, false);
+      const bakedLocalMatrix = pivot.matrixWorld.clone().invert().multiply(sourceMesh.matrixWorld);
+      bakedMesh.matrix.copy(bakedLocalMatrix);
       bakedMesh.matrixAutoUpdate = false;
       bakedMesh.matrixWorldNeedsUpdate = true;
-      sourceMesh.parent.add(bakedMesh);
+      pivot.add(bakedMesh);
       bakedMesh.visible = true;
       sourceMesh.visible = false;
       bakedMeshCount++;
