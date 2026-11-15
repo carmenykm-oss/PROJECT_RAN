@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createRanCharacterAnimator } from './character-animation.js';
 
 const mount = document.getElementById('game');
 const scene = new THREE.Scene();
@@ -112,6 +113,8 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     });
     target.add(model);
     target.userData.ranModel = model;
+    target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
+    console.info('RAN female skeletal controller ready:', target.userData.ranAnimator.boneCount, 'bones');
     // Hide the temporary primitive body once the real model is ready.
     target.children.forEach((child) => {
       if (child !== model && !child.isSprite) child.visible = false;
@@ -359,11 +362,13 @@ function processAutoAction(dt) {
   // Send the final position before the action; WebSocket preserves message order.
   send({ type: 'move', x: me.position.x, z: me.position.z, yaw: me.rotation.y });
   if (autoAction.type === 'attack') {
+    me.userData.ranAnimator?.triggerAttack();
     attackCd = .45;
     send({ type: 'attack' });
   } else {
     const skill = myPlayer?.skills?.[autoAction.index];
     if (skill) {
+      me.userData.ranAnimator?.triggerSkill();
       localSkillCooldowns.set(skill.id, Date.now() + skill.cooldown * 1000);
       send({ type: 'skill', skillId: skill.id });
       renderSkills(myPlayer);
@@ -662,12 +667,14 @@ function loop() {
   if (!myPlayer?.dead && (forward || side)) {
     autoAction = null; // Manual movement cancels auto-approach.
     const direction = new THREE.Vector3(side, 0, -forward).normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    me.position.addScaledVector(direction, 8 * (myPlayer?.speed??100) / 100 * dt);
+    me.position.addScaledVector(direction, 8 * (myPlayer?.speed??100) / 100 * (keys.has('shift') ? 1.55 : 1) * dt);
     me.position.x = THREE.MathUtils.clamp(me.position.x, -42, 42); me.position.z = THREE.MathUtils.clamp(me.position.z, -42, 42);
     me.rotation.y = Math.atan2(direction.x, direction.z);
   } else if (!myPlayer?.dead && autoAction) {
     processAutoAction(dt);
   }
+  const isMoving = !myPlayer?.dead && (!!(forward || side) || !!autoAction);
+  me.userData.ranAnimator?.update(isMoving ? (keys.has('shift') && (forward || side) ? 'run' : 'walk') : 'idle', dt);
   const nearMentor = Math.hypot(me.position.x, me.position.z + 8) <= 4.5;
   document.getElementById('npcHint').hidden = !nearMentor || !document.getElementById('questPanel').hidden;
   const target = new THREE.Vector3(me.position.x, 2.2, me.position.z);
