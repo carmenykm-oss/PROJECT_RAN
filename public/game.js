@@ -95,6 +95,7 @@ function avatar(color, label) {
   const nameTag = tag(label); nameTag.position.y = 2.8; group.add(nameTag); return group;
 }
 const me = avatar(0x315b86, 'YOU'); scene.add(me); me.position.set(0, 0, 3);
+const diagnosticMode = new URLSearchParams(location.search).get('diagnostic') === '1';
 // ALWAYS-ON coordinate proof: independent of GLB loading and skinning.
 // A tall neon wireframe cage and oversized axes must be visible at the player origin.
 const ranCoordinateProof = new THREE.Group();
@@ -116,6 +117,7 @@ proofLabel.scale.set(3.5, .85, 1);
 proofLabel.visible = false;
 ranCoordinateProof.add(proofLabel);
 me.add(ranCoordinateProof);
+ranCoordinateProof.visible = diagnosticMode;
 // Load the reconstructed RAN Online character assets into the live campus scene.
 // Resolve from this module URL so GitHub Pages subpaths and local hosting behave identically.
 const gltfLoader = new GLTFLoader();
@@ -289,17 +291,19 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       });
     }
 
-    // TEMPORARY WORLD-SPACE DIAGNOSTICS: evaluated model bounds and world axes.
-    const worldAxes = new THREE.AxesHelper(3.5);
-    worldAxes.name = 'RAN_WORLD_AXES_DIAGNOSTIC';
-    target.add(worldAxes);
-    const modelAxes = new THREE.AxesHelper(2.0);
-    modelAxes.name = 'RAN_MODEL_AXES_DIAGNOSTIC';
-    pivot.add(modelAxes);
+    // Optional diagnostics stay off in the normal game preview.
     const measuredBounds = new THREE.Box3().setFromObject(pivot, true);
-    const boundsHelper = new THREE.Box3Helper(measuredBounds, 0xff33cc);
-    boundsHelper.name = 'RAN_MODEL_BOUNDS_DIAGNOSTIC';
-    scene.add(boundsHelper);
+    if (diagnosticMode) {
+      const worldAxes = new THREE.AxesHelper(3.5);
+      worldAxes.name = 'RAN_WORLD_AXES_DIAGNOSTIC';
+      target.add(worldAxes);
+      const modelAxes = new THREE.AxesHelper(2.0);
+      modelAxes.name = 'RAN_MODEL_AXES_DIAGNOSTIC';
+      pivot.add(modelAxes);
+      const boundsHelper = new THREE.Box3Helper(measuredBounds, 0xff33cc);
+      boundsHelper.name = 'RAN_MODEL_BOUNDS_DIAGNOSTIC';
+      scene.add(boundsHelper);
+    }
     target.userData.ranDiagnostics = {
       sourceBounds: bounds, worldBounds: measuredBounds, sourceSize: size, scale, center,
       pivotPosition: pivot.position.clone(), evaluatedSize, skinDiagnostics
@@ -961,6 +965,8 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
   me.position.set(0, 0, 3);
   me.rotation.y = Math.PI;
   setMyNameTag('預覽角色');
+  const previewNameTag = me.children.find(child => child.isSprite);
+  if (previewNameTag) previewNameTag.visible = false;
   document.getElementById('playerName').textContent = '鳳凰學園・預覽角色';
   document.getElementById('connection').textContent = 'PREVIEW';
   const previewPlayer = {
