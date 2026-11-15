@@ -31,13 +31,14 @@ export function createRanCharacterAnimator(model, THREE) {
   function reset() {
     for (const [name,bone] of bones) bone.quaternion.copy(rest.get(name));
   }
-  function triggerAttack() { attackClock = 0; }
-  function triggerSkill() { skillClock = 0; }
+  function triggerAttack() { attackClock = 0; skillClock = 10; }
+  function triggerSkill() { skillClock = 0; attackClock = 10; }
   function update(mode, dt) {
     clock += dt;
     attackClock += dt;
     skillClock += dt;
     reset();
+    model.position.y = baseY;
     const gaitRate = mode === 'run' ? 11.5 : 7.2;
     const phase = clock * gaitRate;
     if (attackClock < .68) {
