@@ -49,8 +49,7 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-male-preview.mjs
 
-      - name: Experimental male rebound-skinning test
-        continue-on-error: true
+      - name: Verify male idle walk and run bone animation
         env:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-male-skinning-preview.mjs
@@ -59,7 +58,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ran-male-rebound-skinning-preview
+          name: ran-male-animation-preview
           path: preview-screenshots/male-rebound-*.png
           if-no-files-found: ignore
           retention-days: 14
