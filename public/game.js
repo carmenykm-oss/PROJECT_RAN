@@ -230,6 +230,51 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.updateMatrixWorld(true);
     model.updateMatrixWorld(true);
 
+    // CPU-bake the evaluated bind pose into ordinary static meshes. This bypasses
+    // any GPU skinning shader/bind-matrix incompatibility in the legacy GLB while
+    // preserving the original vertex positions, indices and UV coordinates.
+    const skinnedSources = [];
+    model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) skinnedSources.push(obj); });
+    let bakedMeshCount = 0;
+    for (const sourceMesh of skinnedSources) {
+      const sourcePosition = sourceMesh.geometry.attributes.position;
+      if (!sourcePosition?.count) continue;
+      const bakedPositions = new Float32Array(sourcePosition.count * 3);
+      const vertex = new THREE.Vector3();
+      for (let vertexIndex = 0; vertexIndex < sourcePosition.count; vertexIndex++) {
+        sourceMesh.getVertexPosition(vertexIndex, vertex);
+        bakedPositions[vertexIndex * 3] = vertex.x;
+        bakedPositions[vertexIndex * 3 + 1] = vertex.y;
+        bakedPositions[vertexIndex * 3 + 2] = vertex.z;
+      }
+      const bakedGeometry = new THREE.BufferGeometry();
+      bakedGeometry.setAttribute('position', new THREE.BufferAttribute(bakedPositions, 3));
+      for (const [attributeName, attribute] of Object.entries(sourceMesh.geometry.attributes)) {
+        if (attributeName !== 'position' && attributeName !== 'normal') bakedGeometry.setAttribute(attributeName, attribute);
+      }
+      if (sourceMesh.geometry.index) bakedGeometry.setIndex(sourceMesh.geometry.index);
+      bakedGeometry.clearGroups();
+      bakedGeometry.computeVertexNormals();
+      bakedGeometry.computeBoundingBox();
+      bakedGeometry.computeBoundingSphere();
+      const bakedMesh = new THREE.Mesh(
+        bakedGeometry,
+        new THREE.MeshBasicMaterial({ color: 0xff55bb, side: THREE.DoubleSide, depthTest: false, depthWrite: true, toneMapped: false })
+      );
+      bakedMesh.name = sourceMesh.name + '_CPU_SKIN_BAKED';
+      bakedMesh.frustumCulled = false;
+      bakedMesh.renderOrder = 50;
+      sourceMesh.updateMatrix();
+      bakedMesh.matrix.copy(sourceMesh.matrix);
+      bakedMesh.matrixAutoUpdate = false;
+      bakedMesh.matrixWorldNeedsUpdate = true;
+      sourceMesh.parent.add(bakedMesh);
+      sourceMesh.visible = false;
+      bakedMeshCount++;
+    }
+    target.updateMatrixWorld(true);
+    model.updateMatrixWorld(true);
+
     // Re-center with evaluated skinned geometry rather than raw source vertices.
     let evaluatedBounds = new THREE.Box3().setFromObject(pivot, true);
     const evaluatedSize = evaluatedBounds.getSize(new THREE.Vector3());
@@ -271,7 +316,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       character: requestedCharacter, meshCount, skinnedMeshCount, recoveredMeshNodes,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
-      evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics,
+      evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bakedMeshCount, bakedMeshCount,
       sourceBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
       worldBounds: { min: measuredBounds.min.toArray(), max: measuredBounds.max.toArray() }
     };
