@@ -164,7 +164,10 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // original part separate, but mount raw bind-pose geometry under the model
     // root with identity transform for a faithful in-game T-pose preview.
     let bakedMeshCount = 0, reboundSkinCount = 0;
-    const useReboundSkinning = requestedCharacter === 'male' &&
+    // Both original player characters use the same rebound-skinning path.
+    // Baking the female meshes to static geometry made her visible only in
+    // bind pose and prevented the shared idle/walk/run controller.
+    const useReboundSkinning =
       new URLSearchParams(location.search).get('skinning') !== '0';
     if (useReboundSkinning) {
       const sourceParts = [];
@@ -306,7 +309,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.updateMatrixWorld(true);
     model.updateMatrixWorld(true);
 
-    // Male bind-pose parts were detached from the legacy frame transforms above.
+    // Rebound-skinned parts retain the shared skeleton and bind-pose transforms.
     target.updateMatrixWorld(true);
     model.updateMatrixWorld(true);
 
