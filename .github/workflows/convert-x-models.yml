@@ -27,12 +27,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p converted_glb logs
-          mapfile -t files < <(find source_assets -type f | grep -Ei '\.x$' | sort || true)
+          mapfile -t files < <(find source_assets -type f | grep -Ei '\\.x$' | sort || true)
           if [ ${#files[@]} -eq 0 ]; then
             echo "No .X files found anywhere under source_assets/" | tee logs/ERROR.txt
             exit 2
           fi
           assimp version | tee logs/assimp-version.txt
+          failed=0
           for src in "${files[@]}"; do
             name="$(basename "${src}")"
             out="converted_glb/${name%.*}.glb"
@@ -41,13 +42,18 @@ jobs:
               echo "OK ${src} -> ${out}" | tee -a logs/summary.txt
             else
               echo "FAILED: ${src}" | tee -a logs/summary.txt
+              failed=1
             fi
           done
           mkdir -p converted_glb/textures
-          find source_assets -type f -iname '*.dds' -exec cp -f {} converted_glb/textures/ +
-          echo "Conversion attempted for ${#files[@]} X files. Check logs; GLB output still requires rig, weight, UV and texture validation."
+          while IFS= read -r -d '' tex; do
+            cp -f "$tex" converted_glb/textures/
+          done < <(find source_assets -type f -iname '*.dds' -print0)
+          echo "Attempted ${#files[@]} X files; conversion failure flag=${failed}" | tee -a logs/result.txt
+          echo "${failed}" > logs/conversion-failed.flag
 
       - name: Upload converted models and logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ran-x-to-glb-test
@@ -56,3 +62,12 @@ jobs:
             logs/
           if-no-files-found: error
           retention-days: 14
+
+      - name: Fail if any X model conversion failed
+        if: always()
+        shell: bash
+        run: |
+          if [ -f logs/conversion-failed.flag ] && [ "$(cat logs/conversion-failed.flag)" = "1" ]; then
+            echo "One or more X model conversions failed. See the uploaded logs artifact."
+            exit 1
+          fi
