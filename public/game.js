@@ -163,8 +163,30 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // inverse-bind matrices apply offsets a second time in Three.js. Keep every
     // original part separate, but mount raw bind-pose geometry under the model
     // root with identity transform for a faithful in-game T-pose preview.
-    let bakedMeshCount = 0;
-    if (requestedCharacter === 'male' || requestedCharacter === 'female') {
+    let bakedMeshCount = 0, reboundSkinCount = 0;
+    const useReboundSkinning = requestedCharacter === 'male' &&
+      new URLSearchParams(location.search).get('skinning') === '1';
+    if (useReboundSkinning) {
+      const sourceParts = [];
+      model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) sourceParts.push(obj); });
+      model.updateMatrixWorld(true);
+      for (const source of sourceParts) {
+        const skeleton = source.skeleton;
+        skeleton.calculateInverses();
+        skeleton.update();
+        const rebound = new THREE.SkinnedMesh(source.geometry.clone(), source.material);
+        rebound.name = source.name + '_rebound_skin';
+        rebound.castShadow = true;
+        rebound.receiveShadow = true;
+        rebound.frustumCulled = false;
+        model.add(rebound);
+        rebound.bind(skeleton, new THREE.Matrix4());
+        source.parent.remove(source);
+        reboundSkinCount++;
+      }
+      model.updateMatrixWorld(true);
+      model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) obj.skeleton.update(); });
+    } else if (requestedCharacter === 'male' || requestedCharacter === 'female') {
       const sourceParts = [];
       model.traverse((obj) => { if (obj.isSkinnedMesh) sourceParts.push(obj); });
       for (const source of sourceParts) {
@@ -308,7 +330,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       pivotPosition: pivot.position.clone(), evaluatedSize, skinDiagnostics
     };
     window.__ranCharacterDebug = {
-      character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, recoveredMeshNodes,
+      character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, reboundSkinCount, recoveredMeshNodes,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics,
