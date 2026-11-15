@@ -32,3 +32,23 @@ jobs:
       - name: Deploy preview
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Install browser smoke test
+        run: npm install --no-save playwright
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify original female character in game scene
+        env:
+          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
+        run: node scripts/smoke-female-preview.mjs
+
+      - name: Upload female game preview screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ran-female-game-preview
+          path: preview-screenshots/female-game-preview.png
+          if-no-files-found: ignore
+          retention-days: 14
