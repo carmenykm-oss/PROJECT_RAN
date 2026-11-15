@@ -200,13 +200,19 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         staticPart.castShadow = true;
         staticPart.receiveShadow = true;
         staticPart.frustumCulled = false;
-        staticPart.position.set(0, 0, 0);
-        staticPart.quaternion.identity();
-        staticPart.scale.set(1, 1, 1);
-        staticPart.matrix.identity();
-        staticPart.matrixAutoUpdate = true;
-        model.add(staticPart);
-        source.parent.remove(source);
+        // Keep the original mesh's complete local transform and its original
+        // frame-parent hierarchy. Removing these transforms puts body sections
+        // at unrelated origins, which is why the earlier preview looked like
+        // disconnected lines instead of a assembled character.
+        staticPart.position.copy(source.position);
+        staticPart.quaternion.copy(source.quaternion);
+        staticPart.scale.copy(source.scale);
+        staticPart.matrix.copy(source.matrix);
+        staticPart.matrixAutoUpdate = source.matrixAutoUpdate;
+        staticPart.matrixWorldAutoUpdate = source.matrixWorldAutoUpdate;
+        const sourceParent = source.parent;
+        sourceParent.add(staticPart);
+        sourceParent.remove(source);
         bakedMeshCount++;
       }
       model.updateMatrixWorld(true);
@@ -275,6 +281,20 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.updateMatrixWorld(true);
     model.updateMatrixWorld(true);
     const skinDiagnostics = [];
+    const bindPosePartDiagnostics = [];
+    model.traverse((obj) => {
+      if (obj.isMesh && obj.name.endsWith('_original_bindpose')) {
+        obj.updateWorldMatrix(true, false);
+        const partBounds = new THREE.Box3().setFromObject(obj);
+        const partSize = partBounds.getSize(new THREE.Vector3());
+        bindPosePartDiagnostics.push({
+          name: obj.name,
+          vertices: obj.geometry.attributes.position?.count || 0,
+          size: partSize.toArray(),
+          worldPosition: obj.getWorldPosition(new THREE.Vector3()).toArray()
+        });
+      }
+    });
     model.traverse((obj) => {
       if (!obj.isSkinnedMesh || !obj.skeleton) return;
       obj.skeleton.update();
