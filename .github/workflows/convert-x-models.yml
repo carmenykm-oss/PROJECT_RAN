@@ -6,7 +6,6 @@ on:
     paths:
       - 'source_assets/**'
       - '.github/workflows/convert-x-models.yml'
-      - 'scripts/convert-x-models.sh'
 
 permissions:
   contents: read
@@ -28,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p converted_glb logs
-          mapfile -d '' files < <(find source_assets -type f \\( -iname '*.x' \\) -print0 | sort -z)
+          mapfile -t files < <(find source_assets -type f | grep -Ei '\\.x$' | sort || true)
           if [ ${#files[@]} -eq 0 ]; then
             echo "No .X files found anywhere under source_assets/" | tee logs/ERROR.txt
             exit 2
@@ -45,9 +44,9 @@ jobs:
             fi
           done
           mkdir -p converted_glb/textures
-          find source_assets -type f \\( -iname '*.dds' \\) -exec cp -f {} converted_glb/textures/ \\;
+          find source_assets -type f -iname '*.dds' -exec cp -f {} converted_glb/textures/ +
           echo "Conversion attempted for ${#files[@]} X files. Check logs; GLB output still requires rig, weight, UV and texture validation."
-      
+
       - name: Upload converted models and logs
         uses: actions/upload-artifact@v4
         with:
