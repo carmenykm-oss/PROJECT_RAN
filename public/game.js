@@ -128,6 +128,32 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
   try {
     const gltf = await gltfLoader.loadAsync(resolvedUrl);
     const model = gltf.scene;
+
+    // Some original RAN X -> GLB exports contain valid skinned body mesh nodes
+    // that are present in the GLB JSON but accidentally omitted from the active
+    // scene root. GLTFLoader correctly ignores unreachable nodes, which leaves
+    // only attached head/accessory pieces (or no complete character) visible.
+    // Re-attach every mesh node not already reachable from the loaded scene.
+    const gltfNodes = gltf.parser?.json?.nodes || [];
+    const attachedNodeIndices = new Set();
+    if (gltf.parser?.associations instanceof Map) {
+      model.traverse((obj) => {
+        const association = gltf.parser.associations.get(obj);
+        if (Number.isInteger(association?.nodes)) attachedNodeIndices.add(association.nodes);
+      });
+    }
+    let recoveredMeshNodes = 0;
+    for (let nodeIndex = 0; nodeIndex < gltfNodes.length; nodeIndex++) {
+      const spec = gltfNodes[nodeIndex];
+      if (spec.mesh === undefined || attachedNodeIndices.has(nodeIndex)) continue;
+      const orphan = await gltf.parser.getDependency('node', nodeIndex);
+      if (!orphan) continue;
+      model.add(orphan);
+      attachedNodeIndices.add(nodeIndex);
+      recoveredMeshNodes++;
+    }
+    model.updateMatrixWorld(true);
+
     let meshCount = 0, skinnedMeshCount = 0;
     model.traverse((obj) => {
       if (obj.isMesh) {
@@ -205,9 +231,9 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.children.forEach((child) => {
       if (child !== pivot && child !== ranCoordinateProof && !child.isSprite) child.visible = false;
     });
-    console.info(`RAN ${requestedCharacter} loaded:`, { url: resolvedUrl, meshCount, skinnedMeshCount, sourceHeight: size.y, appliedScale: scale, bones: target.userData.ranAnimator.boneCount, pivotPosition: pivot.position.toArray() });
+    console.info(`RAN ${requestedCharacter} loaded:`, { url: resolvedUrl, meshCount, skinnedMeshCount, recoveredMeshNodes, sourceHeight: size.y, appliedScale: scale, bones: target.userData.ranAnimator.boneCount, pivotPosition: pivot.position.toArray() });
     if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = `${characterLabel}已載入`;
-    if (new URLSearchParams(location.search).get('preview') === '1') notice(`${characterLabel}模型載入成功：${meshCount} 個網格、${target.userData.ranAnimator.boneCount} 根控制骨骼。`);
+    if (new URLSearchParams(location.search).get('preview') === '1') notice(`${characterLabel}模型載入成功：${meshCount} 個網格（補回 ${recoveredMeshNodes} 個原始模型節點）、${target.userData.ranAnimator.boneCount} 根控制骨骼。`);
     return model;
   } catch (error) {
     console.error('RAN character model failed to load:', resolvedUrl, error);
