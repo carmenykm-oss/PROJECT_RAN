@@ -3,34 +3,78 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const mount = document.getElementById('game');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x91a8b8);
-scene.fog = new THREE.Fog(0x91a8b8, 38, 110);
-const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, .1, 250);
+scene.background = new THREE.Color(0x77796f);
+scene.fog = new THREE.Fog(0x77796f, 58, 145);
+const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, .1, 280);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 mount.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xe4f1ff, 0x53604b, 2));
-const sun = new THREE.DirectionalLight(0xffe5bf, 2.2);
-sun.position.set(-20, 35, 15); sun.castShadow = true; scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xd9d4c2, 0x34352c, 1.65));
+const sun = new THREE.DirectionalLight(0xffe4b8, 2.35);
+sun.position.set(-24, 34, 18); sun.castShadow = true; sun.shadow.mapSize.set(2048,2048); scene.add(sun);
 
-function box(x, y, z, a, b, c, color) {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(a, b, c), new THREE.MeshStandardMaterial({ color, roughness: .9 }));
+function box(x, y, z, a, b, c, color, materialOptions = {}) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(a, b, c), new THREE.MeshStandardMaterial({ color, roughness: .92, ...materialOptions }));
   mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); return mesh;
 }
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(110, 110), new THREE.MeshStandardMaterial({ color: 0x667c68 }));
-ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-box(0, .04, 0, 18, .08, 70, 0x9b9a8c); box(0, .05, 0, 70, .08, 18, 0x9b9a8c);
-box(0, 4, -29, 34, 8, 9, 0xc6bba3); box(0, 8.5, -29, 36, 1, 10, 0x394b5b);
-function tree(x, z) {
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.22, .32, 2, 7), new THREE.MeshStandardMaterial({ color: 0x59402d }));
-  trunk.position.set(x, 1, z); scene.add(trunk);
-  const crown = new THREE.Mesh(new THREE.SphereGeometry(1.25, 8, 7), new THREE.MeshStandardMaterial({ color: 0x315d43 }));
-  crown.position.set(x, 2.8, z); scene.add(crown);
+function cylinder(x,y,z,rt,rb,h,color,segments=12){
+ const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),new THREE.MeshStandardMaterial({color,roughness:.88}));
+ m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;
 }
-for (let z = -22; z <= 22; z += 11) { tree(-13, z); tree(13, z); }
-for (let x = -25; x <= 25; x += 10) { tree(x, -12); tree(x, 27); }
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshStandardMaterial({ color: 0x55594d, roughness:1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+// Weathered square paving, with a broad central plaza and the avenue leading to the fountain.
+const stoneColors=[0x77766b,0x858276,0x6d7068,0x918c7c,0x777a72,0x666960];
+for(let x=-24;x<=24;x+=3.2) for(let z=-25;z<=22;z+=3.2){
+ const tile=box(x,.055,z,3.08,.11,3.08,stoneColors[(Math.abs(Math.round(x*3)+Math.round(z*7)))%stoneColors.length]);
+ tile.position.y=.055;
+}
+for(let x=-6;x<=6;x+=3) box(x,.13,0,2.9,.16,52,0x88877c);
+// Campus perimeter retaining walls and iron fence lines.
+for(const side of [-1,1]){
+ box(side*14,1.1,-1,1.1,2.2,48,0x514d3f);
+ for(let z=-22;z<=20;z+=3){
+   box(side*14,2.35,z,.18,2.4,.18,0x292a26);
+   box(side*14,3.48,z,.24,.18,.24,0x4b4636);
+ }
+ box(side*14,2.45,-1,.25,.16,48,0x252622);
+ box(side*14,3.15,-1,.18,.14,48,0x252622);
+ for(let z=-22;z<=20;z+=1.05) box(side*14,2.65,z,.055,1.05,.055,0x242620);
+}
+// Heavy carved gate piers, lintel and a dark iron gate behind the fountain.
+for(const x of [-9.2,9.2]){
+ box(x,4,-27,1.8,8,1.8,0x62513d);
+ box(x,7.9,-27,2.15,.5,2.15,0x302b24);
+ box(x,2.2,-27,2.25,.45,2.25,0x393b34);
+}
+box(0,7.7,-27,16.8,.65,1.15,0x393329);
+for(let x=-7.8;x<=7.8;x+=.65) box(x,4.9,-27,.09,5.2,.09,0x242722);
+for(const y of [2.5,6.9]) box(0,y,-27,16,.16,.16,0x2a2b25);
+// Stone fountain: stepped octagonal basin, central pedestal and water.
+cylinder(0,.34,-19,5.1,5.35,.55,0x777467,8);
+cylinder(0,.65,-19,4.65,4.9,.22,0xaaa18a,8);
+cylinder(0,.83,-19,4.2,4.35,.18,0x5b665e,8);
+const water=new THREE.Mesh(new THREE.CylinderGeometry(3.95,3.95,.08,8),new THREE.MeshStandardMaterial({color:0x566b69,roughness:.24,metalness:.18}));
+water.position.set(0,.96,-19);scene.add(water);
+cylinder(0,1.65,-19,1.85,2.2,1.45,0x5d665d,8);
+cylinder(0,2.7,-19,1.25,1.55,.7,0x817d6d,8);
+cylinder(0,3.55,-19,.72,1.0,1.15,0x5a635d,8);
+cylinder(0,4.25,-19,.9,.72,.25,0x9a9078,8);
+// Weathered academy wings and ornate entrance structures in the distance.
+for(const side of [-1,1]){
+ box(side*19,4,-30,10,8,12,0x716b58);
+ for(let z=-35;z<=-25;z+=3.2) box(side*19,4.1,z,10.2,.18,.2,0x37382f);
+ for(let x=side*15;x!==side*24;x+=side*3) box(x,7.2,-30,2.5,.6,12,0x3b3027);
+}
+// Decorative masonry columns at foreground edges, framing the play space.
+for(const side of [-1,1]){
+ box(side*11,3.4,5,1.6,6.8,1.6,0x66523d);
+ box(side*11,6.95,5,2,.35,2,0x302b24);
+ box(side*11,1,5,2.1,.5,2.1,0x37362e);
+}
 
 function tag(text) {
   const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
@@ -78,11 +122,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     return null;
   }
 }
-loadRANCharacter('/models/ran-male.glb', me);
-const femaleShowcase = avatar(0x8b4d78, 'RAN 女角色');
-femaleShowcase.position.set(3.2, 0, 3);
-scene.add(femaleShowcase);
-loadRANCharacter('/models/ran-female.glb', femaleShowcase);
+loadRANCharacter('/models/ran-female.glb', me);
 const mentor = avatar(0xb28a45, '學園導師'); mentor.position.set(0,0,-8); scene.add(mentor);
 function makeQuestMarker() {
   const canvas=document.createElement('canvas'); canvas.width=128; canvas.height=128;
