@@ -1,8 +1,8 @@
 # PROJECT RAN — Classic 1.3.1 + 3D Character Integration
 
-This package combines the original PROJECT_RAN_CLASSIC_1.3.1 browser game (login/account flow, character creation, HUD, stats, inventory/equipment, shop, quests, chat, combat and WebSocket server) with the reconstructed male and female RAN GLB models in its campus scene.
+This project combines the PROJECT RAN Classic browser game with the reconstructed RAN female character in the campus scene.
 
-## Run
+## Run the game
 
 ```bash
 npm install
@@ -11,23 +11,41 @@ npm start
 
 Open `http://localhost:3000`.
 
-## Browser module loading
+## Open the character preview without an account
 
-The page uses an import map for both `three` and `three/addons/`, so `GLTFLoader` can resolve correctly from the CDN in a browser environment with network access.
+After starting the server, open:
 
-## Character integration
+`http://localhost:3000/?preview=1`
 
-- `public/models/ran-male.glb`: loaded onto the player character.
-- `public/models/ran-female.glb`: loaded as an in-scene second character.
-- Both are normalized to a shared display height and grounded using their model bounds.
-- Primitive avatars remain as a fallback if a GLB fails to load.
+The preview enters the actual campus scene directly, uses a local test player and training slime, and does not require login or a WebSocket server.
 
-## Verification status
+Controls:
+- `WASD`: move
+- `Shift`: run
+- `Space` or the attack button: trigger attack
+- `1` / `2`: trigger sample skill poses
+- Mouse drag: rotate the camera
 
-- `node --check public/game.js`: passed.
-- `node --check server.js`: passed.
-- Browser runtime / WebSocket login / visual alignment: not yet verified in a live browser.
-- `npm install` could not complete in this execution environment because the package install timed out.
-- Models are currently bind-pose previews; independent equipment attach/remove and animation testing remain outstanding.
+## Female character integration
 
-This is an integration test build, not a claim that all 3D character or equipment work is complete.
+- `public/models/ran-female.glb`: loaded as the player character.
+- The female GLB contains the native `Bip01` skeleton and is mapped to 16 main locomotion / upper-body bones.
+- The browser controller currently supplies procedural idle, walk, run, attack and skill poses.
+- `public/models/ran-male.glb` is retained as a source asset but is not yet integrated as the active player model.
+- Equipment remains a separate future integration task; the current female model is not yet connected to individual wearable equipment slots.
+
+## Original animation conversion
+
+The source archive contains female `AnimContainer` files for stay, walk, run and attack. Their 128-byte file-type header and `0x0100` version are identifiable, but the payload does not match the raw count/key layout in the public engine source examined so far. The original animation BIN conversion is therefore still pending; the procedural controller must not be mistaken for recovered original animation data.
+
+## Checks
+
+Run the rig smoke test with:
+
+```bash
+npm run test:animation
+```
+
+The test checks the female GLB bone names and finite normalized quaternion output for idle, walk, run, attack and skill controller states.
+
+JavaScript syntax has been checked. Browser rendering, live WebSocket login, and visual pose quality still require an actual browser session before they can be marked verified.
