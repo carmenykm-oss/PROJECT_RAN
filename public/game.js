@@ -96,32 +96,53 @@ function avatar(color, label) {
 }
 const me = avatar(0x315b86, 'YOU'); scene.add(me); me.position.set(0, 0, 3);
 // Load the reconstructed RAN Online character assets into the live campus scene.
+// Resolve from this module URL so GitHub Pages subpaths and local hosting behave identically.
 const gltfLoader = new GLTFLoader();
 async function loadRANCharacter(url, target, desiredHeight = 2.65) {
+  const resolvedUrl = new URL(url, import.meta.url).href;
+  const status = document.getElementById('connection');
+  if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = '女角色載入中…';
   try {
-    const gltf = await gltfLoader.loadAsync(url);
+    const gltf = await gltfLoader.loadAsync(resolvedUrl);
     const model = gltf.scene;
+    let meshCount = 0, skinnedMeshCount = 0;
+    model.traverse((obj) => {
+      if (obj.isMesh) {
+        meshCount++;
+        if (obj.isSkinnedMesh) skinnedMeshCount++;
+        obj.visible = true;
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+      }
+    });
     model.updateMatrixWorld(true);
-    let bounds = new THREE.Box3().setFromObject(model);
+    const bounds = new THREE.Box3().setFromObject(model);
     const size = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
-    const scale = desiredHeight / Math.max(size.y, 0.001);
+    if (!meshCount || !Number.isFinite(size.y) || size.y <= 0.001) {
+      throw new Error(`GLB 無有效可見模型：mesh=${meshCount}, height=${size.y}`);
+    }
+    const scale = desiredHeight / size.y;
     model.scale.setScalar(scale);
     model.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
-    model.traverse((obj) => {
-      if (obj.isMesh) { obj.castShadow = true; obj.receiveShadow = true; }
-    });
     target.add(model);
     target.userData.ranModel = model;
     target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
-    console.info('RAN female skeletal controller ready:', target.userData.ranAnimator.boneCount, 'bones');
-    // Hide the temporary primitive body once the real model is ready.
+    target.visible = true;
+    // Only hide the temporary mannequin after the real GLB has valid geometry.
     target.children.forEach((child) => {
       if (child !== model && !child.isSprite) child.visible = false;
     });
+    console.info('RAN female loaded:', { url: resolvedUrl, meshCount, skinnedMeshCount, height: size.y, bones: target.userData.ranAnimator.boneCount });
+    if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = '女角色已載入';
+    if (new URLSearchParams(location.search).get('preview') === '1') notice(`女角色模型載入成功：${meshCount} 個網格、${target.userData.ranAnimator.boneCount} 根控制骨骼。`);
     return model;
   } catch (error) {
-    console.error('RAN character model failed to load:', url, error);
+    console.error('RAN character model failed to load:', resolvedUrl, error);
+    // Keep the visible placeholder instead of leaving the player completely invisible.
+    target.visible = true;
+    if (status) status.textContent = '女角色模型載入失敗';
+    if (new URLSearchParams(location.search).get('preview') === '1') notice(`女角色載入失敗：${error.message || error}`);
     return null;
   }
 }
