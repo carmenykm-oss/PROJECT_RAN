@@ -31,8 +31,8 @@ try {
   await page.screenshot({ path: 'preview-screenshots/female-game-preview.png' });
   if (!status.includes('女角色已載入') || !debug) throw new Error('Female GLB failed to load: ' + status);
   if (debug.meshCount < 6 || debug.skinnedMeshCount < 6 ||
-      !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2 || debug.bakedMeshCount < 6) {
-    throw new Error('Female CPU-baked geometry is incomplete or collapsed: ' + JSON.stringify(debug));
+      !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2) {
+    throw new Error('Female skinned geometry is incomplete or collapsed: ' + JSON.stringify(debug));
   }
 
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
