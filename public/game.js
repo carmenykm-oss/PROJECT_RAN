@@ -156,34 +156,50 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     }
     model.updateMatrixWorld(true);
 
-    // The original male face/hair frames already carry their bind-pose placement.
-    // In the current legacy GLB their single-joint inverse-bind data expands the
-    // head meshes in Three.js. Preserve each frame's exact world transform, then
-    // attach the geometry as a normal mesh to Bip01_Head so it follows the rig.
-    let staticHeadCount = 0;
+    // Bake the original SkinWeights into bind-pose vertex positions for the
+    // browser preview. This keeps all six original parts visible and independent
+    // while the legacy inverse-bind matrices are being reconciled with Three.js.
+    // The 67-bone hierarchy remains in the model for the next deformation pass.
+    let bakedMeshCount = 0;
     if (requestedCharacter === 'male') {
-      const headBone = model.getObjectByName('Bip01_Head');
-      const headParts = [];
-      model.traverse((obj) => {
-        if (obj.isSkinnedMesh && /^male_head_mesh_part_/.test(obj.name)) headParts.push(obj);
-      });
-      if (headBone && headParts.length) {
-        headBone.updateMatrixWorld(true);
-        for (const source of headParts) {
-          const parent = source.parent;
-          const worldMatrix = source.matrixWorld.clone();
-          const localMatrix = headBone.matrixWorld.clone().invert().multiply(worldMatrix);
-          const staticHead = new THREE.Mesh(source.geometry, source.material);
-          staticHead.name = source.name + '_head_bone_mesh';
-          staticHead.castShadow = true;
-          staticHead.receiveShadow = true;
-          localMatrix.decompose(staticHead.position, staticHead.quaternion, staticHead.scale);
-          headBone.add(staticHead);
-          parent.remove(source);
-          staticHeadCount++;
+      model.updateMatrixWorld(true);
+      const parts = [];
+      model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) parts.push(obj); });
+      for (const source of parts) {
+        source.skeleton.update();
+        if (typeof source.applyBoneTransform !== 'function') {
+          throw new Error('此 Three.js 版本缺少 applyBoneTransform，無法烘焙原始 SkinWeights');
         }
-        model.updateMatrixWorld(true);
+        const bakedGeometry = source.geometry.clone();
+        const sourcePositions = bakedGeometry.getAttribute('position');
+        const positions = new Float32Array(sourcePositions.count * 3);
+        for (let i = 0; i < sourcePositions.count; i++) {
+          const vertex = new THREE.Vector3().fromBufferAttribute(sourcePositions, i);
+          source.applyBoneTransform(i, vertex);
+          positions[i * 3] = vertex.x;
+          positions[i * 3 + 1] = vertex.y;
+          positions[i * 3 + 2] = vertex.z;
+        }
+        bakedGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        for (const attribute of ['skinIndex', 'skinWeight', 'skinIndex1', 'skinWeight1']) {
+          if (bakedGeometry.hasAttribute(attribute)) bakedGeometry.deleteAttribute(attribute);
+        }
+        bakedGeometry.computeVertexNormals();
+        const bakedMesh = new THREE.Mesh(bakedGeometry, source.material);
+        bakedMesh.name = source.name + '_bindpose_baked';
+        bakedMesh.castShadow = true;
+        bakedMesh.receiveShadow = true;
+        bakedMesh.frustumCulled = false;
+        bakedMesh.position.copy(source.position);
+        bakedMesh.quaternion.copy(source.quaternion);
+        bakedMesh.scale.copy(source.scale);
+        bakedMesh.matrix.copy(source.matrix);
+        bakedMesh.matrixAutoUpdate = source.matrixAutoUpdate;
+        source.parent.add(bakedMesh);
+        source.parent.remove(source);
+        bakedMeshCount++;
       }
+      model.updateMatrixWorld(true);
     }
 
     let meshCount = 0, skinnedMeshCount = 0;
@@ -345,7 +361,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       pivotPosition: pivot.position.clone(), evaluatedSize, skinDiagnostics
     };
     window.__ranCharacterDebug = {
-      character: requestedCharacter, meshCount, skinnedMeshCount, staticHeadCount, recoveredMeshNodes,
+      character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, recoveredMeshNodes,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bakedMeshCount,
