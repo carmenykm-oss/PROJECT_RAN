@@ -224,6 +224,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     boundsHelper.name = 'RAN_MODEL_BOUNDS_DIAGNOSTIC';
     scene.add(boundsHelper);
     target.userData.ranDiagnostics = { sourceBounds: bounds, worldBounds: measuredBounds, sourceSize: size, scale, center, pivotPosition: pivot.position.clone() };
+    window.__ranCharacterDebug = {
+      character: requestedCharacter, meshCount, skinnedMeshCount, recoveredMeshNodes,
+      sourceHeight: size.y, appliedScale: scale,
+      boneCount: target.userData.ranAnimator.boneCount,
+      sourceBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() },
+      worldBounds: { min: measuredBounds.min.toArray(), max: measuredBounds.max.toArray() }
+    };
 
     target.visible = true;
     target.updateMatrixWorld(true);
