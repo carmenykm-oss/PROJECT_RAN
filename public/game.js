@@ -95,6 +95,26 @@ function avatar(color, label) {
   const nameTag = tag(label); nameTag.position.y = 2.8; group.add(nameTag); return group;
 }
 const me = avatar(0x315b86, 'YOU'); scene.add(me); me.position.set(0, 0, 3);
+// ALWAYS-ON coordinate proof: independent of GLB loading and skinning.
+// A tall neon wireframe cage and oversized axes must be visible at the player origin.
+const ranCoordinateProof = new THREE.Group();
+ranCoordinateProof.name = 'RAN_ALWAYS_ON_COORDINATE_PROOF';
+const proofEdges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(1.8, 2.8, 1.0)),
+  new THREE.LineBasicMaterial({ color: 0xff00ff, depthTest: false, transparent: false })
+);
+proofEdges.position.y = 1.4;
+proofEdges.renderOrder = 999;
+ranCoordinateProof.add(proofEdges);
+const proofAxes = new THREE.AxesHelper(4.5);
+proofAxes.renderOrder = 1000;
+proofAxes.material.depthTest = false;
+ranCoordinateProof.add(proofAxes);
+const proofLabel = tag('COORDINATE TEST');
+proofLabel.position.y = 3.2;
+proofLabel.scale.set(3.5, .85, 1);
+ranCoordinateProof.add(proofLabel);
+me.add(ranCoordinateProof);
 // Load the reconstructed RAN Online character assets into the live campus scene.
 // Resolve from this module URL so GitHub Pages subpaths and local hosting behave identically.
 const gltfLoader = new GLTFLoader();
@@ -183,7 +203,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.updateMatrixWorld(true);
     // Only hide the temporary mannequin after the normalized GLB is attached.
     target.children.forEach((child) => {
-      if (child !== pivot && !child.isSprite) child.visible = false;
+      if (child !== pivot && child !== ranCoordinateProof && !child.isSprite) child.visible = false;
     });
     console.info(`RAN ${requestedCharacter} loaded:`, { url: resolvedUrl, meshCount, skinnedMeshCount, sourceHeight: size.y, appliedScale: scale, bones: target.userData.ranAnimator.boneCount, pivotPosition: pivot.position.toArray() });
     if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = `${characterLabel}已載入`;
