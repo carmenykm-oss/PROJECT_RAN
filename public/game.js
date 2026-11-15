@@ -753,7 +753,7 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
     attack:30, defense:20, speed:100, statPoints:0, gold:1000,
     attributes:{str:12,agi:5,spi:3,vit:10,end:5},
     equipment:{weapon:null,head:null,armor:null,gloves:null,boots:null},
-    inventory:[], hotbar:[], skills:[], dead:false
+    inventory:[], hotbar:[], skills:[{id:'preview_slash',name:'破空斬',icon:'✦',mp:10,range:8,cooldown:2},{id:'preview_burst',name:'旋風擊',icon:'✹',mp:15,range:8,cooldown:3}], dead:false
   };
   renderStats(previewPlayer);
   renderQuest({id:'campus_slime_hunt',title:'校園清潔任務',description:'測試用訓練目標',target:5,progress:0,status:'not_started',reward:'150 EXP'});
