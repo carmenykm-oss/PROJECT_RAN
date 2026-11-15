@@ -1,0 +1,70 @@
+name: Convert original RAN X models to GLB
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'source_assets/x/**'
+      - 'source_assets/textures/**'
+      - '.github/workflows/convert-x-models.yml'
+      - 'scripts/convert-x-models.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source assets
+        uses: actions/checkout@v4
+
+      - name: Install Assimp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y assimp-utils
+
+      - name: Convert every X model to GLB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p converted_glb logs
+          shopt -s nullglob
+          files=(source_assets/x/*.x source_assets/x/*.X)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .X files found in source_assets/x/" | tee logs/ERROR.txt
+            exit 2
+          fi
+          assimp version | tee logs/assimp-version.txt
+          failed=0
+          for src in "${files[@]}"; do
+            name="$(basename "${src}")"
+            out="converted_glb/${name%.*}.glb"
+            echo "Converting: ${src} -> ${out}"
+            if assimp export "${src}" "${out}" -f glb2 >"logs/${name}.log" 2>&1; then
+              if [ -s "${out}" ]; then
+                echo "OK ${src} -> ${out}" | tee -a logs/summary.txt
+              else
+                echo "EMPTY OUTPUT: ${src}" | tee -a logs/summary.txt
+                failed=1
+              fi
+            else
+              echo "FAILED: ${src}" | tee -a logs/summary.txt
+              failed=1
+            fi
+          done
+          if [ -d source_assets/textures ]; then
+            cp -R source_assets/textures converted_glb/textures
+          fi
+          echo "Conversion finished; inspect logs and validate skeleton/weights/materials before using in game."
+          exit 0
+
+      - name: Upload converted models and logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ran-x-to-glb-test
+          path: |
+            converted_glb/
+            logs/
+          if-no-files-found: error
+          retention-days: 14
