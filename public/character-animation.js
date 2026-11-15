@@ -48,9 +48,9 @@ export function createRanCharacterAnimator(model, THREE) {
       pose('Bip01_Spine1','y',-.18*wind);
       pose('Bip01_R_UpperArm','z',-.95*wind + .82*strike);
       pose('Bip01_R_UpperArm','x',-.72*wind - .42*strike);
-      pose('Bip01_R_Forearm','x',-1.0*wind + .48*strike);
+      pose('Bip01_R_Forearm','z',-1.0*wind + .48*strike);
       pose('Bip01_L_UpperArm','z',.28*wind);
-      pose('Bip01_L_Forearm','x',-.35*wind);
+      pose('Bip01_L_Forearm','z',-.35*wind);
       pose('Bip01_Pelvis','y',-.18*wind);
       return;
     }
@@ -60,8 +60,8 @@ export function createRanCharacterAnimator(model, THREE) {
       pose('Bip01_Spine','x',-.12*pulse);
       pose('Bip01_L_UpperArm','z',.72*pulse);
       pose('Bip01_R_UpperArm','z',-.72*pulse);
-      pose('Bip01_L_Forearm','x',-.5*pulse);
-      pose('Bip01_R_Forearm','x',-.5*pulse);
+      pose('Bip01_L_Forearm','z',-.5*pulse);
+      pose('Bip01_R_Forearm','z',-.5*pulse);
       return;
     }
     if (mode === 'walk' || mode === 'run') {
@@ -78,10 +78,10 @@ export function createRanCharacterAnimator(model, THREE) {
       pose('Bip01_R_Calf','x',Math.max(0,swing)*(mode === 'run' ? .78 : .42));
       pose('Bip01_L_Foot','x',Math.max(0,swing)*-.28);
       pose('Bip01_R_Foot','x',Math.max(0,-swing)*-.28);
-      pose('Bip01_L_UpperArm','x',-swing*amp*.48);
-      pose('Bip01_R_UpperArm','x',swing*amp*.48);
-      pose('Bip01_L_Forearm','x',-.22-Math.max(0,swing)*.16);
-      pose('Bip01_R_Forearm','x',-.22-Math.max(0,-swing)*.16);
+      pose('Bip01_L_UpperArm','z',-swing*amp*.48);
+      pose('Bip01_R_UpperArm','z',swing*amp*.48);
+      pose('Bip01_L_Forearm','z',-.22-Math.max(0,swing)*.16);
+      pose('Bip01_R_Forearm','z',-.22-Math.max(0,-swing)*.16);
       pose('Bip01_Neck','x',.025*Math.sin(phase));
       model.position.y = baseY + bob;
     } else {
@@ -90,8 +90,8 @@ export function createRanCharacterAnimator(model, THREE) {
       pose('Bip01_Spine1','z',breath*.012);
       pose('Bip01_Neck','z',Math.sin(clock*.7)*.012);
       pose('Bip01_Head','y',Math.sin(clock*.55)*.025);
-      pose('Bip01_L_UpperArm','x',Math.sin(clock*1.1)*.018);
-      pose('Bip01_R_UpperArm','x',-Math.sin(clock*1.1)*.018);
+      pose('Bip01_L_UpperArm','z',Math.sin(clock*1.1)*.018);
+      pose('Bip01_R_UpperArm','z',-Math.sin(clock*1.1)*.018);
       model.position.y = baseY;
     }
   }
