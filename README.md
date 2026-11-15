@@ -1,6 +1,10 @@
-# PROJECT RAN — Classic 1.3.1 + 3D Character Integration
+# PROJECT RAN — Classic 1.3.1 + 3D Integration
 
-This repository contains the preserved PROJECT RAN Classic 1.3.1 prototype with the reconstructed male and female RAN character GLB assets integrated into its existing Three.js campus scene.
+The full integration test package is being prepared locally. The repository currently contains this project status document; source files and binary character assets have not yet been committed here.
+
+## Local integration package
+
+The package combines the original `PROJECT_RAN_CLASSIC_1.3.1` prototype with the reconstructed male and female GLB characters and a Three.js campus-scene integration. It retains the original login, character creation, HUD, inventory/equipment, shop, quests, chat, combat and WebSocket server code.
 
 ## Run
 
@@ -9,11 +13,13 @@ npm install
 npm start
 ```
 
-Then open http://localhost:3000.
+Open `http://localhost:3000`.
 
-## Current status
+## Verification
 
-- Original 1.3.1 login, character creation, HUD, inventory, quests, combat and WebSocket server retained.
-- Male and female GLB characters are loaded into the campus scene.
-- Character models are currently displayed in bind pose; equipment modularization and animation validation remain in progress.
-- Hosted browser runtime still requires final StackBlitz verification.
+- JavaScript syntax checks passed for `public/game.js` and `server.js`.
+- The browser import map includes both `three` and `three/addons/` for GLTFLoader.
+- A live browser session, account login, GLB alignment and multiplayer session have not yet been verified.
+- Character models are in bind pose; equipment attach/remove and animation testing remain outstanding.
+
+This is an integration test build, not a completed 3D MMORPG release.
