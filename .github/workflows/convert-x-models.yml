@@ -182,3 +182,20 @@ jobs:
       - name: Deploy game preview
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Run live game preview in headless Chromium
+        env:
+          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+          node scripts/smoke-preview.mjs
+
+      - name: Upload game preview screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ran-warrior-game-preview
+          path: preview-screenshots/
+          if-no-files-found: ignore
+          retention-days: 14
