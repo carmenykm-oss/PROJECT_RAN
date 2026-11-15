@@ -122,18 +122,37 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     if (!meshCount || !Number.isFinite(size.y) || size.y <= 0.001) {
       throw new Error(`GLB 無有效可見模型：mesh=${meshCount}, height=${size.y}`);
     }
+    // Normalize through a parent pivot instead of changing the GLTF scene root.
+    // Some exported GLBs keep matrixAutoUpdate=false on the root; writing scale/position
+    // directly to that root then has no visible effect and leaves the character off-screen.
     const scale = desiredHeight / size.y;
-    model.scale.setScalar(scale);
-    model.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
-    target.add(model);
+    const pivot = new THREE.Group();
+    pivot.name = 'RAN_Female_NormalizationPivot';
+    pivot.scale.setScalar(scale);
+    pivot.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+    pivot.add(model);
+    target.add(pivot);
+    model.traverse((obj) => {
+      if (obj.isMesh) {
+        obj.frustumCulled = false;
+        obj.visible = true;
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const mat of mats) if (mat) {
+          mat.side = THREE.DoubleSide;
+          mat.needsUpdate = true;
+        }
+      }
+    });
     target.userData.ranModel = model;
+    target.userData.ranPivot = pivot;
     target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
     target.visible = true;
-    // Only hide the temporary mannequin after the real GLB has valid geometry.
+    target.updateMatrixWorld(true);
+    // Only hide the temporary mannequin after the normalized GLB is attached.
     target.children.forEach((child) => {
-      if (child !== model && !child.isSprite) child.visible = false;
+      if (child !== pivot && !child.isSprite) child.visible = false;
     });
-    console.info('RAN female loaded:', { url: resolvedUrl, meshCount, skinnedMeshCount, height: size.y, bones: target.userData.ranAnimator.boneCount });
+    console.info('RAN female loaded:', { url: resolvedUrl, meshCount, skinnedMeshCount, sourceHeight: size.y, appliedScale: scale, bones: target.userData.ranAnimator.boneCount, pivotPosition: pivot.position.toArray() });
     if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = '女角色已載入';
     if (new URLSearchParams(location.search).get('preview') === '1') notice(`女角色模型載入成功：${meshCount} 個網格、${target.userData.ranAnimator.boneCount} 根控制骨骼。`);
     return model;
