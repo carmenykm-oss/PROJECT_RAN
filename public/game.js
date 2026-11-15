@@ -159,6 +159,23 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.userData.ranModel = model;
     target.userData.ranPivot = pivot;
     target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
+
+    // TEMPORARY WORLD-SPACE DIAGNOSTICS:
+    // Show the game world's XYZ axes at the player's origin and a measured
+    // bounding box around the imported model. This distinguishes a coordinate/
+    // transform mismatch from a material or lighting problem.
+    const worldAxes = new THREE.AxesHelper(3.5);
+    worldAxes.name = 'RAN_WORLD_AXES_DIAGNOSTIC';
+    target.add(worldAxes);
+    const modelAxes = new THREE.AxesHelper(2.0);
+    modelAxes.name = 'RAN_MODEL_AXES_DIAGNOSTIC';
+    pivot.add(modelAxes);
+    const measuredBounds = new THREE.Box3().setFromObject(pivot, true);
+    const boundsHelper = new THREE.Box3Helper(measuredBounds, 0xff33cc);
+    boundsHelper.name = 'RAN_MODEL_BOUNDS_DIAGNOSTIC';
+    scene.add(boundsHelper);
+    target.userData.ranDiagnostics = { sourceBounds: bounds, worldBounds: measuredBounds, sourceSize: size, scale, center, pivotPosition: pivot.position.clone() };
+
     target.visible = true;
     target.updateMatrixWorld(true);
     // Only hide the temporary mannequin after the normalized GLB is attached.
