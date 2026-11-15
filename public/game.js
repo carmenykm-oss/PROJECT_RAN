@@ -98,10 +98,13 @@ const me = avatar(0x315b86, 'YOU'); scene.add(me); me.position.set(0, 0, 3);
 // Load the reconstructed RAN Online character assets into the live campus scene.
 // Resolve from this module URL so GitHub Pages subpaths and local hosting behave identically.
 const gltfLoader = new GLTFLoader();
+const requestedCharacter = new URLSearchParams(location.search).get('character') === 'male' ? 'male' : 'female';
+const characterAsset = requestedCharacter === 'male' ? './models/ran-male-original.glb' : './models/ran-female.glb';
+const characterLabel = requestedCharacter === 'male' ? '男戰士' : '女角色';
 async function loadRANCharacter(url, target, desiredHeight = 2.65) {
   const resolvedUrl = new URL(url, import.meta.url).href;
   const status = document.getElementById('connection');
-  if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = '女角色載入中…';
+  if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = `${characterLabel}載入中…`;
   try {
     const gltf = await gltfLoader.loadAsync(resolvedUrl);
     const model = gltf.scene;
@@ -127,7 +130,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // directly to that root then has no visible effect and leaves the character off-screen.
     const scale = desiredHeight / size.y;
     const pivot = new THREE.Group();
-    pivot.name = 'RAN_Female_NormalizationPivot';
+    pivot.name = `RAN_${requestedCharacter}_NormalizationPivot`;
     pivot.scale.setScalar(scale);
     pivot.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
     pivot.add(model);
@@ -182,20 +185,20 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.children.forEach((child) => {
       if (child !== pivot && !child.isSprite) child.visible = false;
     });
-    console.info('RAN female loaded:', { url: resolvedUrl, meshCount, skinnedMeshCount, sourceHeight: size.y, appliedScale: scale, bones: target.userData.ranAnimator.boneCount, pivotPosition: pivot.position.toArray() });
-    if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = '女角色已載入';
-    if (new URLSearchParams(location.search).get('preview') === '1') notice(`女角色模型載入成功：${meshCount} 個網格、${target.userData.ranAnimator.boneCount} 根控制骨骼。`);
+    console.info(`RAN ${requestedCharacter} loaded:`, { url: resolvedUrl, meshCount, skinnedMeshCount, sourceHeight: size.y, appliedScale: scale, bones: target.userData.ranAnimator.boneCount, pivotPosition: pivot.position.toArray() });
+    if (status && new URLSearchParams(location.search).get('preview') === '1') status.textContent = `${characterLabel}已載入`;
+    if (new URLSearchParams(location.search).get('preview') === '1') notice(`${characterLabel}模型載入成功：${meshCount} 個網格、${target.userData.ranAnimator.boneCount} 根控制骨骼。`);
     return model;
   } catch (error) {
     console.error('RAN character model failed to load:', resolvedUrl, error);
     // Keep the visible placeholder instead of leaving the player completely invisible.
     target.visible = true;
-    if (status) status.textContent = '女角色模型載入失敗';
-    if (new URLSearchParams(location.search).get('preview') === '1') notice(`女角色載入失敗：${error.message || error}`);
+    if (status) status.textContent = `${characterLabel}模型載入失敗`;
+    if (new URLSearchParams(location.search).get('preview') === '1') notice(`${characterLabel}載入失敗：${error.message || error}`);
     return null;
   }
 }
-loadRANCharacter('./models/ran-female.glb', me);
+loadRANCharacter(characterAsset, me);
 const mentor = avatar(0xb28a45, '學園導師'); mentor.position.set(0,0,-8); scene.add(mentor);
 function makeQuestMarker() {
   const canvas=document.createElement('canvas'); canvas.width=128; canvas.height=128;
