@@ -18,9 +18,9 @@ SOURCE_HINTS = {
     "female": {
         "hair": ["s_w_hair00.x"],
         "face": ["s_w1_head.x", "s_w_face.x"],
-        "upper": ["s_w_a_bs.x"],
+        "upper": [],
         "gloves": [],
-        "lower": ["s_w_s_bs.x"],
+        "lower": [],
         "shoes": [],
     },
     "male": {
