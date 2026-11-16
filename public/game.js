@@ -123,7 +123,8 @@ ranCoordinateProof.visible = diagnosticMode;
 const gltfLoader = new GLTFLoader();
 const requestedCharacter = new URLSearchParams(location.search).get('character') === 'male' ? 'male' : 'female';
 // Use the full original 67-bone male rig with separately skinned face and hair meshes.
-const characterAsset = requestedCharacter === 'male' ? './models/ran-male.glb' : './models/ran-female.glb';
+const useFemaleUnderwearCandidate = requestedCharacter === 'female' && new URLSearchParams(location.search).get('underwear') === '1';
+const characterAsset = requestedCharacter === 'male' ? './models/ran-male.glb' : (useFemaleUnderwearCandidate ? './models/ran-female-underwear-body.glb' : './models/ran-female.glb');
 const characterLabel = requestedCharacter === 'male' ? '男戰士' : '女角色';
 async function loadRANCharacter(url, target, desiredHeight = 2.65) {
   const resolvedUrl = new URL(url, import.meta.url).href;
