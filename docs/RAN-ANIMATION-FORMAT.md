@@ -196,3 +196,17 @@ The RAN2 probe has been extended beyond the first-count gate. It now validates t
 A one-line marker validation bug in the new parser was corrected to use `startswith(b"AnimContainer")` (the marker is 13 bytes). This prevents a false failure before any payload parsing.
 
 The full parser is now committed in `scripts/decode-ran2-animation-bins.py`. The uploaded 221 MB animation ZIP is not present in the public repository tree, so GitHub Actions cannot read that Library upload directly. The code is ready to process the archive when it is made available to the runner; no claim is made yet that the uploaded wait/walk/run files passed the full parser.
+
+
+## Keyframe extraction and browser playback pipeline (2026-11-16)
+
+The initial structural parser is now complemented by:
+- `scripts/extract-ran2-animation-clips.py`: extracts position, rotation, scale, matrix, and compressed quaternion-position keys into JSON. It targets the requested wait/walk/run files with repeated `--match` arguments and preserves each source bone name and RAN timebase (4800 ticks/second).
+- `public/ran-bin-animation-player.js`: maps extracted bone names to the female GLTF rig and builds Three.js position/quaternion/scale tracks. Quaternion-position keys take priority when present; matrix-only legacy tracks are decomposed into TRS channels.
+- `public/game.js`: automatically prefers the original idle/walk/run clips when all three JSON assets exist under `public/animations/`; otherwise it explicitly falls back to the existing procedural controller.
+
+Synthetic tests now exercise full key-array extraction and the Three.js animation player. These tests establish parser/player behavior against known synthetic records, not the contents of the user's uploaded archive.
+
+## Current hard gate
+
+The user's 221 MB `Animation.zip` is still stored in the ChatGPT Library and is not checked into the public PROJECT_RAN repository. The container execution service has repeatedly failed when opening the materialized ZIP, so the new extractor has **not yet been run on the real wait/walk/run BIN files**. Consequently, the game has no real extracted JSON clips yet and is still using its procedural fallback at runtime. Do not describe original BIN animation playback as successful until the real archive produces three valid clip JSON files, their bone names map to the female skeleton, and a browser smoke test confirms changing poses while idle/walking/running.
