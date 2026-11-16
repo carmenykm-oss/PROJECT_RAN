@@ -301,7 +301,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       // swaps only the selected face mesh from s_w1_head.x, not its entire set
       // of mutually-exclusive face/hair variants.
       const headUrl = new URL(
-        useFemaleHeadCandidate ? './models/ran-female-head-candidate.glb' : './models/ran-female-face-source.glb',
+        useFemaleHeadCandidate ? './models/ran-female-face.glb' : './models/ran-female-face-source.glb',
         import.meta.url
       ).href;
       const headGltf = await gltfLoader.loadAsync(headUrl);
@@ -326,14 +326,17 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         // s_w_hair00.x is a collection of independent hairstyle meshes. Mount
         // only w_hair00 for this first alignment test; keep it separately skinned
         // so it can later become an independently equipable hair item.
-        const hairUrl = new URL('./models/ran-female-hair.glb', import.meta.url).href;
+        const femaleHairVariant = new URLSearchParams(location.search).get('femaleHair') || 'w_hair00';
+        const allowedFemaleHairVariants = new Set(['w_hair00', 'w_Hair01', 'w_hair02', 'w_hair03', 'w_hair04', 'w_hair05', 'w_hair06', 'w_hair07', 'w_hair08']);
+        if (!allowedFemaleHairVariants.has(femaleHairVariant)) throw new Error('不支援的女角色髮型：' + femaleHairVariant);
+        const hairUrl = new URL('./models/ran-female-hair-' + femaleHairVariant + '.glb', import.meta.url).href;
         const hairGltf = await gltfLoader.loadAsync(hairUrl);
         const hairScene = hairGltf.scene || hairGltf.scenes?.[0];
         if (!hairScene) throw new Error('女角色頭髮 GLB 沒有可載入場景');
         const rejectedHairMeshes = [];
         hairScene.traverse((obj) => {
           if (!obj.isMesh) return;
-          if (obj.name !== 'w_hair00') {
+          if (obj.name !== femaleHairVariant) {
             rejectedHairMeshes.push(obj);
             return;
           }
@@ -759,6 +762,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       femaleHairSkinnedMeshCount: femaleHairParts.size,
       femaleHeadCandidate: useFemaleHeadCandidate,
       femaleHairCandidate: useFemaleHairCandidate,
+      femaleHairVariant: useFemaleHairCandidate ? (new URLSearchParams(location.search).get('femaleHair') || 'w_hair00') : null,
       warriorVariant: warriorAsset ? warriorVariant : null,
       warriorOverlayMeshCount: maleWarriorParts.size,
       warriorOverlayReboundCount,
