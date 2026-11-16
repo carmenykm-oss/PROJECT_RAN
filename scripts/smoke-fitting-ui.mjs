@@ -7,10 +7,11 @@ const browser = await chromium.launch({
 });
 async function openPreview(character) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(90000);
   const params = new URLSearchParams({ preview:'1', character, skinning:'1', v:'fitting-ui-check' });
   if (character === 'female') params.set('underwear','1'), params.set('headCandidate','1'), params.set('hairCandidate','1');
   await page.goto(new URL('?' + params.toString(), base).href, { waitUntil:'domcontentloaded', timeout:90000 });
-  await page.waitForFunction(() => window.__ranCharacterDebug?.character);
+  await page.waitForFunction(() => window.__ranCharacterDebug?.character || (document.querySelector('#connection')?.textContent || '').includes('載入失敗'), { timeout: 90000 });
   await page.waitForSelector('#characterFitting:not([hidden])');
   return page;
 }
