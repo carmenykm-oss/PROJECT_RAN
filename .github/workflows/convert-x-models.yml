@@ -39,6 +39,21 @@ jobs:
             echo "Expanded $bundle into $destination"
           done < <(find source_assets -maxdepth 1 -type f -iname '*.zip' | sort)
 
+      - name: Inspect original RAN animation BIN and CFG archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p logs
+          mapfile -t archives < <(find source_assets -maxdepth 1 -type f -iname '*animation*.zip' | sort)
+          if [ ${#archives[@]} -eq 0 ]; then
+            echo "No animation ZIP found; skipping metadata inspection."
+          else
+            for archive in "${archives[@]}"; do
+              python3 scripts/inspect-ran-animation-archives.py "$archive" \
+                --out "logs/$(basename "${archive%.zip}")-animation-inspection.json"
+            done
+          fi
+
       - name: Install Assimp and DDS image support
         run: |
           sudo apt-get update
