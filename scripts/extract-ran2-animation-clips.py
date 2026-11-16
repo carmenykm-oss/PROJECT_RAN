@@ -27,7 +27,7 @@ def read_string(data, offset):
     size, offset = read_u32(data, offset)
     if size < 1 or size > 4096 or offset + size > len(data): raise ValueError("invalid bone string")
     raw = data[offset:offset+size]
-    if raw[-1] != 0: raise ValueError("bone string is not NUL terminated")
+    if raw[-1] != 0: raise ValueError(f"bone string is not NUL terminated at offset {offset-size}: size={size}, tail={raw[-8:].hex()}")
     return raw[:-1].decode("ascii"), offset + size
 
 def read_vec_keys(data, offset, count, fields):
