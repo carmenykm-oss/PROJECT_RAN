@@ -500,32 +500,43 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // Test the extracted original RAN BIN clips against both reconstructed rigs.
     // The player is enabled only when the essential body bones map; otherwise
     // the existing controller remains the explicit fallback for that rig.
-    loadRanBinAnimationPlayer(model, THREE, new URL('./animations/', import.meta.url).href)
-      .then(player => {
-        if (!player) {
-          window.__ranOriginalAnimationDebug = { character: requestedCharacter, status: 'waiting-for-real-bin-clips' };
-          return;
-        }
-        const mapped = new Set(player.mappedBones || []);
-        const essential = ['Bip01_Pelvis', 'Bip01_Spine', 'Bip01_L_Thigh', 'Bip01_R_Thigh',
-          'Bip01_L_UpperArm', 'Bip01_R_UpperArm'];
-        const missingEssential = essential.filter(name => !mapped.has(name));
-        const compatible = missingEssential.length === 0;
-        window.__ranOriginalAnimationDebug = {
-          character: requestedCharacter,
-          status: compatible ? 'compatible' : 'rig-mismatch',
-          actions: player.actions, tracks: player.trackCount,
-          sourceBoneCount: player.sourceBoneCount, mappedBoneCount: player.mappedBoneCount,
-          mappedBones: player.mappedBones, missingEssential,
-          missingBones: player.missingBones
-        };
-        if (!compatible) return;
-        target.userData.ranOriginalAnimation = player;
-        player.play('idle', 0);
-      })
-      .catch(error => {
-        window.__ranOriginalAnimationDebug = { character: requestedCharacter, status: 'not-loaded', reason: error.message };
-      });
+    // Keep reconstructed rigs in their stable bind/procedural pose by default.
+    // Enable experimental original BIN clips explicitly with ?originalBin=1 until
+    // their full-body retargeting is visually validated (pose-delta tests alone
+    // cannot detect a curled or anatomically invalid body).
+    if (new URLSearchParams(location.search).get('originalBin') === '1') {
+      loadRanBinAnimationPlayer(model, THREE, new URL('./animations/', import.meta.url).href)
+        .then(player => {
+          if (!player) {
+            window.__ranOriginalAnimationDebug = { character: requestedCharacter, status: 'waiting-for-real-bin-clips' };
+            return;
+          }
+          const mapped = new Set(player.mappedBones || []);
+          const essential = ['Bip01_Pelvis', 'Bip01_Spine', 'Bip01_L_Thigh', 'Bip01_R_Thigh',
+            'Bip01_L_UpperArm', 'Bip01_R_UpperArm'];
+          const missingEssential = essential.filter(name => !mapped.has(name));
+          const compatible = missingEssential.length === 0;
+          window.__ranOriginalAnimationDebug = {
+            character: requestedCharacter,
+            status: compatible ? 'compatible' : 'rig-mismatch',
+            actions: player.actions, tracks: player.trackCount,
+            sourceBoneCount: player.sourceBoneCount, mappedBoneCount: player.mappedBoneCount,
+            mappedBones: player.mappedBones, missingEssential,
+            missingBones: player.missingBones
+          };
+          if (!compatible) return;
+          target.userData.ranOriginalAnimation = player;
+          player.play('idle', 0);
+        })
+        .catch(error => {
+          window.__ranOriginalAnimationDebug = { character: requestedCharacter, status: 'not-loaded', reason: error.message };
+        });
+      } else {
+      window.__ranOriginalAnimationDebug = {
+        character: requestedCharacter,
+        status: 'disabled-until-full-body-visual-validation'
+      };
+    }
     window.__ranCharacterDebugRoot = model;
 
     // Update the complete player/model hierarchy BEFORE evaluating any
