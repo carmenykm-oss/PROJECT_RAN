@@ -110,6 +110,24 @@ jobs:
           if converted == 0:
               raise SystemExit("No DDS textures were converted")
 
+          # The uploaded body package does not yet include the original face/hair
+          # DDS atlas set. Supply temporary compatible fallbacks so the native
+          # head meshes render instead of disappearing on 404 texture requests.
+          skin_fallback = out_dir / "w1_bs_body.png"
+          hair_fallback = out_dir / "w1_hair_fallback.png"
+          if not hair_fallback.exists():
+              Image.new("RGBA", (64, 64), (28, 24, 22, 255)).save(hair_fallback)
+          for name in ["w1_face00.png", "w1_face01.png", "w1_face02.png", "w1_face03.png", "w1_face04.png"]:
+              target = out_dir / name
+              if not target.exists() and skin_fallback.exists():
+                  import shutil
+                  shutil.copy2(skin_fallback, target)
+          for name in ["w1_hair00.png", "w1_hair02.png", "w1_hair03.png", "w1_hair04.png"]:
+              target = out_dir / name
+              if not target.exists():
+                  import shutil
+                  shutil.copy2(hair_fallback, target)
+
           for glb in Path("converted_glb").glob("*.glb"):
               raw = glb.read_bytes()
               if raw[:4] != b"glTF":
