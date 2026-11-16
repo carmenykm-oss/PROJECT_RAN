@@ -15,7 +15,7 @@ def u32(value):
 def make_track(version):
     out = bytearray(u32(version))
     if version == 0x0102:
-        bone = b"Bip01 Pelvis\0"
+    bone = b"Bip01 Pelvis" + bytes([0])
         out += u32(len(bone)) + bone
         out += u32(0)  # rotation
         out += u32(0)  # position
