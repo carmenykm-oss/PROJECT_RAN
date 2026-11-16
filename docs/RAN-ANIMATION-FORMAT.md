@@ -93,3 +93,20 @@ The public source also contains an optional `compbyte` byte-substitution codec, 
 ## Next implementation gate
 
 Before building a full BIN-to-GLB exporter, identify the extra payload transform/wrapper and verify that decoding the first payload DWORD yields a plausible count, that every record stays within file bounds, and that bone names map to the female skeleton. Only then export animation clips.
+
+## Additional source-path verification (2026-11-16)
+
+The public source's actual ZIP-backed stream path is now confirmed:
+- `GLOGIC::openfile_basestream()` constructs `CSerialMemory` when the ZIP flag is enabled.
+- `CSerialMemory::OpenFile()` extracts the named entry from the RCC with `CUnzipper::UnzipToMemory()`.
+- The animation CFG loader calls `openfile_basestream(...)` without an explicit encode argument, so the default `bENC=false` applies.
+- `CSerialMemory::read()` invokes `compbyte::decode()` only when `m_bencode` is true. The default animation CFG path therefore does not apply this substitution codec.
+- The BIN container loader shown in this source revision uses `CSerialFile` on the extracted `.bin` file and expects its first container count immediately after the 132-byte serial header.
+
+This rules out the RCC ZIP decompression itself as an explanation for an extra 12-byte prefix: the RCC layer returns the entry's uncompressed bytes unchanged. The supplied BIN samples still show 12 varying bytes at offsets 132-143 before a repeated-looking payload pattern beginning at offset 144. That observation is verified from the uploaded samples, but the meaning of those 12 bytes is still unknown. It may indicate a different client/build format rather than a transform implemented by this public source revision.
+
+The CFG's `0x0107` body is explicitly field-serialized by `SANIMCONINFO::LoadFile()` (name, skeleton, flags/timing/type, divisions, strikes, sound/effect data, and animation scale); it is not evidence of a shared BIN wrapper.
+
+## Revised implementation gate
+
+Do not blindly strip 12 bytes or apply `compbyte` to all data. First compare the 12-byte BIN prefix across many clips and inspect the exact producer/build format. The parser must then validate both container record counts and the per-record bounds against the full file before any GLB export.
