@@ -321,27 +321,30 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) sourceParts.push(obj); });
       model.updateMatrixWorld(true);
       for (const source of sourceParts) {
-        let skeleton = source.skeleton;
-        let geometry = source.geometry.clone();
-        if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
-          // Bake each imported part into body-root bind-pose coordinates, then
-          // retarget its skin to the native female body skeleton. s_w1_head.x
-          // contains three facial helper joints not present in s_w_bs.x; for the
-          // static first-pass face fit, bind those helpers to Bip01_Head.
-          const relative = model.matrixWorld.clone().invert().multiply(source.matrixWorld);
-          geometry.applyMatrix4(relative);
-          const sharedBones = source.skeleton.bones.map((bone) => {
-            const shared = model.getObjectByName(bone.name);
-            if (shared) return shared;
+        // Every recovered RAN mesh can live under a different frame node.
+        // Rebound meshes are mounted directly under the model root, so first
+        // bake that frame's transform into its vertices. Skipping this for body
+        // meshes leaves limbs scattered or stretched even though mesh/bone counts
+        // and animation pose tests appear healthy.
+        const relative = model.matrixWorld.clone().invert().multiply(source.matrixWorld);
+        const geometry = source.geometry.clone();
+        geometry.applyMatrix4(relative);
+        const sharedBones = source.skeleton.bones.map((bone) => {
+          const shared = model.getObjectByName(bone.name);
+          if (shared) return shared;
+          if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
             if (useFemaleHeadCandidate && /^(Bone33|Bone34)$/.test(bone.name)) {
               const headBone = model.getObjectByName('Bip01_Head');
               if (headBone) return headBone;
             }
             throw new Error(`女角部件缺少對應骨骼：${bone.name}`);
-          });
-          skeleton = new THREE.Skeleton(sharedBones);
-          skeleton.calculateInverses();
-        }
+          }
+          // Retain an original helper bone when it is not duplicated by name
+          // in the active model tree (some accessory rigs use private helpers).
+          return bone;
+        });
+        const skeleton = new THREE.Skeleton(sharedBones);
+        skeleton.calculateInverses();
         skeleton.update();
         const rebound = new THREE.SkinnedMesh(geometry, source.material);
         rebound.name = source.name + '_rebound_skin';
