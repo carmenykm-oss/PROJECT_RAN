@@ -65,19 +65,15 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-male-skinning-preview.mjs
 
-      - name: Verify original male warrior outfit variants in game scene
+      - name: Verify male independent equipment slots
         env:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
-        run: node scripts/smoke-male-warrior-outfit-preview.mjs
+        run: node scripts/smoke-male-parts-preview.mjs
 
-      - name: Upload male warrior outfit variant previews
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ran-male-warrior-outfit-previews
-          path: preview-screenshots/male-warrior-*.png
-          if-no-files-found: ignore
-          retention-days: 14
+      - name: Verify female independent equipment slots
+        env:
+          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
+        run: node scripts/smoke-female-parts-preview.mjs
 
       - name: Upload experimental male rebound-skinning screenshot
         if: always()
@@ -106,11 +102,3 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Upload female game preview screenshot
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ran-female-selected-head-hair-preview-legacy
-          path: preview-screenshots/female-game-preview.png
-          if-no-files-found: ignore
-          retention-days: 14
