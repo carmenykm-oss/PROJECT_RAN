@@ -1,5 +1,10 @@
 {
-  "status": "pending",
-  "clips": {},
-  "note": "Set status to ready and provide idle/walk/run JSON clip filenames after real BIN extraction."
-}
+  "status": "ready",
+  "clips": {
+    "idle": "a_x01bs_lv1_wait.json",
+    "walk": "a_x01bs_lv1_walk.json",
+    "run": "a_x01bs_lv1_run.json"
+  },
+  "timebase": 4800,
+  "skeleton_glb": "C:\\Users\\carme\\Downloads\\PROJECT_RAN-main\\PROJECT_RAN-main\\public\\models\\ran-female.glb"
+}\n
