@@ -52,3 +52,26 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\Downloads\scan-ran-ma
 ```
 
 Copy the script from the repository if it is not already in Downloads.
+
+### Corrected WLD field offsets (source re-check, 2026-11-16)
+
+A closer read of `DxLandMan::LoadFile_VER110`, `DxLandDef.h/.cpp`, and `DxOctree::LoadFile` exposed an offset bug in the first validator. The exact source layout after the 132-byte CSerialFile header is:
+
+| File-relative offset | Field |
+|---:|---|
+| 132 | map ID (`SNATIVEID`, 4 bytes) |
+| 136–263 | map name (128 bytes) |
+| 264 | `SLAND_FILEMARK` version (DWORD; expected `0x0100`) |
+| 268 | `SLAND_FILEMARK` payload size (DWORD; expected 16) |
+| 272–287 | four file-mark DWORDs |
+| 288 | octree root begins: subdivided BOOL, max/min vectors, data address/size, then children |
+
+The first validator had treated offset 264 as the start of the four marks and started the octree at 280. That was incorrect. `scripts/inspect-ran-wld.py` has now been corrected; the update is committed as `8eafb8f8262343079a85946f608d7cbd2458d2d3`.
+
+The corrected offsets were checked against the actual uploaded `map_school.zip` bytes. The four `.wld` files still fail at the true source-defined fields: offset 264 contains `0x2A2A2A2A` instead of file-mark version `0x0100`, and the bytes at offset 288 do not form a valid octree root. The paired `.wld0` files also still do not begin with static-mesh version `0x0102` at offset 132. So the earlier FAIL conclusion remains, but it is now based on corrected offsets rather than the first parser's mistaken mark/octree boundary.
+
+### Installed-client inventory result
+
+The local scan found the actual asset root at `General\\RData`, with 219 `.wld`, 178 `.wld0`, 18,328 `.dds`, 4,331 `.x`, 6,012 `.bin`, and 18 `.rcc` files. It also found parallel `Original\\RData\\map`, `object`, `piece`, and `textures` folders. `General\\RData\\GameData\\level.rcc` is 70,747,085 bytes.
+
+This makes a direct comparison between `General\\RData` and `Original\\RData` the next highest-value test: compare same-named WLD/WLD0 files by size and SHA-256, then validate both copies at the corrected offsets. Also identify the school/campus map entries in both trees. Do not infer that the RCC files contain the map payload until their directory/index format is inspected.
