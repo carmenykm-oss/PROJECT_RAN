@@ -43,7 +43,7 @@ def decode_ran2(raw: bytes) -> bytes:
     return decoded[:132] + decoded[144:]
 
 def parse_container(data: bytes) -> dict:
-    if data[:12] != b"AnimContainer":
+    if not data.startswith(b"AnimContainer"):
         raise ValueError("unexpected animation container type")
     container_version = struct.unpack_from("<I", data, 128)[0]
     if container_version not in (0x0100, 0x0101, 0x0102):
