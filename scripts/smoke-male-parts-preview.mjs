@@ -42,12 +42,14 @@ async function verifyVariant(variant, expectedEquipment, screenshotName) {
     const status = (await page.locator('#connection').innerText()).trim();
     const debug = await page.evaluate(() => window.__ranCharacterDebug || null);
     await page.screenshot({ path: 'preview-screenshots/' + screenshotName });
-    if (!status.includes('男戰士已載入') || !debug) throw new Error('Male character failed: ' + status);
+    if (!status.includes('男戰士已載入') || !debug) throw new Error('Male character failed: ' + status + ' | ' + errors.join(' | '));
     if (debug.maleFaceSkinnedMeshCount !== 1 || debug.maleHairSkinnedMeshCount !== 1) {
       throw new Error('Male face/hair were not independently attached: ' + JSON.stringify(debug));
     }
     if (debug.maleEquipmentMeshCount !== expectedEquipment ||
         debug.maleEquipmentReboundCount !== expectedEquipment ||
+        Object.keys(debug.maleEquipmentSlotMeshes || {}).length !== (expectedEquipment === 1 ? 1 : 4) ||
+        Object.values(debug.maleEquipmentSlotMeshes || {}).some(count => count < 1) ||
         debug.maleEquipmentBoneBindingMismatchCount !== 0) {
       throw new Error('Male equipment slot binding failed: ' + JSON.stringify(debug));
     }
@@ -63,7 +65,7 @@ async function verifyVariant(variant, expectedEquipment, screenshotName) {
 
 try {
   await verifyVariant('a', 4, 'male-independent-parts-outfit-a.png');
-  await verifyVariant('f', 4, 'male-independent-parts-outfit-f.png');
+  await verifyVariant('f', 5, 'male-independent-parts-outfit-f.png');
   await verifyVariant('a', 1, 'male-independent-single-upper.png');
 } finally {
   await browser.close();
