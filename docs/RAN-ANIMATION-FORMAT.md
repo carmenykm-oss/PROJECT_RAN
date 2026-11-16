@@ -147,3 +147,22 @@ A fresh archive-wide pass over 3,676 BINs confirms:
 - This low-entropy, highly patterned region is inconsistent with treating the whole payload as ordinary AES ciphertext. It appears to be a custom per-file wrapper/encoding or a protected representation, but the exact transform is still unknown.
 
 The 12-byte field and the patterned region must be investigated together. No offset stripping, constant XOR, or guessed decryption is accepted unless the decoded container count, first animation-record version, all key-array bounds, and bone-name strings validate across multiple clips.
+
+
+## Stream-path audit: codec applicability narrowed (2026-11-16)
+
+A source-level audit of the ZIP-backed animation path adds an important constraint:
+
+- `GLOGIC::openfile_basestream()` has `bENC=false` as its declaration default in `GLogic.h`.
+- `SANIMCONINFO::LoadFile()` calls it with four arguments and does not override that default.
+- `CSerialMemory::OpenFile()` obtains the uncompressed RCC entry via `CUnzipper::UnzipToMemory()`; the optional `compbyte::decode()` runs later, per read, only when `m_bencode` is true.
+- Therefore the public source's normal CFG loading path does not use CompByte. The container BIN loader in this source revision also reads its serial payload directly; no automatic 12-byte removal is present in `CSerialFile` or `CSerialMemory`.
+
+This is stronger than the earlier generic statement that CompByte merely failed a probe: for this particular public-source call path, CompByte is not enabled at all. The observed 12-byte per-file prefix is consequently not explained by the normal RCC decompression or this default animation-stream configuration. The likely next comparison is between the producer/build that generated the uploaded assets and the public EP7 source revision, rather than further blind trials of generic ciphers.
+
+Source references:
+- `[Lib]__Engine/Sources/G-Logic/GLogic.h` (`bENC=false` default)
+- `[Lib]__Engine/Sources/G-Logic/GLogic.cpp` (`openfile_basestream` selects `CSerialMemory`)
+- `[Lib]__Engine/Sources/Common/SerialMemory.cpp` (RCC extraction and conditional CompByte decode)
+- `[Lib]__Engine/Sources/DxMeshs/DxSkinAniManSaveLoad.cpp` (CFG loader call)
+- `[Lib]__Engine/Sources/Common/SerialFile.cpp` (plain serial-file read path)
