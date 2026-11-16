@@ -1,144 +1,142 @@
-# PROJECT RAN - local client reconnaissance
+# PROJECT RAN - local client reconnaissance (Windows PowerShell 5.1 compatible)
+# This script ONLY reads EXE/DLL/OCX metadata and printable ASCII clues.
+# It never modifies, copies, uploads, or transmits client binaries.
 # Run:
-#   powershell -NoProfile -ExecutionPolicy Bypass -File .\scan-ran-client.ps1 -RootPath "C:\Path\To\RAN"
-# Output defaults to a timestamped folder on the current user's Desktop.
-#
-# Privacy: this script reads local EXE/DLL/OCX files, but does not modify,
-# copy, upload, or transmit them. It writes a small TXT + JSON report only.
+# powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\Downloads\scan-ran-client.ps1" -RootPath "C:\Program Files (x86)\XtraVision\Ran2Online"
 
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$RootPath,
-
     [string]$OutputPath = ""
 )
 
 $ErrorActionPreference = "Stop"
-$Root = (Resolve-Path -LiteralPath $RootPath).Path
+trap {
+    Write-Host ""
+    Write-Host "SCAN ERROR: $($_.Exception.GetType().FullName): $($_.Exception.Message)" -ForegroundColor Red
+    if ($_.InvocationInfo) {
+        Write-Host ("Script line {0}: {1}" -f $_.InvocationInfo.ScriptLineNumber, $_.InvocationInfo.Line) -ForegroundColor Yellow
+    }
+    Write-Host "Please copy the complete error details above." -ForegroundColor Yellow
+    break
+}
+
+$resolved = Resolve-Path -LiteralPath $RootPath
+$root = [string]$resolved.ProviderPath
+if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+    throw "RootPath is not a folder: $root"
+}
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $OutputPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "PROJECT_RAN-scan-$stamp"
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $OutputPath = Join-Path $desktop ("PROJECT_RAN-scan-" + $stamp)
 }
-New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
+[void](New-Item -ItemType Directory -Force -Path $OutputPath)
 
-$keywords = @(
-    "wld", "wld0", "land.man", "serialfile", "compbyte",
-    "decrypt", "encrypt", "compress", "decompress", "zlib",
-    "octree", "dxland", "dxstaticmesh", "mapload", "mapdata",
-    "terrain", "staticmesh", "ranonline"
-)
+$keywords = @("wld","wld0","land.man","serialfile","compbyte","decrypt","encrypt","compress","decompress","zlib","octree","dxland","dxstaticmesh","mapload","mapdata","terrain","staticmesh","ranonline")
 $extensions = @(".exe", ".dll", ".ocx")
-$records = New-Object System.Collections.Generic.List[object]
-$maxScanBytes = 128MB
-$maxMatchesPerFile = 24
-
-function Get-PrintableStrings {
-    param([byte[]]$Bytes)
-    $found = New-Object System.Collections.Generic.List[string]
-    $latin = [Text.Encoding]::GetEncoding(28591).GetString($Bytes)
-    foreach ($m in [regex]::Matches($latin, '[\x20-\x7E]{5,}')) {
-        $s = $m.Value.Trim()
-        if ($s.Length -gt 180) { $s = $s.Substring(0, 180) }
-        if ($s) { $found.Add($s) }
-    }
-    $unicode = [Text.Encoding]::Unicode.GetString($Bytes)
-    foreach ($m in [regex]::Matches($unicode, '[\x20-\x7E]{5,}')) {
-        $s = $m.Value.Trim()
-        if ($s.Length -gt 180) { $s = $s.Substring(0, 180) }
-        if ($s) { $found.Add($s) }
-    }
-    return $found
-}
-
-$files = Get-ChildItem -LiteralPath $Root -Recurse -File -ErrorAction SilentlyContinue |
-    Where-Object { $extensions -contains $_.Extension.ToLowerInvariant() }
-
-$total = @($files).Count
+$records = @()
+$files = @(Get-ChildItem -LiteralPath $root -Recurse -ErrorAction SilentlyContinue | Where-Object { -not $_.PSIsContainer -and $extensions -contains $_.Extension.ToLowerInvariant() })
+$total = $files.Count
 $index = 0
+
 foreach ($file in $files) {
     $index++
-    Write-Progress -Activity "Scanning RAN client metadata" -Status "$index / $total : $($file.Name)" -PercentComplete ([int](100 * $index / [Math]::Max(1, $total)))
+    if ($total -gt 0) {
+        $pct = [int](100.0 * $index / $total)
+        Write-Progress -Activity "Scanning RAN client" -Status ("{0}/{1}: {2}" -f $index,$total,$file.Name) -PercentComplete $pct
+    }
 
-    $versionInfo = $null
-    try { $versionInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($file.FullName) } catch {}
+    $vi = $null
+    try { $vi = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($file.FullName) } catch {}
 
-    $matches = New-Object System.Collections.Generic.List[string]
+    $clues = @()
     $scanStatus = "metadata-only"
-    if ($file.Length -le $maxScanBytes) {
+    if ($file.Length -le 67108864) {
+        $stream = $null
         try {
-            $bytes = [IO.File]::ReadAllBytes($file.FullName)
-            $strings = Get-PrintableStrings -Bytes $bytes
-            foreach ($s in $strings) {
-                $lower = $s.ToLowerInvariant()
+            $stream = [System.IO.File]::Open($file.FullName, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+            $count = [int][Math]::Min([int64]$stream.Length, [int64]67108864)
+            $buffer = New-Object byte[] $count
+            $read = $stream.Read($buffer, 0, $count)
+            if ($read -lt $count) { $buffer = $buffer[0..([Math]::Max(0,$read - 1))] }
+            # ASCII is sufficient for API names, file extensions and diagnostic strings.
+            $ascii = [System.Text.Encoding]::ASCII.GetString($buffer)
+            $seen = @{}
+            foreach ($m in [regex]::Matches($ascii, '[\x20-\x7E]{5,}')) {
+                $s = $m.Value.Trim()
+                $low = $s.ToLowerInvariant()
                 foreach ($kw in $keywords) {
-                    if ($lower.Contains($kw)) {
-                        if (-not $matches.Contains($s)) { $matches.Add($s) }
+                    if ($low.Contains($kw)) {
+                        if (-not $seen.ContainsKey($s)) {
+                            $seen[$s] = $true
+                            $clues += $s.Substring(0, [Math]::Min(160, $s.Length))
+                        }
                         break
                     }
                 }
-                if ($matches.Count -ge $maxMatchesPerFile) { break }
+                if ($clues.Count -ge 20) { break }
             }
             $scanStatus = "scanned"
-            $bytes = $null
         } catch {
-            $scanStatus = "read-error: $($_.Exception.Message)"
+            $scanStatus = "read-error: " + $_.Exception.Message
+        } finally {
+            if ($stream) { $stream.Dispose() }
         }
     } else {
-        $scanStatus = "skipped-over-128MB"
+        $scanStatus = "skipped-over-64MB"
     }
 
-    $relative = $file.FullName.Substring($Root.TrimEnd('\').Length).TrimStart('\')
-    $records.Add([pscustomobject]@{
+    $relative = $file.FullName.Substring($root.TrimEnd('\').Length).TrimStart('\')
+    $records += [pscustomobject]@{
         path = $relative
         extension = $file.Extension
-        size_bytes = $file.Length
-        last_write_utc = $file.LastWriteTimeUtc.ToString("o")
-        file_version = if ($versionInfo) { $versionInfo.FileVersion } else { "" }
-        product_version = if ($versionInfo) { $versionInfo.ProductVersion } else { "" }
-        product_name = if ($versionInfo) { $versionInfo.ProductName } else { "" }
-        company_name = if ($versionInfo) { $versionInfo.CompanyName } else { "" }
-        file_description = if ($versionInfo) { $versionInfo.FileDescription } else { "" }
+        size_bytes = [int64]$file.Length
+        file_version = if ($vi) { [string]$vi.FileVersion } else { "" }
+        product_version = if ($vi) { [string]$vi.ProductVersion } else { "" }
+        product_name = if ($vi) { [string]$vi.ProductName } else { "" }
+        company_name = if ($vi) { [string]$vi.CompanyName } else { "" }
+        file_description = if ($vi) { [string]$vi.FileDescription } else { "" }
         string_scan = $scanStatus
-        keyword_strings = @($matches)
-    })
+        keyword_strings = @($clues)
+    }
 }
-Write-Progress -Activity "Scanning RAN client metadata" -Completed
+Write-Progress -Activity "Scanning RAN client" -Completed
 
 $report = [pscustomobject]@{
     report_type = "PROJECT_RAN local client scan"
     generated_utc = (Get-Date).ToUniversalTime().ToString("o")
-    root_folder_name = (Split-Path $Root -Leaf)
+    root_folder_name = (Split-Path $root -Leaf)
     files_scanned = $records.Count
-    note = "No binaries were copied or uploaded. Keyword strings are short clues, not proof of encryption or file format."
+    note = "Metadata and short ASCII clues only. No binaries copied, modified, uploaded or transmitted."
     files = @($records)
 }
 $jsonPath = Join-Path $OutputPath "ran-client-scan.json"
 $txtPath = Join-Path $OutputPath "ran-client-scan.txt"
-$report | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $jsonPath -Encoding UTF8
+$report | ConvertTo-Json -Depth 6 | Out-File -LiteralPath $jsonPath -Encoding UTF8
 
-$lines = New-Object System.Collections.Generic.List[string]
-$lines.Add("PROJECT RAN - LOCAL CLIENT SCAN")
-$lines.Add("Generated UTC: $($report.generated_utc)")
-$lines.Add("Root folder: $($report.root_folder_name)")
-$lines.Add("EXE/DLL/OCX files: $($records.Count)")
-$lines.Add("")
+$lines = @(
+    "PROJECT RAN - LOCAL CLIENT SCAN",
+    "Generated UTC: $($report.generated_utc)",
+    "Root folder: $($report.root_folder_name)",
+    "EXE/DLL/OCX files: $($records.Count)",
+    ""
+)
 foreach ($r in $records) {
-    $lines.Add("[$($r.extension)] $($r.path)")
-    $lines.Add("  Size: $($r.size_bytes) | FileVersion: $($r.file_version) | ProductVersion: $($r.product_version)")
-    if ($r.product_name -or $r.file_description) {
-        $lines.Add("  Product: $($r.product_name) | Description: $($r.file_description)")
-    }
-    $lines.Add("  String scan: $($r.string_scan)")
-    foreach ($s in $r.keyword_strings) { $lines.Add("  clue: $s") }
-    $lines.Add("")
+    $lines += "[$($r.extension)] $($r.path)"
+    $lines += "  Size: $($r.size_bytes) | FileVersion: $($r.file_version) | ProductVersion: $($r.product_version)"
+    $lines += "  Product: $($r.product_name) | Company: $($r.company_name) | Description: $($r.file_description)"
+    $lines += "  String scan: $($r.string_scan)"
+    foreach ($s in $r.keyword_strings) { $lines += "  clue: $s" }
+    $lines += ""
 }
-$lines | Set-Content -LiteralPath $txtPath -Encoding UTF8
+$lines | Out-File -LiteralPath $txtPath -Encoding UTF8
 
 Write-Host ""
-Write-Host "Scan complete." -ForegroundColor Green
-Write-Host "TXT : $txtPath"
-Write-Host "JSON: $jsonPath"
-Write-Host "Files scanned: $($records.Count)"
-Write-Host "Only upload ran-client-scan.json or ran-client-scan.txt to PROJECT_RAN; do NOT upload the client binaries."
+Write-Host "SCAN COMPLETE" -ForegroundColor Green
+Write-Host ("Files scanned: {0}" -f $records.Count)
+Write-Host ("TXT : {0}" -f $txtPath)
+Write-Host ("JSON: {0}" -f $jsonPath)
+Write-Host "Upload only the JSON or TXT report to the PROJECT_RAN repository. Do NOT upload game binaries."
