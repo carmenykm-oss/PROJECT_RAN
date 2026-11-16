@@ -110,3 +110,7 @@ The CFG's `0x0107` body is explicitly field-serialized by `SANIMCONINFO::LoadFil
 ## Revised implementation gate
 
 Do not blindly strip 12 bytes or apply `compbyte` to all data. First compare the 12-byte BIN prefix across many clips and inspect the exact producer/build format. The parser must then validate both container record counts and the per-record bounds against the full file before any GLB export.
+
+### Archive-wide prefix survey
+
+A fresh local pass over the uploaded outer archive found 3,676 `AnimContainer` BIN files. The 12-byte region at offsets 132-143 is not a shared constant: 3,667 distinct prefixes occur across those 3,676 files. In the three reference clips (`wait`, `walk`, `run`), the prefix is different for each clip, while the first 16 bytes from offset 144 share a highly similar pattern. This supports treating offsets 132-143 as a per-file field or prefix, but does not yet identify its semantics. The archive inspector now reports the top 20 values of this prefix distribution and records bytes 144-159 for each selected sample.
