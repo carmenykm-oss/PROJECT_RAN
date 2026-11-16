@@ -59,9 +59,8 @@ foreach ($file in $files) {
         try {
             $stream = [System.IO.File]::Open($file.FullName, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
             $count = [int][Math]::Min([int64]$stream.Length, [int64]67108864)
-            $buffer = New-Object byte[] $count
+            $buffer = [System.Array]::CreateInstance([byte], $count)
             $read = $stream.Read($buffer, 0, $count)
-            if ($read -lt $count) { $buffer = $buffer[0..([Math]::Max(0,$read - 1))] }
             # ASCII is sufficient for API names, file extensions and diagnostic strings.
             $ascii = [System.Text.Encoding]::ASCII.GetString($buffer)
             $seen = @{}
@@ -90,7 +89,7 @@ foreach ($file in $files) {
     }
 
     $relative = $file.FullName.Substring($root.TrimEnd('\').Length).TrimStart('\')
-    $records += [pscustomobject]@{
+    $record = [pscustomobject]@{
         path = $relative
         extension = $file.Extension
         size_bytes = [int64]$file.Length
@@ -102,6 +101,7 @@ foreach ($file in $files) {
         string_scan = $scanStatus
         keyword_strings = @($clues)
     }
+    $records = @($records) + @($record)
 }
 Write-Progress -Activity "Scanning RAN client" -Completed
 
