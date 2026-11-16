@@ -231,6 +231,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     const maleFaceParts = new Set();
     const maleHairParts = new Set();
     const maleEquipmentParts = new Set();
+    const maleEquipmentMirrorZParts = new Set();
     const femaleEquipmentParts = new Set();
     const femaleEquipmentScenes = [];
     const femaleEquipmentSlotMeshes = {};
@@ -281,8 +282,15 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         const partScene = partGltf.scene || partGltf.scenes?.[0];
         if (!partScene) throw new Error('男角色' + slot + '裝備 GLB 沒有可載入場景');
         const before = maleEquipmentParts.size;
+        // The A outfit source is exported in the opposite front/back (Z)
+        // coordinate frame from the selected ran-male base. Reflect its source
+        // scene before baking transforms into the shared-rig rebound meshes.
+        if (variant === 'a') partScene.scale.z = -1;
         partScene.traverse((obj) => {
-          if (obj.isSkinnedMesh && obj.skeleton) maleEquipmentParts.add(obj);
+          if (obj.isSkinnedMesh && obj.skeleton) {
+            maleEquipmentParts.add(obj);
+            if (variant === 'a') maleEquipmentMirrorZParts.add(obj);
+          }
         });
         const added = maleEquipmentParts.size - before;
         if (added < 1) throw new Error('男角色' + slot + '裝備沒有有效蒙皮網格');
@@ -475,8 +483,47 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         // meshes leaves limbs scattered or stretched even though mesh/bone counts
         // and animation pose tests appear healthy.
         const relative = model.matrixWorld.clone().invert().multiply(source.matrixWorld);
-        const geometry = source.geometry.clone();
+        let geometry = source.geometry.clone();
         geometry.applyMatrix4(relative);
+        if (maleEquipmentMirrorZParts.has(source)) {
+          // A negative Z scale reverses triangle winding. Restore front-face
+          // winding after the reflection so lighting and back-face culling agree.
+          if (!geometry.index) geometry = geometry.toNonIndexed();
+          if (geometry.index) {
+            const indices = geometry.index.array;
+            for (let i = 0; i + 2 < indices.length; i += 3) {
+              const swap = indices[i + 1]; indices[i + 1] = indices[i + 2]; indices[i + 2] = swap;
+            }
+            geometry.index.needsUpdate = true;
+          } else {
+            for (const attribute of Object.values(geometry.attributes)) {
+              const array = attribute.array, size = attribute.itemSize;
+              for (let i = 0; i + 2 < attribute.count; i += 3) {
+                for (let c = 0; c < size; c++) {
+                  const a = i * size + c, b = (i + 1) * size + c;
+                  const value = array[b]; array[b] = array[a]; array[a] = value;
+                  const d = (i + 2) * size + c, e = (i + 1) * size + c;
+                  const value2 = array[e]; array[e] = array[d]; array[d] = value2;
+                }
+              }
+              attribute.needsUpdate = true;
+            }
+          }
+          for (const morphList of Object.values(geometry.morphAttributes)) {
+            for (const attribute of morphList) {
+              const array = attribute.array, size = attribute.itemSize;
+              for (let i = 0; i + 2 < attribute.count; i += 3) {
+                for (let c = 0; c < size; c++) {
+                  const a = i * size + c, b = (i + 1) * size + c;
+                  const value = array[b]; array[b] = array[a]; array[a] = value;
+                  const d = (i + 2) * size + c, e = (i + 1) * size + c;
+                  const value2 = array[e]; array[e] = array[d]; array[d] = value2;
+                }
+              }
+              attribute.needsUpdate = true;
+            }
+          }
+        }
         const sharedBones = source.skeleton.bones.map((bone) => {
           const shared = baseRigBones.get(bone.name) || model.getObjectByName(bone.name);
           if (shared) return shared;
@@ -761,6 +808,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       maleFaceEnabled: new URLSearchParams(location.search).get('maleFace') !== '0',
       maleHairSkinnedMeshCount: maleHairParts.size,
       maleEquipmentMeshCount: maleEquipmentParts.size,
+      maleEquipmentMirrorZMeshCount: maleEquipmentMirrorZParts.size,
       maleEquipmentSlotMeshes: maleEquipmentSlotMeshes,
       maleEquipmentReboundCount: [...maleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
       maleEquipmentBoneBindingMismatchCount,
