@@ -44,6 +44,11 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-female-preview.mjs
 
+      - name: Verify converted female underwear body in game scene
+        env:
+          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
+        run: node scripts/smoke-female-underwear-preview.mjs
+
       - name: Verify original male character and head in game scene
         env:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
@@ -60,6 +65,15 @@ jobs:
         with:
           name: ran-male-animation-preview
           path: preview-screenshots/male-rebound-*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload female underwear body game preview screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ran-female-underwear-game-preview
+          path: preview-screenshots/female-underwear-body-preview.png
           if-no-files-found: ignore
           retention-days: 14
 
