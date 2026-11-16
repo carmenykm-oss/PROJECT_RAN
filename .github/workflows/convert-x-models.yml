@@ -13,6 +13,8 @@ on:
       - 'scripts/inspect-character-parts.py'
       - 'scripts/diagnose-male-bind-pose.py'
       - 'scripts/split-male-native-head-parts.py'
+      - 'scripts/split-male-base-parts.py'
+      - 'scripts/smoke-male-base-parts-preview.mjs'
 
 permissions:
   contents: write
@@ -300,7 +302,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/split-male-native-head-parts.py
+          python3 scripts/split-male-base-parts.py
 
       - name: Split male outfit sources into independent equipment candidates
         shell: bash
@@ -422,9 +424,8 @@ jobs:
           npm install --no-save playwright
           npx playwright install --with-deps chromium
           node scripts/smoke-preview.mjs
-          node scripts/smoke-male-parts-preview.mjs
+          node scripts/smoke-male-base-parts-preview.mjs
           node scripts/smoke-male-skinning-preview.mjs
-          node scripts/smoke-female-parts-preview.mjs
           node scripts/smoke-female-underwear-preview.mjs
           node scripts/smoke-female-head-hair-preview.mjs
 
