@@ -67,10 +67,43 @@ async function verifyVariant(variant, expectedEquipment, screenshotName) {
   }
 }
 
+async function verifyMixedOutfit() {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  page.setDefaultTimeout(90000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const params = new URLSearchParams({
+    preview: '1', character: 'male', skinning: '1',
+    maleUpper: 'f', maleGloves: 'f', maleLower: 'a', maleShoes: 'a',
+    v: 'male-mixed-outfit-f-upper-a-lower'
+  });
+  try {
+    const response = await page.goto(new URL('?' + params.toString(), base).href, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    if (!response || !response.ok()) throw new Error('Mixed male outfit HTTP status: ' + (response?.status() ?? 'no response'));
+    await page.waitForFunction(() => window.__ranCharacterDebug?.character === 'male', { timeout: 90000 });
+    await page.waitForTimeout(1200);
+    const status = (await page.locator('#connection').innerText()).trim();
+    const debug = await page.evaluate(() => window.__ranCharacterDebug || null);
+    const screenshot = 'male-mixed-outfit-f-upper-a-lower.png';
+    await page.screenshot({ path: 'preview-screenshots/' + screenshot });
+    if (!status.includes('男戰士已載入') || !debug ||
+        debug.maleEquipmentMeshCount !== 5 ||
+        debug.maleEquipmentReboundCount !== 5 ||
+        Object.keys(debug.maleEquipmentSlotMeshes || {}).length !== 4 ||
+        debug.maleEquipmentBoneBindingMismatchCount !== 0 ||
+        errors.length) {
+      throw new Error('Mixed male outfit validation failed: ' + JSON.stringify({ status, debug, errors }));
+    }
+    console.log(JSON.stringify({ status: 'PASS', outfit: 'upper=f, gloves=f, lower=a, shoes=a', debug, screenshot }, null, 2));
+  } finally { await page.close(); }
+}
+
 try {
   await verifyVariant('a', 4, 'male-independent-parts-outfit-a.png');
   await verifyVariant('f', 5, 'male-independent-parts-outfit-f.png');
   await verifyVariant('a', 1, 'male-independent-single-upper.png');
+  await verifyMixedOutfit();
 } finally {
   await browser.close();
 }
