@@ -15,7 +15,7 @@ def u32(value):
 def make_track(version):
     out = bytearray(u32(version))
     if version == 0x0102:
-    bone = b"Bip01 Pelvis" + bytes([0])
+        bone = b"Bip01 Pelvis" + bytes([0])
         out += u32(len(bone)) + bone
         out += u32(0)  # rotation
         out += u32(0)  # position
@@ -52,7 +52,7 @@ def main():
     extract_spec.loader.exec_module(extract)
 
     # A version 0x0101 track with one key of each supported type.
-    bone = b"Bip01 Pelvis\\0"
+    bone = b"Bip01 Pelvis" + bytes([0])
     track = bytearray(u32(0x0101))
     track += u32(1) + u32(1200) + struct.pack("<3f", 1.0, 2.0, 3.0)  # position
     track += u32(1) + u32(1200) + struct.pack("<4f", 0.0, 0.0, 0.0, 1.0)  # rotation
