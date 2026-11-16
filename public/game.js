@@ -280,7 +280,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
           if (obj.isSkinnedMesh && obj.skeleton) maleEquipmentParts.add(obj);
         });
         const added = maleEquipmentParts.size - before;
-        if (added !== 1) throw new Error('男角色' + slot + '裝備必須是單一獨立蒙皮網格');
+        if (added < 1) throw new Error('男角色' + slot + '裝備沒有有效蒙皮網格');
         maleEquipmentSlotMeshes[slot] = added;
         model.add(partScene);
         maleEquipmentScenes.push(partScene);
