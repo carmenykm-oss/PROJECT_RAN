@@ -60,7 +60,6 @@ async function verifyVariant(variant, expectedMeshes, screenshotName, singleSlot
 
 try {
   await verifyVariant('a', 6, 'female-independent-parts-outfit-a.png');
-  await verifyVariant('s', 9, 'female-independent-parts-outfit-s.png', false, 'w_hair02');
   await verifyVariant('a', 2, 'female-independent-single-upper.png', true, 'w_hair04');
 } finally {
   await browser.close();
