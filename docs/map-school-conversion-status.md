@@ -27,3 +27,28 @@
 
 ## Required next input for a real conversion
 A matching decoder/encoder implementation for the client build that produced these files, or one known-good unencrypted `.wld` + `.wld0` pair from that exact client build. Once payload fields validate, the converter can walk the octree and static-mesh structures and emit glTF/GLB plus the referenced textures.
+
+
+## Additional source-code findings (2026-11-16)
+
+The public EP7 source was checked beyond the raw WLD layout:
+
+- The repository includes a native **LevelEditor** tool (not a finished standalone WorldEditor). Its CLevelEditorView::LoadGLLandMan() loads a .lev file through GLLandMan, obtains the referenced WLD filename, and then calls the native DxLandMan::LoadFile() renderer. This is a promising route for validating a map with the original engine, provided the editor build and data layout match the supplied client.
+- GLLevelFile::FILE_EXT is glmap. Its SLEVEL_HEAD block stores the WLD filename, map name, brightness, and terrain division. The GLMap/level metadata is therefore a separate source of map identity and configuration, not merely the WLD payload.
+- GLLevelFile::LoadFile() opens the level metadata through the GLogic stream layer and enables its encode mode based on the level-file version. This differs from the DxLandMan WLD path, which opens LAND.MAN with default bencode=false.
+- DxStaticMesh::Load() derives the companion filename by appending 0 to a .wld name, then reads version 0x0102, a size-prefixed AABB block, and five static-mesh material buckets.
+- SUBPATH.cpp confirms the conventional source folders: Data/Map, Data/GLMap, Data/Tiles, Data/StaticMesh, Data/Object, Textures/Tiles, and related resource roots.
+
+### Revised interpretation
+
+The public EP7 source does not prove that the supplied WLD payload is AES-GCM encrypted. In this source path, WLD is read as a plain serial stream; the AES-GCM and CryptoAPI strings found in the user's newer TW client may belong to another resource layer or build-specific wrapper. Therefore encryption remains a hypothesis, not a conclusion. The next best diagnostic is to inventory the installed client's .glmap/.lev, map, tile, static-mesh, object, and texture resources, then compare the matching metadata and file references before attempting further cryptographic guesses.
+
+### New local inventory helper
+
+Added scripts/scan-ran-map-assets.ps1. It lists candidate map/level files, extension counts, and conventional resource folders without modifying client files. Run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\Downloads\scan-ran-map-assets.ps1" -RootPath "C:\Program Files (x86)\XtraVision\Ran2Online"
+```
+
+Copy the script from the repository if it is not already in Downloads.
