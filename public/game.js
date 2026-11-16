@@ -135,7 +135,7 @@ async function mountOriginalRanTerrain(mapName = 'LDG02') {
       side: THREE.DoubleSide
     }));
     const terrainMaterial = materialCache.get(key);
-    if (source.name && /\\.(dds|tga)$/i.test(source.name) && !terrainMaterial.userData.ranTextureRequested) {
+    if (source.name && /\\.dds$/i.test(source.name) && !terrainMaterial.userData.ranTextureRequested) {
       terrainMaterial.userData.ranTextureRequested = true;
       ranDdsLoader.loadAsync('/api/ran-map/texture?name=' + encodeURIComponent(source.name))
         .then(texture => { texture.colorSpace = THREE.SRGBColorSpace; terrainMaterial.map = texture; terrainMaterial.needsUpdate = true; })
