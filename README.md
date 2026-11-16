@@ -26,13 +26,13 @@ Controls:
 - `1` / `2`: trigger sample skill poses
 - Mouse drag: rotate the camera
 
-## Female character integration
+## Character base-model testing
 
-- `public/models/ran-female.glb`: loaded as the player character.
-- The female GLB contains the native `Bip01` skeleton and is mapped to 16 main locomotion / upper-body bones.
-- The browser controller currently supplies procedural idle, walk, run, attack and skill poses.
-- `public/models/ran-male.glb` is retained as a source asset but is not yet integrated as the active player model.
-- Equipment remains a separate future integration task; the current female model is not yet connected to individual wearable equipment slots.
+- **Female base model:** `public/models/ran-female-underwear-body.glb` is the only active female body base for integration and browser smoke tests.
+- **Male base model:** `public/models/ran-male.glb` is the male base-model target for integration and browser smoke tests.
+- The former original female character model and its dedicated smoke test are retired from the active workflow. Its source files may remain in the repository as archived reference material, but they are not part of current development or acceptance checks.
+- Current acceptance priority for both base models: a stable upright idle stance, then visibly natural walking and running without body folding, curling, or broken limb deformation.
+- Head, hair, face and wearable equipment are subsequent attachment tasks. Equipment must remain separate replaceable parts rather than being merged into one inseparable character mesh.
 
 ## Original animation conversion
 
