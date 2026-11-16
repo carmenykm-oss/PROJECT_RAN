@@ -38,7 +38,8 @@ try {
   if (debug.meshCount < 1 || debug.skinnedMeshCount < 1 || debug.reboundSkinCount < 1 || debug.boneCount < 1 ||
       !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2)
     throw new Error('Female rebound skinning incomplete: ' + JSON.stringify(debug));
-  // This isolated body candidate is validated for load, skinning and visible bounds; locomotion follows after head and original animation assets are assembled.
+  if (!idlePose || !walkPose || !runPose || walkDelta < 0.001 || runDelta < 0.001)
+    throw new Error('Female underwear body walk/run pose did not change: ' + JSON.stringify({idlePose,walkPose,runPose,walkDelta,runDelta}));
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
   console.log(JSON.stringify({status:'PASS',url,modelStatus:status,debug,poseChecks:{walkDelta,runDelta,idlePose,walkPose,runPose}},null,2));
 } finally { await browser.close(); }
