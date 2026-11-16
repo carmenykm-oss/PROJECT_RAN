@@ -75,6 +75,11 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-female-parts-preview.mjs
 
+      - name: Verify in-game fitting panel interactions
+        env:
+          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
+        run: node scripts/smoke-fitting-ui.mjs
+
       - name: Upload experimental male rebound-skinning screenshot
         if: always()
         uses: actions/upload-artifact@v4
