@@ -1031,7 +1031,7 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
   };
   renderStats(previewPlayer);
   renderQuest({id:'campus_slime_hunt',title:'校園清潔任務',description:'測試用訓練目標',target:5,progress:0,status:'not_started',reward:'150 EXP'});
-  updateMob({id:'preview-slime',name:'校園史萊姆',type:'slime',level:1,x:0,z:-3,hp:60,maxHp:60,alive:true});
+  updateMob({id:'preview-slime',name:'校園史萊姆',type:'slime',level:1,x:4.5,z:-3,hp:60,maxHp:60,alive:true});
   enterGame();
   notice('預覽模式：WASD 移動、Shift 跑步、空白鍵或攻擊按鈕測試動作。此模式不連接伺服器。');
 }
