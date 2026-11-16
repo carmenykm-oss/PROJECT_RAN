@@ -354,7 +354,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         const key = 'female' + slot[0].toUpperCase() + slot.slice(1);
         const variant = femaleParams.get(key);
         if (!variant) continue;
-        if (!['a', 's'].includes(variant)) throw new Error('不支援的女角色裝備來源：' + key);
+        if (variant !== 'a') throw new Error('女角色這套裝備的貼圖尚未配對完成：' + key);
         const partUrl = './models/ran-female-outfit-' + variant + '-' + slot + '.glb';
         const partGltf = await gltfLoader.loadAsync(new URL(partUrl, import.meta.url).href);
         const partScene = partGltf.scene || partGltf.scenes?.[0];
