@@ -329,6 +329,7 @@ jobs:
           npm install --no-save playwright
           npx playwright install --with-deps chromium
           node scripts/smoke-preview.mjs
+          node scripts/smoke-male-parts-preview.mjs
           node scripts/smoke-female-underwear-preview.mjs
           node scripts/smoke-female-head-hair-preview.mjs
 
