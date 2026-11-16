@@ -265,13 +265,17 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         const partGltf = await gltfLoader.loadAsync(new URL(partUrl, import.meta.url).href);
         const partScene = partGltf.scene || partGltf.scenes?.[0];
         if (!partScene) throw new Error(partLabel + ' GLB 沒有可載入場景');
-        // The publishing step has already isolated the default native mesh
-        // (m2_face00 / m_hair00) into a one-mesh GLB. Attach that skinned mesh
-        // directly; do not depend on Three.js runtime object names.
+        // Mirror the confirmed female base assembly: load one isolated native
+        // skinned face/hair mesh, keep it as its own source part, then let the
+        // shared rebound-skinning stage bind it to the selected male body rig.
+        // The GLB has already selected m2_face00 or m_hair00; avoid depending on
+        // Three.js runtime node names after import.
         partScene.traverse((obj) => {
           if (obj.isMesh && obj.isSkinnedMesh && obj.skeleton) partSet.add(obj);
         });
-        if (!partSet.size) throw new Error(partLabel + ' 沒有有效蒙皮網格');
+        if (partSet.size !== 1) {
+          throw new Error(partLabel + ' 必須剛好有 1 個獨立蒙皮網格，實際：' + partSet.size);
+        }
         model.add(partScene);
         malePartScenes.push(partScene);
       }
@@ -670,6 +674,28 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       }
     });
 
+    // Explicitly report the same three-part proof used for the confirmed
+    // female base character: body rig + one face + one hairstyle.
+    const maleFaceReboundNames = new Set([...maleFaceParts].map(part => part.name + '_rebound_skin'));
+    const maleHairReboundNames = new Set([...maleHairParts].map(part => part.name + '_rebound_skin'));
+    let maleFaceBoneBindingMismatchCount = 0;
+    let maleHairBoneBindingMismatchCount = 0;
+    model.traverse((obj) => {
+      if (!obj.isSkinnedMesh || !obj.skeleton) return;
+      if (maleFaceReboundNames.has(obj.name)) {
+        for (const bone of obj.skeleton.bones) {
+          if (baseRigBones.get(bone.name) !== bone) maleFaceBoneBindingMismatchCount++;
+        }
+      }
+      if (maleHairReboundNames.has(obj.name)) {
+        for (const bone of obj.skeleton.bones) {
+          if (baseRigBones.get(bone.name) !== bone) maleHairBoneBindingMismatchCount++;
+        }
+      }
+    });
+    const maleFaceReboundCount = [...maleFaceParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length;
+    const maleHairReboundCount = [...maleHairParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length;
+
     let meshCount = 0, skinnedMeshCount = 0;
     model.traverse((obj) => {
       if (obj.isMesh) {
@@ -850,8 +876,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       femaleEquipmentReboundCount: [...femaleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
       femaleEquipmentBoneBindingMismatchCount,
       maleFaceSkinnedMeshCount: maleFaceParts.size,
+      maleFaceReboundCount,
+      maleFaceBoneBindingMismatchCount,
       maleFaceEnabled: new URLSearchParams(location.search).get('maleFace') !== '0',
       maleHairSkinnedMeshCount: maleHairParts.size,
+      maleHairReboundCount,
+      maleHairBoneBindingMismatchCount,
+      maleBaseRigBoneCount: baseRigBones.size,
       maleEquipmentMeshCount: maleEquipmentParts.size,
       maleEquipmentMirrorZMeshCount: maleEquipmentMirrorZParts.size,
       maleEquipmentHelperBoneCount,
