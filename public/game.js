@@ -251,10 +251,11 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // The selected male base is now the body-only export derived from ran-male.glb.
     // Face and hair are loaded as separate, independently replaceable skinned GLBs.
     if (requestedCharacter === 'male') {
-      for (const [partUrl, partSet, partLabel] of [
-        ['./models/ran-male-face.glb', maleFaceParts, '男角色臉部'],
-        ['./models/ran-male-hair.glb', maleHairParts, '男角色髮型']
-      ]) {
+      const maleParams = new URLSearchParams(location.search);
+      const malePartsToLoad = [];
+      if (maleParams.get('maleFace') !== '0') malePartsToLoad.push(['./models/ran-male-face.glb', maleFaceParts, '男角色臉部']);
+      if (maleParams.get('maleHair') !== '0') malePartsToLoad.push(['./models/ran-male-hair.glb', maleHairParts, '男角色髮型']);
+      for (const [partUrl, partSet, partLabel] of malePartsToLoad) {
         const partGltf = await gltfLoader.loadAsync(new URL(partUrl, import.meta.url).href);
         const partScene = partGltf.scene || partGltf.scenes?.[0];
         if (!partScene) throw new Error(partLabel + ' GLB 沒有可載入場景');
@@ -300,27 +301,30 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       // Keep the previous face source as the control sample. The candidate test
       // swaps only the selected face mesh from s_w1_head.x, not its entire set
       // of mutually-exclusive face/hair variants.
-      const headUrl = new URL(
-        useFemaleHeadCandidate ? './models/ran-female-face.glb' : './models/ran-female-face-source.glb',
-        import.meta.url
-      ).href;
-      const headGltf = await gltfLoader.loadAsync(headUrl);
-      const headScene = headGltf.scene || headGltf.scenes?.[0];
-      if (!headScene) throw new Error('女角色頭部 GLB 沒有可載入場景');
-      const rejectedHeadMeshes = [];
-      headScene.traverse((obj) => {
-        if (!obj.isMesh) return;
-        const keep = useFemaleHeadCandidate
-          ? obj.name === 'w1_face00'
-          : !/hair/i.test(obj.name);
-        if (!keep) {
-          rejectedHeadMeshes.push(obj);
-          return;
-        }
-        if (obj.isSkinnedMesh && obj.skeleton) femaleFaceParts.add(obj);
-      });
-      for (const part of rejectedHeadMeshes) part.parent?.remove(part);
-      model.add(headScene);
+      const femaleParams = new URLSearchParams(location.search);
+      if (femaleParams.get('femaleFace') !== '0') {
+        const headUrl = new URL(
+          useFemaleHeadCandidate ? './models/ran-female-face.glb' : './models/ran-female-face-source.glb',
+          import.meta.url
+        ).href;
+        const headGltf = await gltfLoader.loadAsync(headUrl);
+        const headScene = headGltf.scene || headGltf.scenes?.[0];
+        if (!headScene) throw new Error('女角色頭部 GLB 沒有可載入場景');
+        const rejectedHeadMeshes = [];
+        headScene.traverse((obj) => {
+          if (!obj.isMesh) return;
+          const keep = useFemaleHeadCandidate
+            ? obj.name === 'w1_face00'
+            : !/hair/i.test(obj.name);
+          if (!keep) {
+            rejectedHeadMeshes.push(obj);
+            return;
+          }
+          if (obj.isSkinnedMesh && obj.skeleton) femaleFaceParts.add(obj);
+        });
+        for (const part of rejectedHeadMeshes) part.parent?.remove(part);
+        model.add(headScene);
+      }
 
       if (useFemaleHairCandidate) {
         // s_w_hair00.x is a collection of independent hairstyle meshes. Mount
@@ -328,7 +332,8 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         // so it can later become an independently equipable hair item.
         const femaleHairVariant = new URLSearchParams(location.search).get('femaleHair') || 'w_hair00';
         const allowedFemaleHairVariants = new Set(['w_hair00', 'w_Hair01', 'w_hair02', 'w_hair03', 'w_hair04', 'w_hair05', 'w_hair06', 'w_hair07', 'w_hair08']);
-        if (!allowedFemaleHairVariants.has(femaleHairVariant)) throw new Error('不支援的女角色髮型：' + femaleHairVariant);
+        if (femaleHairVariant !== 'none' && !allowedFemaleHairVariants.has(femaleHairVariant)) throw new Error('不支援的女角色髮型：' + femaleHairVariant);
+        if (femaleHairVariant !== 'none') {
         const hairUrl = new URL('./models/ran-female-hair-' + femaleHairVariant + '.glb', import.meta.url).href;
         const hairGltf = await gltfLoader.loadAsync(hairUrl);
         const hairScene = hairGltf.scene || hairGltf.scenes?.[0];
@@ -344,6 +349,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         });
         for (const part of rejectedHairMeshes) part.parent?.remove(part);
         model.add(hairScene);
+        }
       }
 
       // Female outfits are split into independent upper/gloves/lower/shoes GLBs.
@@ -753,12 +759,14 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       femaleEquipmentReboundCount: [...femaleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
       femaleEquipmentBoneBindingMismatchCount,
       maleFaceSkinnedMeshCount: maleFaceParts.size,
+      maleFaceEnabled: new URLSearchParams(location.search).get('maleFace') !== '0',
       maleHairSkinnedMeshCount: maleHairParts.size,
       maleEquipmentMeshCount: maleEquipmentParts.size,
       maleEquipmentSlotMeshes: maleEquipmentSlotMeshes,
       maleEquipmentReboundCount: [...maleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
       maleEquipmentBoneBindingMismatchCount,
       femaleFaceSkinnedMeshCount: femaleFaceParts.size,
+      femaleFaceEnabled: new URLSearchParams(location.search).get('femaleFace') !== '0',
       femaleHairSkinnedMeshCount: femaleHairParts.size,
       femaleHeadCandidate: useFemaleHeadCandidate,
       femaleHairCandidate: useFemaleHairCandidate,
