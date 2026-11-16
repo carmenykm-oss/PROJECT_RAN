@@ -13,7 +13,7 @@ const DB_FILE = path.join(DATA_DIR, 'accounts.json');
 const RAN_DATA_ROOT = process.env.RAN_DATA_ROOT || 'C:\\Program Files (x86)\\XtraVision\\Ran2Online\\General\\RData';
 const RAN_MAP_DIR = process.env.RAN_MAP_DIR || path.join(RAN_DATA_ROOT, 'map');
 function safeMapFile(name, ext) {
-  const base = String(name || '').replace(/\\.(wld0?|WLD0?)$/i, '');
+  const base = String(name || '').replace(/\.(wld0?|WLD0?)$/i, '');
   if (!/^[A-Za-z0-9_-]{1,80}$/.test(base)) throw new Error('Invalid map name');
   const file = path.resolve(RAN_MAP_DIR, base + ext);
   if (!file.startsWith(path.resolve(RAN_MAP_DIR) + path.sep)) throw new Error('Invalid map path');
@@ -23,7 +23,7 @@ function readMapCatalog() {
   if (!fs.existsSync(RAN_MAP_DIR)) return { available:false, mapDir:RAN_MAP_DIR, maps:[] };
   const names = new Set();
   for (const file of fs.readdirSync(RAN_MAP_DIR)) {
-    const m = file.match(/^(.+)\\.wld0?$/i);
+    const m = file.match(/^(.+)\.wld0?$/i);
     if (m) names.add(m[1]);
   }
   return { available:true, maps:[...names].sort().map(name => ({
