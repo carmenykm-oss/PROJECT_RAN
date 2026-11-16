@@ -232,6 +232,11 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     const maleHairParts = new Set();
     const maleEquipmentParts = new Set();
     const maleEquipmentMirrorZParts = new Set();
+    // Keep a per-source-bone mapping for male outfit helper bones. This mirrors
+    // the female fitting-room strategy while preventing same-named cloth bones
+    // from different independently equipped slots from colliding.
+    const maleEquipmentBoneTargets = new Map();
+    const maleEquipmentParts = new Set();
     const femaleEquipmentParts = new Set();
     const femaleEquipmentScenes = [];
     const femaleEquipmentSlotMeshes = {};
@@ -296,6 +301,42 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         if (added < 1) throw new Error('男角色' + slot + '裝備沒有有效蒙皮網格');
         maleEquipmentSlotMeshes[slot] = added;
         model.add(partScene);
+        model.updateMatrixWorld(true);
+
+        // Match the proven female outfit attachment path: preserve each
+        // non-base helper bone's world bind-pose transform while moving its
+        // helper-root under the nearest corresponding selected male base bone.
+        // The helpers remain separate and are uniquely named per slot/variant.
+        const helperBones = [];
+        partScene.traverse((obj) => {
+          if (obj.isBone && obj.name && !baseRigBones.has(obj.name)) helperBones.push(obj);
+        });
+        const helperSet = new Set(helperBones);
+        const helperOriginalNames = new Map(helperBones.map(bone => [bone, bone.name]));
+        const helperRoots = helperBones.filter(bone => !helperSet.has(bone.parent));
+        for (const root of helperRoots) {
+          let ancestor = root.parent;
+          while (ancestor && !(ancestor.isBone && baseRigBones.has(ancestor.name))) ancestor = ancestor.parent;
+          if (!ancestor) {
+            throw new Error('男角色' + slot + '裝備輔助骨骼找不到男角色基底父骨骼：' + root.name);
+          }
+          const baseParent = baseRigBones.get(ancestor.name);
+          root.updateMatrixWorld(true);
+          baseParent.updateMatrixWorld(true);
+          const worldMatrix = root.matrixWorld.clone();
+          const localMatrix = baseParent.matrixWorld.clone().invert().multiply(worldMatrix);
+          root.parent.remove(root);
+          baseParent.add(root);
+          localMatrix.decompose(root.position, root.quaternion, root.scale);
+          root.updateMatrix();
+        }
+        for (const helper of helperBones) {
+          const originalName = helperOriginalNames.get(helper);
+          helper.name = 'RAN_MaleEquip_' + slot + '_' + variant + '_' + originalName;
+          maleEquipmentBoneTargets.set(helper, helper);
+        }
+        const helperCount = helperBones.length;
+        console.info('[PROJECT RAN] Male equipment helper bones attached', { slot, variant, helperCount });
         maleEquipmentScenes.push(partScene);
       }
       model.updateMatrixWorld(true);
@@ -521,7 +562,8 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
           }
         }
         const sharedBones = source.skeleton.bones.map((bone) => {
-          const shared = baseRigBones.get(bone.name) || model.getObjectByName(bone.name);
+          const shared = maleEquipmentBoneTargets.get(bone) ||
+            baseRigBones.get(bone.name) || model.getObjectByName(bone.name);
           if (shared) return shared;
           if (maleWarriorParts.has(source) || maleEquipmentParts.has(source) || maleFaceParts.has(source) || maleHairParts.has(source)) {
             throw new Error(`男角色獨立部件缺少對應骨骼：${bone.name}`);
