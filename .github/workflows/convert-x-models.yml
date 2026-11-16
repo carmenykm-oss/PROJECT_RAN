@@ -6,6 +6,10 @@ on:
     paths:
       - 'source_assets/**'
       - '.github/workflows/convert-x-models.yml'
+      - 'public/game.js'
+      - 'scripts/split-*.py'
+      - 'scripts/smoke-*-parts-preview.mjs'
+      - 'scripts/inspect-character-parts.py'
 
 permissions:
   contents: write
