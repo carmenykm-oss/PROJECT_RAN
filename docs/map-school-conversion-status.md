@@ -90,3 +90,30 @@ Run from PowerShell 5.1:
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\\Downloads\\compare-ran-map-trees.ps1" -InstallRoot "C:\\Program Files (x86)\\XtraVision\\Ran2Online"
 ```
+
+### WLD cipher and RCC wrapper cross-check (2026-11-16)
+
+A second RAN source tree documents a dedicated WLD codec, distinct from the 43 CompByte substitution tables:
+
+- `.wld` encrypted type spelling: `Land.Man`; plaintext spelling: `LAND.MAN`.
+- `.wld0` encrypted type spelling: `Default_Crypt`; plaintext spelling: `default`.
+- When the encrypted spelling is present, bytes from offset 132 use:
+  `decoded = ((byte - 0x10) & 0xFF) ^ 0x10`.
+- The transform is byte-position independent and is used by both WLD and WLD0.
+- The source explicitly warns not to decrypt by exclusion: only the exact encrypted type spellings activate this codec.
+
+Reference implementation and format notes:
+- https://github.com/WitthayaPae/whatever/blob/514a3227057b7e3202cf9f097022df6e988c98bf/tools/rcc-extract/wld.js
+- https://github.com/WitthayaPae/whatever/blob/514a3227057b7e3202cf9f097022df6e988c98bf/tools/rcc-extract/CRYPT-MAP.md
+
+The same source tree documents a separate RCC entry transform: after ZIP decompression, each entry receives one CCrypt pass:
+`decoded = ((byte - 6) & 0xFF) ^ 0xDF`.
+It also documents an AES-256-ECB layer for selected GLogic resources, not as a blanket WLD rule:
+- https://github.com/WitthayaPae/whatever/blob/514a3227057b7e3202cf9f097022df6e988c98bf/tools/rcc-extract/rcc.js
+- https://github.com/WitthayaPae/whatever/blob/514a3227057b7e3202cf9f097022df6e988c98bf/tools/rcc-extract/gamecrypt.js
+
+#### Applicability to the supplied LDG02 files
+
+The previously reported headers are `LAND.MAN` for `LDG02.wld` and `default` for `LDG02.wld0`. Under the reference source's exact dispatch rules, those are the plaintext spellings, so the dedicated WLD codec must not be applied to these two files as-is. The public reference also describes the RCC CCrypt transform as an archive-entry layer; it is not evidence that arbitrary loose files in `General\\RData\\map` should receive that transform.
+
+Therefore these discoveries explain the WLD encryption mechanism in a related RAN source lineage, but they do not yet decode the user's LDG02 sample. The next discriminating check is to establish whether the loose map files are copied directly from an archive, have an additional client-build wrapper, or use a different file-type marker in the actual first 128 bytes. Keep the previous FAIL status until a candidate yields the expected WLD FileMark version `0x0100`, size `16`, valid section marks, and WLD0 mesh version `0x0102`.
