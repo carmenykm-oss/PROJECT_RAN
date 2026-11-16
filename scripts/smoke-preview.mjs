@@ -10,6 +10,7 @@ const browser = await chromium.launch({
   args: ['--no-sandbox', '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist']
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+page.setDefaultTimeout(90000);
 const pageErrors = [];
 page.on('pageerror', error => pageErrors.push(error.message));
 page.on('console', message => {
@@ -25,7 +26,10 @@ try {
   await page.waitForFunction(() => {
     const status = document.querySelector('#connection')?.textContent || '';
     return status.includes('男戰士已載入') || status.includes('男戰士模型載入失敗');
-  }, { timeout: 60000 });
+  }, { timeout: 90000 }).catch(async error => {
+    const status = await page.locator('#connection').innerText().catch(() => 'status unavailable');
+    throw new Error('Timed out waiting for male preview: ' + status + ' | ' + pageErrors.join(' | ') + ' | ' + error.message);
+  });
 
   const status = (await page.locator('#connection').innerText()).trim();
   if (!status.includes('男戰士已載入')) {
