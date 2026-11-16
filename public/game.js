@@ -236,7 +236,6 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // the female fitting-room strategy while preventing same-named cloth bones
     // from different independently equipped slots from colliding.
     const maleEquipmentBoneTargets = new Map();
-    const maleEquipmentParts = new Set();
     const femaleEquipmentParts = new Set();
     const femaleEquipmentScenes = [];
     const femaleEquipmentSlotMeshes = {};
