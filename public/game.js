@@ -213,7 +213,7 @@ const ranDdsLoader = new DDSLoader();
 const requestedCharacter = new URLSearchParams(location.search).get('character') === 'male' ? 'male' : 'female';
 // Use the full original 67-bone male rig with separately skinned face and hair meshes.
 const useFemaleUnderwearCandidate = requestedCharacter === 'female' && new URLSearchParams(location.search).get('underwear') === '1';
-const characterAsset = requestedCharacter === 'male' ? './models/ran-male.glb' : (useFemaleUnderwearCandidate ? './models/ran-female-underwear-body.glb' : './models/ran-female.glb');
+const characterAsset = requestedCharacter === 'male' ? './models/ran-male-body.glb' : (useFemaleUnderwearCandidate ? './models/ran-female-underwear-body.glb' : './models/ran-female.glb');
 const characterLabel = requestedCharacter === 'male' ? '男戰士' : '女角色';
 async function loadRANCharacter(url, target, desiredHeight = 2.65) {
   const resolvedUrl = new URL(url, import.meta.url).href;
@@ -228,6 +228,12 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     const femaleFaceParts = new Set();
     const femaleHairParts = new Set();
     const maleWarriorParts = new Set();
+    const maleFaceParts = new Set();
+    const maleHairParts = new Set();
+    const maleEquipmentParts = new Set();
+    const malePartScenes = [];
+    const maleEquipmentScenes = [];
+    const maleEquipmentSlotMeshes = {};
     const warriorVariant = requestedCharacter === 'male' ? new URLSearchParams(location.search).get('warrior') : null;
     const warriorAssetByVariant = {
       outer: './models/ran-male-original.glb',
@@ -238,6 +244,50 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     let warriorScene = null;
     const baseRigBones = new Map();
     model.traverse((obj) => { if (obj.isBone && obj.name) baseRigBones.set(obj.name, obj); });
+    // The selected male base is now the body-only export derived from ran-male.glb.
+    // Face and hair are loaded as separate, independently replaceable skinned GLBs.
+    if (requestedCharacter === 'male') {
+      for (const [partUrl, partSet, partLabel] of [
+        ['./models/ran-male-face.glb', maleFaceParts, '男角色臉部'],
+        ['./models/ran-male-hair.glb', maleHairParts, '男角色髮型']
+      ]) {
+        const partGltf = await gltfLoader.loadAsync(new URL(partUrl, import.meta.url).href);
+        const partScene = partGltf.scene || partGltf.scenes?.[0];
+        if (!partScene) throw new Error(partLabel + ' GLB 沒有可載入場景');
+        partScene.traverse((obj) => {
+          if (obj.isMesh && obj.isSkinnedMesh && obj.skeleton) partSet.add(obj);
+        });
+        if (!partSet.size) throw new Error(partLabel + ' 沒有有效蒙皮網格');
+        model.add(partScene);
+        malePartScenes.push(partScene);
+      }
+      model.updateMatrixWorld(true);
+
+      // Each query parameter equips exactly one independent slot. The outfit
+      // source variants are equipment candidates, never alternate base characters.
+      const params = new URLSearchParams(location.search);
+      for (const slot of ['upper', 'gloves', 'lower', 'shoes']) {
+        const key = 'male' + slot[0].toUpperCase() + slot.slice(1);
+        const variant = params.get(key);
+        if (!variant) continue;
+        if (!['a', 'f'].includes(variant)) throw new Error('不支援的男角色裝備來源：' + key);
+        const partUrl = './models/ran-male-outfit-' + variant + '-' + slot + '.glb';
+        const partGltf = await gltfLoader.loadAsync(new URL(partUrl, import.meta.url).href);
+        const partScene = partGltf.scene || partGltf.scenes?.[0];
+        if (!partScene) throw new Error('男角色' + slot + '裝備 GLB 沒有可載入場景');
+        const before = maleEquipmentParts.size;
+        partScene.traverse((obj) => {
+          if (obj.isSkinnedMesh && obj.skeleton) maleEquipmentParts.add(obj);
+        });
+        const added = maleEquipmentParts.size - before;
+        if (added !== 1) throw new Error('男角色' + slot + '裝備必須是單一獨立蒙皮網格');
+        maleEquipmentSlotMeshes[slot] = added;
+        model.add(partScene);
+        maleEquipmentScenes.push(partScene);
+      }
+      model.updateMatrixWorld(true);
+    }
+
     const useFemaleHeadCandidate = useFemaleUnderwearCandidate &&
       new URLSearchParams(location.search).get('headCandidate') === '1';
     const useFemaleHairCandidate = useFemaleUnderwearCandidate &&
@@ -367,8 +417,8 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         const sharedBones = source.skeleton.bones.map((bone) => {
           const shared = baseRigBones.get(bone.name) || model.getObjectByName(bone.name);
           if (shared) return shared;
-          if (maleWarriorParts.has(source)) {
-            throw new Error(`男戰士部件缺少對應骨骼：${bone.name}`);
+          if (maleWarriorParts.has(source) || maleEquipmentParts.has(source) || maleFaceParts.has(source) || maleHairParts.has(source)) {
+            throw new Error(`男角色獨立部件缺少對應骨骼：${bone.name}`);
           }
           if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
             if (useFemaleHeadCandidate && /^(Bone33|Bone34)$/.test(bone.name)) {
@@ -399,10 +449,9 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       // The overlay's mesh transforms have already been baked into the rebound
       // geometry. Remove its duplicate skeleton so only the native player rig
       // remains active and equipment stays independently removable.
-      if (warriorScene) {
-        model.remove(warriorScene);
-        model.updateMatrixWorld(true);
-      }
+      if (warriorScene) model.remove(warriorScene);
+      for (const partScene of [...malePartScenes, ...maleEquipmentScenes]) model.remove(partScene);
+      model.updateMatrixWorld(true);
     } else if (requestedCharacter === 'male' || requestedCharacter === 'female') {
       const sourceParts = [];
       model.traverse((obj) => { if (obj.isSkinnedMesh) sourceParts.push(obj); });
@@ -621,6 +670,11 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     };
     window.__ranCharacterDebug = {
       character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, reboundSkinCount, recoveredMeshNodes,
+      maleFaceSkinnedMeshCount: maleFaceParts.size,
+      maleHairSkinnedMeshCount: maleHairParts.size,
+      maleEquipmentMeshCount: maleEquipmentParts.size,
+      maleEquipmentSlotMeshes: maleEquipmentSlotMeshes,
+      maleEquipmentReboundCount: [...maleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
       femaleFaceSkinnedMeshCount: femaleFaceParts.size,
       femaleHairSkinnedMeshCount: femaleHairParts.size,
       femaleHeadCandidate: useFemaleHeadCandidate,
