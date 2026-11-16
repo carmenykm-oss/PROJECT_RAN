@@ -157,3 +157,32 @@ This is a terrain-only integration milestone, not a complete map restoration. It
 
 
 The terrain client also now binds referenced `.dds` files through a restricted local texture endpoint and uses separate Three.js materials per source texture. This is an attempted texture path only; texture success must be confirmed against the installed client's actual folder names and file references. TGA and other texture formats are not yet decoded in the browser.
+
+
+### Original WLD 0x0114 scene layout cross-check (2026-11-16)
+
+The EP7 x64 source confirms that DxLandMan::VERSION is 0x0114. Its loader dispatches 0x0108, 0x0109, 0x0110, and 0x0111/0x0112 to older dedicated readers; 0x0114 falls through to the current generic reader. That generic reader begins with the same map ID, fixed 128-byte map name, SLAND_FILEMARK, and DxOctree root sequence. Therefore the 0x0114 LDG02 file should be treated as the current generic layout, not assumed to be the older VER110-only variant.
+
+The source-defined scene sequence after the terrain octree is:
+
+1. Optional animated frame hierarchy.
+2. Optional linked replacement-piece objects (DXPIECEOBJ), including animation time, piece filename, optional frame name, and a 4x4 world-combination matrix.
+3. Four counted effect replacement groups (normal, AFTER, AFTER_1, weather).
+4. Light manager.
+5. Optional navigation mesh.
+6. Sound set and optional static sound manager.
+7. Optional land effects and camera animation.
+8. Optional placed skinned-character objects (DXLANDSKINOBJ).
+9. Gate data, weather data, BGM data, and a size-delimited collision-map block.
+10. Fog and sky properties.
+11. Companion .wld0 static mesh and the WLD-embedded DxPieceManager piece list.
+
+DXLANDSKINOBJ version 0x0102 stores fixed name and filename buffers, a 4x4 world matrix, and world/original AABB bounds. These are the next concrete record types to implement once the WLD stream can be decoded and safely traversed.
+
+Source references:
+- [DxLandManSaveLoad.cpp](https://github.com/yexiuph/RANOnline-x64/blob/main/%5BLib%5D__Engine/Sources/DxLand/DxLandManSaveLoad.cpp)
+- [DxOctreeSaveLoad.cpp](https://github.com/yexiuph/RANOnline-x64/blob/main/%5BLib%5D__Engine/Sources/DxLand/DxOctreeSaveLoad.cpp)
+- [DxReplaceContainerSaveLoad.cpp](https://github.com/yexiuph/RANOnline-x64/blob/main/%5BLib%5D__Engine/Sources/DxMeshs/DxReplaceContainerSaveLoad.cpp)
+- [DXLANDSKINOBJ.cpp](https://github.com/yexiuph/RANOnline-x64/blob/main/%5BLib%5D__Engine/Sources/DxLand/DXLANDSKINOBJ.cpp)
+
+This source cross-check establishes the scene parser's target structure, but it does not solve the current supplied-client payload mismatch: the previously inspected local WLD bytes still fail the expected file-mark checks. The scene parser must remain gated behind a successful, validated WLD decode; do not scan object records at guessed offsets.
