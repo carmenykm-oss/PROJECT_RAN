@@ -19,8 +19,6 @@
 //   +136   4 B  u32 filemark size
 //   +140  16 B  the four marks
 //
-const B = require('./bytecrypt');
-
 const HEADER_SIZE = 128;
 const BODY_OFFSET = 132;          // CSerialFile m_DefaultOffSet
 const MAP_NAME_SIZE = 128;        // MAXLANDNAME, DxLandDef.h:16
