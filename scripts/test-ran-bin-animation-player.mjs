@@ -61,7 +61,11 @@ const femaleSkin = femaleGltf.skins?.[0];
 if (!femaleSkin?.joints?.length) throw new Error('Female GLB has no skin joint list');
 const femaleRig = new THREE.Group();
 const femaleBones = new Map();
-for (const index of femaleSkin.joints) {
+const femaleJointIndices = [...new Set([
+  ...femaleSkin.joints,
+  ...femaleGltf.nodes.map((node, index) => node.name?.startsWith('Bip01') ? index : null).filter(index => index !== null)
+])];
+for (const index of femaleJointIndices) {
   const node = femaleGltf.nodes[index];
   const bone = new THREE.Bone();
   bone.name = node.name || ('joint_' + index);
@@ -71,7 +75,7 @@ for (const index of femaleSkin.joints) {
   femaleBones.set(index, bone);
 }
 const childIndices = new Set();
-for (const index of femaleSkin.joints) {
+for (const index of femaleJointIndices) {
   const node = femaleGltf.nodes[index];
   const parent = femaleBones.get(index);
   for (const childIndex of node.children || []) {
@@ -109,5 +113,5 @@ femaleRig.updateMatrixWorld(true);
 
 console.log(JSON.stringify({ status: 'PASS', actions: player.actions, tracks: player.trackCount,
   matrixAction: matrixPlayer.actions, matrixTranslation: pelvis.position.toArray(),
-  femaleRigJoints: femaleSkin.joints.length, femaleRigTracks: femalePlayer.trackCount,
+  femaleRigJoints: femaleJointIndices.length, femaleRigTracks: femalePlayer.trackCount,
   pelvisQuaternion: pelvis.quaternion.toArray() }, null, 2));
