@@ -274,6 +274,7 @@ jobs:
           npx playwright install --with-deps chromium
           node scripts/smoke-preview.mjs
           node scripts/smoke-female-underwear-preview.mjs
+          node scripts/smoke-female-head-hair-preview.mjs
 
       - name: Upload game preview screenshot
         if: always()
