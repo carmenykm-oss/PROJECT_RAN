@@ -351,7 +351,7 @@ jobs:
           git add logs/male-bind-pose-diagnostics.json
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push
           fi
 
