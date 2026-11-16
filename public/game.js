@@ -652,7 +652,10 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     model.traverse((obj) => {
       if (!obj.isSkinnedMesh || !maleEquipmentReboundNames.has(obj.name)) return;
       for (const bone of obj.skeleton?.bones || []) {
-        if (baseRigBones.get(bone.name) !== bone) maleEquipmentBoneBindingMismatchCount++;
+        // Match the female validation: base-rig bones and uniquely renamed
+        // helper bones are both valid when the exact bone object is mounted
+        // in the assembled model hierarchy.
+        if (model.getObjectByName(bone.name) !== bone) maleEquipmentBoneBindingMismatchCount++;
       }
     });
     const femaleEquipmentReboundNames = new Set([...femaleEquipmentParts].map(part => part.name + '_rebound_skin'));
