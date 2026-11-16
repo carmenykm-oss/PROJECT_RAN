@@ -106,14 +106,22 @@ function normalizeQuaternion(q) {
 }
 
 export async function loadRanBinAnimationPlayer(model, THREE, baseUrl = './animations/') {
+  const base = new URL(baseUrl, import.meta.url);
+  const manifestResponse = await fetch(new URL('manifest.json', base), { cache: 'no-cache' });
+  if (!manifestResponse.ok) throw new Error('Original RAN animation manifest is unavailable');
+  const manifest = await manifestResponse.json();
+  if (manifest.status !== 'ready') return null;
   const files = {
-    idle: 'a_x01bs_lv1_wait.json',
-    walk: 'a_x01bs_lv1_walk.json',
-    run: 'a_x01bs_lv1_run.json'
+    idle: manifest.clips?.idle,
+    walk: manifest.clips?.walk,
+    run: manifest.clips?.run
   };
+  if (Object.values(files).some(file => typeof file !== 'string' || !file.endsWith('.json'))) {
+    throw new Error('Original RAN animation manifest is incomplete');
+  }
   const entries = await Promise.all(Object.entries(files).map(async ([action, file]) => {
-    const response = await fetch(new URL(file, new URL(baseUrl, import.meta.url)), { cache: 'no-cache' });
-    if (!response.ok) throw new Error('Missing original RAN animation clip: ' + file);
+    const response = await fetch(new URL(file, base), { cache: 'no-cache' });
+    if (!response.ok) throw new Error('Unable to load original RAN animation clip: ' + file);
     return [action, await response.json()];
   }));
   const player = createRanBinAnimationPlayer(model, THREE, Object.fromEntries(entries));
