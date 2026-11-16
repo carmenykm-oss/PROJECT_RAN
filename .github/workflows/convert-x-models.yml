@@ -77,18 +77,35 @@ jobs:
               if dds.is_file() and dds.suffix.lower() == ".dds":
                   target = out_dir / (dds.stem + ".png")
                   try:
-                      image = Image.open(dds).convert("RGBA")
+                      # DXT2 is the premultiplied-alpha variant of DXT3. Pillow
+                      # supports DXT3, so rewrite the FourCC in a temp copy,
+                      # decode, then un-premultiply RGB before writing PNG.
+                      if dds.read_bytes()[84:88] == b"DXT2":
+                          import tempfile
+                          raw = bytearray(dds.read_bytes())
+                          raw[84:88] = b"DXT3"
+                          temp = Path(tempfile.gettempdir()) / (dds.stem + "_as_dxt3.dds")
+                          temp.write_bytes(raw)
+                          image = Image.open(temp).convert("RGBA")
+                          pixels = []
+                          for red, green, blue, alpha in image.getdata():
+                              if alpha:
+                                  pixels.append((min(255, red * 255 // alpha),
+                                                 min(255, green * 255 // alpha),
+                                                 min(255, blue * 255 // alpha), alpha))
+                              else:
+                                  pixels.append((0, 0, 0, 0))
+                          image.putdata(pixels)
+                      else:
+                          image = Image.open(dds).convert("RGBA")
                       image.save(target, optimize=True)
                   except Exception as pillow_error:
-                      # Pillow cannot decode some legacy premultiplied DXT2 DDS files.
-                      # ImageMagick's DDS coder is used as a second decoder.
                       result = subprocess.run(
                           ["magick", str(dds), "-alpha", "on", str(target)],
                           capture_output=True, text=True
                       )
                       if result.returncode != 0 or not target.exists():
-                          print(f"SKIP unsupported DDS {dds}: Pillow={pillow_error}; ImageMagick={result.stderr}")
-                          continue
+                          raise RuntimeError(f"Cannot decode required DDS {dds}: Pillow={pillow_error}; ImageMagick={result.stderr}")
                   converted += 1
           if converted == 0:
               raise SystemExit("No DDS textures were converted")
