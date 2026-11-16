@@ -157,8 +157,13 @@ async function mountOriginalRanTerrain(mapName = 'LDG02') {
   });
   return payload;
 }
-mountOriginalRanTerrain(new URLSearchParams(location.search).get('map') || 'LDG02')
-  .catch(error => console.warn('[PROJECT RAN] Original terrain not mounted; retaining fallback scene:', error.message));
+const isStaticGitHubPages = location.hostname.endsWith('.github.io');
+if (isStaticGitHubPages) {
+  console.info('[PROJECT RAN] Static GitHub Pages preview: original WLD terrain API is not configured; using the bundled scene.');
+} else {
+  mountOriginalRanTerrain(new URLSearchParams(location.search).get('map') || 'LDG02')
+    .catch(error => console.warn('[PROJECT RAN] Original terrain not mounted; retaining fallback scene:', error.message));
+}
 
 function tag(text) {
   const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
