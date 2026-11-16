@@ -1470,7 +1470,7 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
   const hairOptions = [
     ['w_hair00','原始髮型'],['w_Hair01','髮型 01'],['w_hair02','髮型 02'],
     ['w_hair03','髮型 03'],['w_hair04','髮型 04'],['w_hair05','髮型 05'],
-    ['w_hair06','髮型 06'],['w_hair07','髮型 07'],['w_hair08','髮型 08']
+    ['w_hair06','髮型 06'],['w_hair07','髮型 07'],['w_hair08','髮型 08'],['none','卸下髮型']
   ];
   const slotLabels = [['Upper','上衣'],['Gloves','手套'],['Lower','下衣'],['Shoes','鞋子']];
   function fittingSelect(label, id, options, value) {
@@ -1490,9 +1490,12 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
     wrap.appendChild(select);
     return {wrap, select};
   }
+  const faceControl = fittingSelect('臉部', 'fittingFaceSelect', [['on','顯示臉部'],['off','卸下臉部']],
+    (params.get(currentGender === 'female' ? 'femaleFace' : 'maleFace') === '0') ? 'off' : 'on');
+  slotsRoot.appendChild(faceControl.wrap);
   const hairControl = fittingSelect('髮型', 'fittingHairSelect',
-    currentGender === 'female' ? hairOptions : [['base','角色原生髮型']],
-    currentGender === 'female' ? (params.get('femaleHair') || 'w_hair00') : 'base');
+    currentGender === 'female' ? hairOptions : [['base','角色原生髮型'],['none','卸下髮型']],
+    currentGender === 'female' ? (params.get('femaleHair') || 'w_hair00') : (params.get('maleHair') === '0' ? 'none' : 'base'));
   hair.replaceWith(hairControl.wrap);
   const slotControls = new Map();
   for (const [suffix, label] of slotLabels) {
@@ -1513,7 +1516,8 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
       next.set('headCandidate','1');
       next.set('hairCandidate','1');
       next.set('femaleHair', document.getElementById('fittingHairSelect').value || 'w_hair00');
-      next.delete('maleHair');
+      next.set('femaleFace', faceControl.select.value === 'off' ? '0' : '1');
+      next.delete('maleHair'); next.delete('maleFace');
       for (const suffix of ['Upper','Gloves','Lower','Shoes']) {
         next.delete('male' + suffix);
         const select = document.getElementById('fitting' + suffix);
@@ -1523,6 +1527,8 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
     } else {
       next.delete('underwear'); next.delete('headCandidate'); next.delete('hairCandidate');
       next.delete('femaleHair');
+      next.set('maleFace', faceControl.select.value === 'off' ? '0' : '1');
+      if (hairControl.select.value === 'none') next.set('maleHair','0'); else next.delete('maleHair');
       for (const suffix of ['Upper','Gloves','Lower','Shoes']) {
         next.delete('female' + suffix);
         const select = document.getElementById('fitting' + suffix);
@@ -1534,6 +1540,7 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
     location.search = next.toString();
   }
   gender.addEventListener('change', applyFittingChange);
+  faceControl.select.addEventListener('change', applyFittingChange);
   hairControl.select.addEventListener('change', applyFittingChange);
   for (const select of slotControls.values()) select.addEventListener('change', applyFittingChange);
 }
