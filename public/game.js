@@ -137,8 +137,6 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // Attach its matching source GLB and retarget its six facial joints to
     // the same named bones in the 45-joint body skeleton.
     const femaleFaceParts = new Set();
-    const femaleHairParts = new Set();
-    const femaleHairHiddenParts = new Set();
     if (useFemaleUnderwearCandidate) {
       const faceUrl = new URL('./models/ran-female-face-source.glb', import.meta.url).href;
       const faceGltf = await gltfLoader.loadAsync(faceUrl);
@@ -158,20 +156,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       for (const part of legacyFaceHair) part.parent?.remove(part);
       model.add(faceScene);
 
-      // Restore one original RAN female hairstyle as its own removable/equippable
-      // skinned part. The source X contains several alternative styles; use the
-      // native w_hair00 mesh only so the variants do not stack on top of each other.
-      const hairUrl = new URL('./models/ran-female-hair.glb', import.meta.url).href;
-      const hairGltf = await gltfLoader.loadAsync(hairUrl);
-      const hairScene = hairGltf.scene || hairGltf.scenes?.[0];
-      if (!hairScene) throw new Error('女角色原版髮型 GLB 沒有可載入場景');
-      hairScene.updateMatrixWorld(true);
-      hairScene.traverse((obj) => {
-        if (obj.isMesh && obj.name !== 'w_hair00') femaleHairHiddenParts.add(obj);
-        if (obj.isSkinnedMesh && obj.skeleton && obj.name === 'w_hair00') femaleHairParts.add(obj);
-      });
-      model.add(hairScene);
-      if (!femaleHairParts.size) throw new Error('原版女角髮型 w_hair00 未找到可蒙皮網格');
+
     }
 
     // Some original RAN X -> GLB exports contain valid skinned body mesh nodes
@@ -217,7 +202,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       for (const source of sourceParts) {
         let skeleton = source.skeleton;
         let geometry = source.geometry.clone();
-        if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
+        if (femaleFaceParts.has(source)) {
           // Bake imported face/hair frame transforms into body-root coordinates,
           // then bind to the matching native Bip01 bones on the body skeleton.
           const relative = model.matrixWorld.clone().invert().multiply(source.matrixWorld);
@@ -280,8 +265,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       if (obj.isMesh) {
         meshCount++;
         if (obj.isSkinnedMesh) skinnedMeshCount++;
-        obj.visible = !femaleHairHiddenParts.has(obj);
-        obj.castShadow = true;
+          obj.castShadow = true;
         obj.receiveShadow = true;
       }
     });
@@ -409,7 +393,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     };
     window.__ranCharacterDebug = {
       character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, reboundSkinCount, recoveredMeshNodes,
-      originalFemaleHairMeshCount: femaleHairParts.size, originalFemaleHairHiddenAlternates: femaleHairHiddenParts.size,
+      femaleFaceSkinnedMeshCount: femaleFaceParts.size,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bindPosePartDiagnostics,
