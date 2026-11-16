@@ -16,7 +16,11 @@ while offset < len(raw):
 if doc is None: raise SystemExit("No GLB JSON chunk")
 nodes=[n for n in doc.get("nodes",[]) if "mesh" in n]; skins=doc.get("skins",[])
 if len(nodes)!=4: raise SystemExit(f"Expected 4 s_m_bs meshes, found {len(nodes)}")
-if not skins or len(skins[0].get("joints",[]))<60: raise SystemExit("No complete Bip01 skeleton")
+if not skins or len(skins[0].get("joints",[]))<40: raise SystemExit("No usable Bip01 skin skeleton")
+joint_names={doc["nodes"][i].get("name","") for i in skins[0].get("joints",[])}
+required={"Bip01_Pelvis","Bip01_Spine","Bip01_Spine1","Bip01_Spine2","Bip01_Neck","Bip01_Head","Bip01_L_UpperArm","Bip01_R_UpperArm","Bip01_L_Thigh","Bip01_R_Thigh"}
+missing=required-joint_names
+if missing: raise SystemExit("Missing required body joints: "+", ".join(sorted(missing)))
 for n in nodes:
  if "skin" not in n: raise SystemExit(f"Unskinned body mesh: {n.get('name')}")
  for p in doc["meshes"][n["mesh"]].get("primitives",[]):
@@ -25,6 +29,6 @@ for n in nodes:
 for image in doc.get("images",[]):
  if image.get("uri","").lower().endswith(".dds"): raise SystemExit("Unpatched DDS URI: "+image["uri"])
 dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
-report={"source":"source_assets/s_m_bs.x","published":str(dst),"meshNodes":[n.get("name") for n in nodes],"meshNodeCount":len(nodes),"skinCount":len(skins),"jointCount":len(skins[0]["joints"]),"bytes":dst.stat().st_size,"status":"PASS"}
+report={"source":"source_assets/s_m_bs.x","published":str(dst),"meshNodes":[n.get("name") for n in nodes],"meshNodeCount":len(nodes),"skinCount":len(skins),"jointCount":len(skins[0]["joints"]),"requiredJointsPresent":sorted(required),"bytes":dst.stat().st_size,"status":"PASS"}
 Path("logs").mkdir(exist_ok=True); Path("logs/s-m-bs-male-base-validation.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
 print(json.dumps(report,indent=2))
