@@ -39,14 +39,16 @@ def printable_ratio(data: bytes) -> float:
 
 def inspect_land(name: str, data: bytes) -> list[str]:
     out = [f"[LAND] {name} ({len(data):,} bytes)"]
-    if len(data) < 280:
-        return out + ["  FAIL: truncated before map header and octree header"]
+    if len(data) < 324:
+        return out + ["  FAIL: truncated before map header and octree root header"]
     magic = data[:FILE_TYPE_SIZE].split(b"\0", 1)[0]
     version = u32(data, FILE_TYPE_SIZE)
     map_id = u32(data, HEADER_SIZE)
     map_name = data[HEADER_SIZE + 4:HEADER_SIZE + 4 + 128]
-    marks = struct.unpack_from("<4I", data, HEADER_SIZE + 4 + 128)
-    octree_offset = HEADER_SIZE + 4 + 128 + 16
+    marks_offset = HEADER_SIZE + 4 + 128
+    marks_version, marks_size = struct.unpack_from("<II", data, marks_offset)
+    marks = struct.unpack_from("<4I", data, marks_offset + 8)
+    octree_offset = marks_offset + 8 + 16
     subdivided = u32(data, octree_offset)
     max_v = floats(data, octree_offset + 4, 3)
     min_v = floats(data, octree_offset + 16, 3)
@@ -54,13 +56,15 @@ def inspect_land(name: str, data: bytes) -> list[str]:
     data_size = u32(data, octree_offset + 32)
     out.append(f"  fileType={magic!r}, version=0x{version:04X}, mapID=0x{map_id:08X}")
     out.append(f"  mapName={map_name.split(bytes([0]), 1)[0][:48]!r}, printable={printable_ratio(map_name):.2f}")
-    out.append(f"  fileMarks={[hex(v) for v in marks]}")
-    out.append(f"  octree.subdivided={subdivided}, max={max_v}, min={min_v}, dataAddress={data_address}, dataSize={data_size}")
+    out.append(f"  fileMarks.version=0x{marks_version:04X}, size={marks_size}, values={[hex(v) for v in marks]}")
+    out.append(f"  octreeOffset={octree_offset}, subdivided={subdivided}, max={max_v}, min={min_v}, dataAddress={data_address}, dataSize={data_size}")
     errors = []
     if magic != b"LAND.MAN":
         errors.append("wrong LAND.MAN file type")
     if version not in LAND_VERSIONS:
         errors.append("unsupported LAND.MAN version")
+    if marks_version != 0x0100 or marks_size != 16:
+        errors.append("SLAND_FILEMARK header is not version 0x0100 / size 16")
     if any(v >= len(data) for v in marks if v != 0):
         errors.append("file mark points outside file")
     if subdivided not in (0, 1):
