@@ -265,8 +265,18 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         const partGltf = await gltfLoader.loadAsync(new URL(partUrl, import.meta.url).href);
         const partScene = partGltf.scene || partGltf.scenes?.[0];
         if (!partScene) throw new Error(partLabel + ' GLB 沒有可載入場景');
+        // The native X files contain several interchangeable face/hair
+        // variants. Mount only the default original pair; keep each part as an
+        // independently removable skinned mesh rather than stacking every variant.
+        const selectedNativeMesh = partLabel === '男角色臉部' ? 'm2_face00' :
+          partLabel === '男角色髮型' ? 'm_hair00' : null;
         partScene.traverse((obj) => {
-          if (obj.isMesh && obj.isSkinnedMesh && obj.skeleton) partSet.add(obj);
+          if (!obj.isMesh || !obj.isSkinnedMesh || !obj.skeleton) return;
+          if (selectedNativeMesh && obj.name !== selectedNativeMesh) {
+            obj.parent?.remove(obj);
+            return;
+          }
+          partSet.add(obj);
         });
         if (!partSet.size) throw new Error(partLabel + ' 沒有有效蒙皮網格');
         model.add(partScene);
