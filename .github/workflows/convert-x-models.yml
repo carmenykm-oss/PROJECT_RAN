@@ -176,6 +176,13 @@ jobs:
           # Do not replace the active female player until its head/body assembly is validated.
           shutil.copy2("converted_glb/s_w_bs.glb", out_dir / "ran-female-underwear-body.glb")
           shutil.copy2("converted_glb/s_w_face.glb", out_dir / "ran-female-face-source.glb")
+          # Publish the alternate native female head candidate for direct comparison.
+          female_head = Path("converted_glb/s_w1_head.glb")
+          if female_head.is_file() and female_head.stat().st_size:
+              shutil.copy2(female_head, out_dir / "ran-female-head-candidate.glb")
+              print("Prepared female s_w1_head candidate GLB.")
+          else:
+              raise SystemExit("Required female head candidate s_w1_head.x was not converted.")
           # Publish the original female base-hair mesh when its source bundle is present.
           # It stays a separate GLB so the hair can be equipped/removed independently.
           female_hair = Path("converted_glb/s_w_hair00.glb")
@@ -239,7 +246,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/ran-female-underwear-body.glb public/models/ran-female-face-source.glb public/models/*.png
+          git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/ran-female-underwear-body.glb public/models/ran-female-face-source.glb public/models/ran-female-head-candidate.glb public/models/ran-female-hair.glb public/models/*.png
           if [ -f public/models/ran-female-hair.glb ]; then git add public/models/ran-female-hair.glb; fi
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
