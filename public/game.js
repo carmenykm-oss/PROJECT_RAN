@@ -138,6 +138,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // the same named bones in the 45-joint body skeleton.
     const femaleFaceParts = new Set();
     const femaleHairParts = new Set();
+    const femaleHairHiddenParts = new Set();
     if (useFemaleUnderwearCandidate) {
       const faceUrl = new URL('./models/ran-female-face-source.glb', import.meta.url).href;
       const faceGltf = await gltfLoader.loadAsync(faceUrl);
@@ -154,7 +155,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       const hairGltf = await gltfLoader.loadAsync(hairUrl);
       hairGltf.scene.updateMatrixWorld(true);
       hairGltf.scene.traverse((obj) => {
-        if (obj.isMesh && obj.name !== 'w_hair00') obj.visible = false;
+        if (obj.isMesh && obj.name !== 'w_hair00') femaleHairHiddenParts.add(obj);
         if (obj.isSkinnedMesh && obj.skeleton && obj.name === 'w_hair00') femaleHairParts.add(obj);
       });
       model.add(hairGltf.scene);
@@ -267,7 +268,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       if (obj.isMesh) {
         meshCount++;
         if (obj.isSkinnedMesh) skinnedMeshCount++;
-        obj.visible = true;
+        obj.visible = !femaleHairHiddenParts.has(obj);
         obj.castShadow = true;
         obj.receiveShadow = true;
       }
@@ -396,6 +397,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     };
     window.__ranCharacterDebug = {
       character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, reboundSkinCount, recoveredMeshNodes,
+      originalFemaleHairMeshCount: femaleHairParts.size, originalFemaleHairHiddenAlternates: femaleHairHiddenParts.size,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bindPosePartDiagnostics,
