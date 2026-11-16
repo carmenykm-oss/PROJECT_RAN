@@ -27,6 +27,18 @@ jobs:
         with:
           persist-credentials: true
 
+      - name: Expand uploaded source asset bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r bundle; do
+            name="$(basename "${bundle%.zip}")"
+            destination="source_assets/_bundles/$name"
+            mkdir -p "$destination"
+            unzip -oq "$bundle" -d "$destination"
+            echo "Expanded $bundle into $destination"
+          done < <(find source_assets -maxdepth 1 -type f -iname '*.zip' | sort)
+
       - name: Install Assimp and DDS image support
         run: |
           sudo apt-get update
@@ -164,6 +176,12 @@ jobs:
           # Do not replace the active female player until its head/body assembly is validated.
           shutil.copy2("converted_glb/s_w_bs.glb", out_dir / "ran-female-underwear-body.glb")
           shutil.copy2("converted_glb/s_w_face.glb", out_dir / "ran-female-face-source.glb")
+          # Publish the original female base-hair mesh when its source bundle is present.
+          # It stays a separate GLB so the hair can be equipped/removed independently.
+          female_hair = Path("converted_glb/s_w_hair00.glb")
+          if female_hair.is_file() and female_hair.stat().st_size:
+              shutil.copy2(female_hair, out_dir / "ran-female-hair.glb")
+              print("Prepared independent female base-hair GLB.")
           print(f"Converted {converted} DDS textures and patched all GLB texture references.")
           PY
 
@@ -222,6 +240,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/ran-female-underwear-body.glb public/models/ran-female-face-source.glb public/models/*.png
+          if [ -f public/models/ran-female-hair.glb ]; then git add public/models/ran-female-hair.glb; fi
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
             git pull --rebase origin main
