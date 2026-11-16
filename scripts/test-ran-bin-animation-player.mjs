@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { readFileSync } from 'node:fs';
 import { createRanBinAnimationPlayer } from '../public/ran-bin-animation-player.js';
 
 const model = new THREE.Group();
