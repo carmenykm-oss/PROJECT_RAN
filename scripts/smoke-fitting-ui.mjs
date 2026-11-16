@@ -18,7 +18,13 @@ async function openPreview(character) {
 try {
   const female = await openPreview('female');
   const femaleOptions = await female.locator('#fittingHairSelect option').count();
-  if (femaleOptions !== 9) throw new Error('Female fitting panel must expose 9 hairstyles, found ' + femaleOptions);
+  if (femaleOptions !== 10) throw new Error('Female fitting panel must expose 9 hairstyles plus remove option, found ' + femaleOptions);
+  await female.locator('#fittingFaceSelect').selectOption('off');
+  await female.waitForFunction(() => window.__ranCharacterDebug?.femaleFaceSkinnedMeshCount === 0);
+  await female.locator('#fittingFaceSelect').selectOption('on');
+  await female.waitForFunction(() => (window.__ranCharacterDebug?.femaleFaceSkinnedMeshCount || 0) === 1);
+  await female.locator('#fittingHairSelect').selectOption('none');
+  await female.waitForFunction(() => window.__ranCharacterDebug?.femaleHairSkinnedMeshCount === 0);
   await female.locator('#fittingHairSelect').selectOption('w_hair02');
   await female.waitForFunction(() => window.__ranCharacterDebug?.femaleHairVariant === 'w_hair02');
   await female.locator('#fittingUpper').selectOption('a');
@@ -28,6 +34,14 @@ try {
   await female.close();
 
   const male = await openPreview('male');
+  await male.locator('#fittingFaceSelect').selectOption('off');
+  await male.waitForFunction(() => window.__ranCharacterDebug?.maleFaceSkinnedMeshCount === 0);
+  await male.locator('#fittingHairSelect').selectOption('none');
+  await male.waitForFunction(() => window.__ranCharacterDebug?.maleHairSkinnedMeshCount === 0);
+  await male.locator('#fittingFaceSelect').selectOption('on');
+  await male.waitForFunction(() => window.__ranCharacterDebug?.maleFaceSkinnedMeshCount === 1);
+  await male.locator('#fittingHairSelect').selectOption('base');
+  await male.waitForFunction(() => window.__ranCharacterDebug?.maleHairSkinnedMeshCount === 1);
   for (const slot of ['Upper','Gloves','Lower','Shoes']) await male.locator('#fitting'+slot).selectOption('a');
   await male.waitForFunction(() => Object.keys(window.__ranCharacterDebug?.maleEquipmentSlotMeshes||{}).length === 4);
   const maleDebug = await male.evaluate(() => window.__ranCharacterDebug);
