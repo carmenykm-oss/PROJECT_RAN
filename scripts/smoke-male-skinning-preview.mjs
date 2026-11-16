@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 
 const base = process.env.PREVIEW_URL || 'https://carmenykm-oss.github.io/PROJECT_RAN/';
-const url = new URL('?preview=1&character=male&skinning=1&v=5514', base).href;
+const url = new URL('?preview=1&character=male&skinning=1&originalBin=1&v=5515', base).href;
 await mkdir('preview-screenshots', { recursive: true });
 
 const browser = await chromium.launch({
