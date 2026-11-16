@@ -500,10 +500,8 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
               const array = attribute.array, size = attribute.itemSize;
               for (let i = 0; i + 2 < attribute.count; i += 3) {
                 for (let c = 0; c < size; c++) {
-                  const a = i * size + c, b = (i + 1) * size + c;
-                  const value = array[b]; array[b] = array[a]; array[a] = value;
-                  const d = (i + 2) * size + c, e = (i + 1) * size + c;
-                  const value2 = array[e]; array[e] = array[d]; array[d] = value2;
+                  const a = i * size + c, d = (i + 2) * size + c;
+                  const value = array[a]; array[a] = array[d]; array[d] = value;
                 }
               }
               attribute.needsUpdate = true;
@@ -514,10 +512,8 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
               const array = attribute.array, size = attribute.itemSize;
               for (let i = 0; i + 2 < attribute.count; i += 3) {
                 for (let c = 0; c < size; c++) {
-                  const a = i * size + c, b = (i + 1) * size + c;
-                  const value = array[b]; array[b] = array[a]; array[a] = value;
-                  const d = (i + 2) * size + c, e = (i + 1) * size + c;
-                  const value2 = array[e]; array[e] = array[d]; array[d] = value2;
+                  const a = i * size + c, d = (i + 2) * size + c;
+                  const value = array[a]; array[a] = array[d]; array[d] = value;
                 }
               }
               attribute.needsUpdate = true;
