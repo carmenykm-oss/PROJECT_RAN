@@ -355,7 +355,6 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       // Female outfits are split into independent upper/gloves/lower/shoes GLBs.
       // Preserve their extra cloth/helper bones by reparenting them to the matching
       // selected-base bone while keeping their world-space bind-pose transforms.
-      const femaleParams = new URLSearchParams(location.search);
       for (const slot of ['upper', 'gloves', 'lower', 'shoes']) {
         const key = 'female' + slot[0].toUpperCase() + slot.slice(1);
         const variant = femaleParams.get(key);
