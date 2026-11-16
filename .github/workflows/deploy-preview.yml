@@ -70,6 +70,20 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-male-skinning-preview.mjs
 
+      - name: Verify original male warrior outfit variants in game scene
+        env:
+          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
+        run: node scripts/smoke-male-warrior-outfit-preview.mjs
+
+      - name: Upload male warrior outfit variant previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ran-male-warrior-outfit-previews
+          path: preview-screenshots/male-warrior-*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload experimental male rebound-skinning screenshot
         if: always()
         uses: actions/upload-artifact@v4
