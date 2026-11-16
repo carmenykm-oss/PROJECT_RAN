@@ -7,14 +7,18 @@ export function createRanBinAnimationPlayer(model, THREE, clipDataByAction) {
   });
   const clips = new Map();
   const missingBones = new Map();
+  const mappedBones = new Set();
+  const sourceBones = new Set();
 
   for (const [actionName, data] of Object.entries(clipDataByAction || {})) {
     if (!data || !Array.isArray(data.tracks)) continue;
     const tracks = [];
     const missing = [];
     for (const source of data.tracks) {
+      sourceBones.add(normalize(source.bone));
       const boneName = actualNames.get(normalize(source.bone));
       if (!boneName) { missing.push(source.bone); continue; }
+      mappedBones.add(boneName);
 
       // RAN SetTime() uses matrix keys first when present. Convert the DirectX
       // row-major matrix payload to Three.js column-major form before decomposing.
@@ -92,6 +96,9 @@ export function createRanBinAnimationPlayer(model, THREE, clipDataByAction) {
     has: name => actions.has(name),
     actions: [...actions.keys()],
     missingBones: Object.fromEntries(missingBones),
+    mappedBones: [...mappedBones],
+    sourceBoneCount: sourceBones.size,
+    mappedBoneCount: mappedBones.size,
     trackCount: [...clips.values()].reduce((n, c) => n + c.tracks.length, 0)
   };
 }
