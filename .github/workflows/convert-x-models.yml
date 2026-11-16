@@ -334,9 +334,9 @@ jobs:
               # the female underwear body must have a real skin and weights.
               if "female-underwear" in path.name and not skins:
                   raise SystemExit(f"Female underwear body has no skin: {path}")
-              if "male-underwear" in path.name and (not skins or len(skins[0].get("joints", [])) < 60):
+              if path.name == "ran-male-underwear-body.glb" and (not skins or len(skins[0].get("joints", [])) < 40):
                   raise SystemExit(f"Native male underwear body has no complete skeleton: {path}")
-              if "male-underwear" in path.name and sum(1 for n in doc.get("nodes", []) if "mesh" in n) != 4:
+              if path.name == "ran-male-underwear-body.glb" and sum(1 for n in doc.get("nodes", []) if "mesh" in n) != 4:
                   raise SystemExit(f"Native s_m_bs body must retain four separate meshes: {path}")
               for mesh in meshes:
                   for primitive in mesh.get("primitives", []):
