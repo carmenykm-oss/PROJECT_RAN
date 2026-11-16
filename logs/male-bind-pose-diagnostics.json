@@ -1,0 +1,2464 @@
+[
+  {
+    "file": "public/models/ran-male.glb",
+    "bytes": 543852,
+    "skins": [
+      {
+        "name": "male_native_skin_0",
+        "jointCount": 26,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 6
+      },
+      {
+        "name": "male_native_skin_1",
+        "jointCount": 5,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 13
+      },
+      {
+        "name": "male_native_skin_2",
+        "jointCount": 12,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 20
+      },
+      {
+        "name": "male_native_skin_3",
+        "jointCount": 6,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 27
+      },
+      {
+        "name": "male_head_native_skin_0",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 34
+      },
+      {
+        "name": "male_head_native_skin_1",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 41
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "male_mesh_part_0",
+        "mesh": "male_native_part_0",
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02251,
+          18.31041,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -9.076393127441406,
+              -2.3139567375183105,
+              0.030849969014525414
+            ],
+            "max": [
+              9.122495651245117,
+              -1.807848572731018,
+              1.5083482265472412
+            ],
+            "count": 660,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_mesh_part_1",
+        "mesh": "male_native_part_1",
+        "skin": 1,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.00623,
+          18.31632,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -1.7623275518417358,
+              -16.009449005126953,
+              -0.30206137895584106
+            ],
+            "max": [
+              1.7739940881729126,
+              -5.716084003448486,
+              1.9816006422042847
+            ],
+            "count": 1074,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_mesh_part_2",
+        "mesh": "male_native_part_2",
+        "skin": 2,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.0081,
+          18.31041,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -6.8935866355896,
+              -5.985357761383057,
+              -0.41995969414711
+            ],
+            "max": [
+              6.906749725341797,
+              -0.7642796039581299,
+              2.037226915359497
+            ],
+            "count": 1026,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_mesh_part_3",
+        "mesh": "male_native_part_3",
+        "skin": 3,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.00623,
+          18.31632,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -1.6823517084121704,
+              -17.15558624267578,
+              -0.8157894015312195
+            ],
+            "max": [
+              1.6940182447433472,
+              -16.009443283081055,
+              2.052243947982788
+            ],
+            "count": 300,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_head_mesh_part_0",
+        "mesh": "male_head_native_part_0",
+        "skin": 4,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02413,
+          18.92805,
+          -0.54766
+        ],
+        "primitives": [
+          {
+            "min": [
+              -0.9079334735870361,
+              -0.9302007555961609,
+              -0.27789443731307983
+            ],
+            "max": [
+              0.9244389533996582,
+              1.1394259929656982,
+              1.8945530652999878
+            ],
+            "count": 549,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_head_mesh_part_1",
+        "mesh": "male_head_native_part_1",
+        "skin": 5,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02413,
+          18.92805,
+          -0.54766
+        ],
+        "primitives": [
+          {
+            "min": [
+              -0.8207278847694397,
+              -1.3117541074752808,
+              -0.3721594214439392
+            ],
+            "max": [
+              0.8377297520637512,
+              0.40327808260917664,
+              1.0758991241455078
+            ],
+            "count": 603,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.05505,
+          0.41258
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.99651,
+          -0.02022
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          16.00646,
+          -0.22438
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger02",
+        "worldTranslation": [
+          -8.66218,
+          15.99199,
+          -0.40019
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger3",
+        "worldTranslation": [
+          -8.4825,
+          16.1754,
+          0.6049
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger31",
+        "worldTranslation": [
+          -9.00487,
+          16.11888,
+          0.59118
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger1",
+        "worldTranslation": [
+          -8.47706,
+          16.16945,
+          0.05732
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger11",
+        "worldTranslation": [
+          -8.98677,
+          16.15163,
+          0.04394
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger41",
+        "worldTranslation": [
+          -8.84701,
+          16.10403,
+          0.867
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger4",
+        "worldTranslation": [
+          -8.40054,
+          16.09218,
+          0.84079
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger2",
+        "worldTranslation": [
+          -8.48163,
+          16.18125,
+          0.33253
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger21",
+        "worldTranslation": [
+          -8.98705,
+          16.15645,
+          0.31926
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-body.glb",
+    "bytes": 543816,
+    "skins": [
+      {
+        "name": "male_native_skin_0",
+        "jointCount": 26,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 6
+      },
+      {
+        "name": "male_native_skin_1",
+        "jointCount": 5,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 13
+      },
+      {
+        "name": "male_native_skin_2",
+        "jointCount": 12,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 20
+      },
+      {
+        "name": "male_native_skin_3",
+        "jointCount": 6,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 27
+      },
+      {
+        "name": "male_head_native_skin_0",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 34
+      },
+      {
+        "name": "male_head_native_skin_1",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 41
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "male_mesh_part_0",
+        "mesh": "male_native_part_0",
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02251,
+          18.31041,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -9.076393127441406,
+              -2.3139567375183105,
+              0.030849969014525414
+            ],
+            "max": [
+              9.122495651245117,
+              -1.807848572731018,
+              1.5083482265472412
+            ],
+            "count": 660,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_mesh_part_1",
+        "mesh": "male_native_part_1",
+        "skin": 1,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.00623,
+          18.31632,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -1.7623275518417358,
+              -16.009449005126953,
+              -0.30206137895584106
+            ],
+            "max": [
+              1.7739940881729126,
+              -5.716084003448486,
+              1.9816006422042847
+            ],
+            "count": 1074,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_mesh_part_2",
+        "mesh": "male_native_part_2",
+        "skin": 2,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.0081,
+          18.31041,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -6.8935866355896,
+              -5.985357761383057,
+              -0.41995969414711
+            ],
+            "max": [
+              6.906749725341797,
+              -0.7642796039581299,
+              2.037226915359497
+            ],
+            "count": 1026,
+            "type": "VEC3"
+          }
+        ]
+      },
+      {
+        "node": "male_mesh_part_3",
+        "mesh": "male_native_part_3",
+        "skin": 3,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.00623,
+          18.31632,
+          -0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -1.6823517084121704,
+              -17.15558624267578,
+              -0.8157894015312195
+            ],
+            "max": [
+              1.6940182447433472,
+              -16.009443283081055,
+              2.052243947982788
+            ],
+            "count": 300,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.05505,
+          0.41258
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.99651,
+          -0.02022
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          16.00646,
+          -0.22438
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger02",
+        "worldTranslation": [
+          -8.66218,
+          15.99199,
+          -0.40019
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger3",
+        "worldTranslation": [
+          -8.4825,
+          16.1754,
+          0.6049
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger31",
+        "worldTranslation": [
+          -9.00487,
+          16.11888,
+          0.59118
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger1",
+        "worldTranslation": [
+          -8.47706,
+          16.16945,
+          0.05732
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger11",
+        "worldTranslation": [
+          -8.98677,
+          16.15163,
+          0.04394
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger41",
+        "worldTranslation": [
+          -8.84701,
+          16.10403,
+          0.867
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger4",
+        "worldTranslation": [
+          -8.40054,
+          16.09218,
+          0.84079
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger2",
+        "worldTranslation": [
+          -8.48163,
+          16.18125,
+          0.33253
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger21",
+        "worldTranslation": [
+          -8.98705,
+          16.15645,
+          0.31926
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-face.glb",
+    "bytes": 543760,
+    "skins": [
+      {
+        "name": "male_native_skin_0",
+        "jointCount": 26,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 6
+      },
+      {
+        "name": "male_native_skin_1",
+        "jointCount": 5,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 13
+      },
+      {
+        "name": "male_native_skin_2",
+        "jointCount": 12,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 20
+      },
+      {
+        "name": "male_native_skin_3",
+        "jointCount": 6,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 27
+      },
+      {
+        "name": "male_head_native_skin_0",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 34
+      },
+      {
+        "name": "male_head_native_skin_1",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 41
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "male_head_mesh_part_1",
+        "mesh": "male_head_native_part_1",
+        "skin": 5,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02413,
+          18.92805,
+          -0.54766
+        ],
+        "primitives": [
+          {
+            "min": [
+              -0.8207278847694397,
+              -1.3117541074752808,
+              -0.3721594214439392
+            ],
+            "max": [
+              0.8377297520637512,
+              0.40327808260917664,
+              1.0758991241455078
+            ],
+            "count": 603,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.05505,
+          0.41258
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.99651,
+          -0.02022
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          16.00646,
+          -0.22438
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger02",
+        "worldTranslation": [
+          -8.66218,
+          15.99199,
+          -0.40019
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger3",
+        "worldTranslation": [
+          -8.4825,
+          16.1754,
+          0.6049
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger31",
+        "worldTranslation": [
+          -9.00487,
+          16.11888,
+          0.59118
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger1",
+        "worldTranslation": [
+          -8.47706,
+          16.16945,
+          0.05732
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger11",
+        "worldTranslation": [
+          -8.98677,
+          16.15163,
+          0.04394
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger41",
+        "worldTranslation": [
+          -8.84701,
+          16.10403,
+          0.867
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger4",
+        "worldTranslation": [
+          -8.40054,
+          16.09218,
+          0.84079
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger2",
+        "worldTranslation": [
+          -8.48163,
+          16.18125,
+          0.33253
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger21",
+        "worldTranslation": [
+          -8.98705,
+          16.15645,
+          0.31926
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-hair.glb",
+    "bytes": 543760,
+    "skins": [
+      {
+        "name": "male_native_skin_0",
+        "jointCount": 26,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 6
+      },
+      {
+        "name": "male_native_skin_1",
+        "jointCount": 5,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 13
+      },
+      {
+        "name": "male_native_skin_2",
+        "jointCount": 12,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 20
+      },
+      {
+        "name": "male_native_skin_3",
+        "jointCount": 6,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 27
+      },
+      {
+        "name": "male_head_native_skin_0",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 34
+      },
+      {
+        "name": "male_head_native_skin_1",
+        "jointCount": 1,
+        "skeleton": "Scene_Root",
+        "inverseBindMatrices": 41
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "male_head_mesh_part_0",
+        "mesh": "male_head_native_part_0",
+        "skin": 4,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02413,
+          18.92805,
+          -0.54766
+        ],
+        "primitives": [
+          {
+            "min": [
+              -0.9079334735870361,
+              -0.9302007555961609,
+              -0.27789443731307983
+            ],
+            "max": [
+              0.9244389533996582,
+              1.1394259929656982,
+              1.8945530652999878
+            ],
+            "count": 549,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.05505,
+          0.41258
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.99651,
+          -0.02022
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          16.00646,
+          -0.22438
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger02",
+        "worldTranslation": [
+          -8.66218,
+          15.99199,
+          -0.40019
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger3",
+        "worldTranslation": [
+          -8.4825,
+          16.1754,
+          0.6049
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger31",
+        "worldTranslation": [
+          -9.00487,
+          16.11888,
+          0.59118
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger1",
+        "worldTranslation": [
+          -8.47706,
+          16.16945,
+          0.05732
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger11",
+        "worldTranslation": [
+          -8.98677,
+          16.15163,
+          0.04394
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger41",
+        "worldTranslation": [
+          -8.84701,
+          16.10403,
+          0.867
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger4",
+        "worldTranslation": [
+          -8.40054,
+          16.09218,
+          0.84079
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger2",
+        "worldTranslation": [
+          -8.48163,
+          16.18125,
+          0.33253
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger21",
+        "worldTranslation": [
+          -8.98705,
+          16.15645,
+          0.31926
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-a-upper.glb",
+    "bytes": 181836,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 42,
+        "skeleton": null,
+        "inverseBindMatrices": 24
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m4_wgs_body",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.0081,
+          18.31041,
+          0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -6.8935866355896,
+              -5.985357761383057,
+              -2.037226915359497
+            ],
+            "max": [
+              6.906749725341797,
+              -0.747989296913147,
+              0.49649086594581604
+            ],
+            "count": 295,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_L_Forearm",
+        "worldTranslation": [
+          4.38666,
+          16.05925,
+          -0.48863
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Hand",
+        "worldTranslation": [
+          7.28257,
+          16.03798,
+          -0.41261
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger01",
+        "worldTranslation": [
+          8.31787,
+          15.98939,
+          0.22435
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger02",
+        "worldTranslation": [
+          8.66059,
+          15.97493,
+          0.40016
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger31",
+        "worldTranslation": [
+          9.00328,
+          16.10181,
+          -0.59121
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger1",
+        "worldTranslation": [
+          8.47547,
+          16.15238,
+          -0.05735
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger11",
+        "worldTranslation": [
+          8.98518,
+          16.13456,
+          -0.04397
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger3",
+        "worldTranslation": [
+          8.48091,
+          16.15833,
+          -0.60494
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger4",
+        "worldTranslation": [
+          8.39895,
+          16.07511,
+          -0.84082
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger41",
+        "worldTranslation": [
+          8.84541,
+          16.08696,
+          -0.86703
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger2",
+        "worldTranslation": [
+          8.48004,
+          16.16418,
+          -0.33256
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger21",
+        "worldTranslation": [
+          8.98546,
+          16.13938,
+          -0.31929
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-a-gloves.glb",
+    "bytes": 181836,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 42,
+        "skeleton": null,
+        "inverseBindMatrices": 24
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m4_wgs_hand",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02251,
+          18.31041,
+          0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -9.082854270935059,
+              -2.7194900512695312,
+              -1.7191015481948853
+            ],
+            "max": [
+              9.124408721923828,
+              -1.691660761833191,
+              -0.10231601446866989
+            ],
+            "count": 216,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_L_Forearm",
+        "worldTranslation": [
+          4.38666,
+          16.05925,
+          -0.48863
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Hand",
+        "worldTranslation": [
+          7.28257,
+          16.03798,
+          -0.41261
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger01",
+        "worldTranslation": [
+          8.31787,
+          15.98939,
+          0.22435
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger02",
+        "worldTranslation": [
+          8.66059,
+          15.97493,
+          0.40016
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger31",
+        "worldTranslation": [
+          9.00328,
+          16.10181,
+          -0.59121
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger1",
+        "worldTranslation": [
+          8.47547,
+          16.15238,
+          -0.05735
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger11",
+        "worldTranslation": [
+          8.98518,
+          16.13456,
+          -0.04397
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger3",
+        "worldTranslation": [
+          8.48091,
+          16.15833,
+          -0.60494
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger4",
+        "worldTranslation": [
+          8.39895,
+          16.07511,
+          -0.84082
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger41",
+        "worldTranslation": [
+          8.84541,
+          16.08696,
+          -0.86703
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger2",
+        "worldTranslation": [
+          8.48004,
+          16.16418,
+          -0.33256
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger21",
+        "worldTranslation": [
+          8.98546,
+          16.13938,
+          -0.31929
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-a-lower.glb",
+    "bytes": 181836,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 42,
+        "skeleton": null,
+        "inverseBindMatrices": 24
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m4_wgs_leg",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.00623,
+          18.31632,
+          0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -1.799460530281067,
+              -16.420347213745117,
+              -2.208373785018921
+            ],
+            "max": [
+              1.812260627746582,
+              -5.700104713439941,
+              0.31850168108940125
+            ],
+            "count": 269,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_L_Forearm",
+        "worldTranslation": [
+          4.38666,
+          16.05925,
+          -0.48863
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Hand",
+        "worldTranslation": [
+          7.28257,
+          16.03798,
+          -0.41261
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger01",
+        "worldTranslation": [
+          8.31787,
+          15.98939,
+          0.22435
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger02",
+        "worldTranslation": [
+          8.66059,
+          15.97493,
+          0.40016
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger31",
+        "worldTranslation": [
+          9.00328,
+          16.10181,
+          -0.59121
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger1",
+        "worldTranslation": [
+          8.47547,
+          16.15238,
+          -0.05735
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger11",
+        "worldTranslation": [
+          8.98518,
+          16.13456,
+          -0.04397
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger3",
+        "worldTranslation": [
+          8.48091,
+          16.15833,
+          -0.60494
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger4",
+        "worldTranslation": [
+          8.39895,
+          16.07511,
+          -0.84082
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger41",
+        "worldTranslation": [
+          8.84541,
+          16.08696,
+          -0.86703
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger2",
+        "worldTranslation": [
+          8.48004,
+          16.16418,
+          -0.33256
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger21",
+        "worldTranslation": [
+          8.98546,
+          16.13938,
+          -0.31929
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-a-shoes.glb",
+    "bytes": 181836,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 42,
+        "skeleton": null,
+        "inverseBindMatrices": 24
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m4_wgs_foot",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.01484,
+          18.31651,
+          0.73092
+        ],
+        "primitives": [
+          {
+            "min": [
+              -1.7538124322891235,
+              -17.16690444946289,
+              -2.1438522338867188
+            ],
+            "max": [
+              1.7451813220977783,
+              -15.8562593460083,
+              0.8254808783531189
+            ],
+            "count": 134,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_L_Forearm",
+        "worldTranslation": [
+          4.38666,
+          16.05925,
+          -0.48863
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Hand",
+        "worldTranslation": [
+          7.28257,
+          16.03798,
+          -0.41261
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger01",
+        "worldTranslation": [
+          8.31787,
+          15.98939,
+          0.22435
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger02",
+        "worldTranslation": [
+          8.66059,
+          15.97493,
+          0.40016
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger31",
+        "worldTranslation": [
+          9.00328,
+          16.10181,
+          -0.59121
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger1",
+        "worldTranslation": [
+          8.47547,
+          16.15238,
+          -0.05735
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger11",
+        "worldTranslation": [
+          8.98518,
+          16.13456,
+          -0.04397
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger3",
+        "worldTranslation": [
+          8.48091,
+          16.15833,
+          -0.60494
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger4",
+        "worldTranslation": [
+          8.39895,
+          16.07511,
+          -0.84082
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger41",
+        "worldTranslation": [
+          8.84541,
+          16.08696,
+          -0.86703
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger2",
+        "worldTranslation": [
+          8.48004,
+          16.16418,
+          -0.33256
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Finger21",
+        "worldTranslation": [
+          8.98546,
+          16.13938,
+          -0.31929
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-f-upper.glb",
+    "bytes": 126552,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 44,
+        "skeleton": null,
+        "inverseBindMatrices": 30
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m2_wds_body",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          0.01306,
+          14.74382,
+          -1.00044
+        ],
+        "primitives": [
+          {
+            "min": [
+              -7.389475345611572,
+              -2.808732032775879,
+              -0.8427463173866272
+            ],
+            "max": [
+              8.361869812011719,
+              2.7136340141296387,
+              2.3675589561462402
+            ],
+            "count": 365,
+            "type": "VEC3"
+          },
+          {
+            "min": [
+              -1.479164719581604,
+              -2.827389717102051,
+              -0.19909241795539856
+            ],
+            "max": [
+              1.4530537128448486,
+              2.77339506149292,
+              2.2400319576263428
+            ],
+            "count": 73,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Foot",
+        "worldTranslation": [
+          -1.01048,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Toe0",
+        "worldTranslation": [
+          -1.01048,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Calf",
+        "worldTranslation": [
+          -0.98679,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Foot",
+        "worldTranslation": [
+          1.00889,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Toe0",
+        "worldTranslation": [
+          1.00889,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Calf",
+        "worldTranslation": [
+          0.9852,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Thigh",
+        "worldTranslation": [
+          -0.96646,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_Pelvis",
+        "worldTranslation": [
+          -0.00079,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Thigh",
+        "worldTranslation": [
+          0.96487,
+          10.95408,
+          -0.15048
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.03798,
+          -0.41259
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          15.98939,
+          0.22437
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.97944,
+          0.02022
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-f-gloves.glb",
+    "bytes": 126552,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 44,
+        "skeleton": null,
+        "inverseBindMatrices": 30
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m2_wds_hand",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02251,
+          18.31041,
+          0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -9.657434463500977,
+              -2.4890365600585938,
+              -1.611348271369934
+            ],
+            "max": [
+              9.671499252319336,
+              -1.931301474571228,
+              -0.032956644892692566
+            ],
+            "count": 176,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Foot",
+        "worldTranslation": [
+          -1.01048,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Toe0",
+        "worldTranslation": [
+          -1.01048,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Calf",
+        "worldTranslation": [
+          -0.98679,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Foot",
+        "worldTranslation": [
+          1.00889,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Toe0",
+        "worldTranslation": [
+          1.00889,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Calf",
+        "worldTranslation": [
+          0.9852,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Thigh",
+        "worldTranslation": [
+          -0.96646,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_Pelvis",
+        "worldTranslation": [
+          -0.00079,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Thigh",
+        "worldTranslation": [
+          0.96487,
+          10.95408,
+          -0.15048
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.03798,
+          -0.41259
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          15.98939,
+          0.22437
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.97944,
+          0.02022
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-f-lower.glb",
+    "bytes": 126552,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 44,
+        "skeleton": null,
+        "inverseBindMatrices": 30
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m2_wds_leg",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02251,
+          18.87852,
+          0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -2.037982702255249,
+              -18.245569229125977,
+              -2.5853970050811768
+            ],
+            "max": [
+              2.0485198497772217,
+              -6.668622970581055,
+              0.47072386741638184
+            ],
+            "count": 227,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Foot",
+        "worldTranslation": [
+          -1.01048,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Toe0",
+        "worldTranslation": [
+          -1.01048,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Calf",
+        "worldTranslation": [
+          -0.98679,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Foot",
+        "worldTranslation": [
+          1.00889,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Toe0",
+        "worldTranslation": [
+          1.00889,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Calf",
+        "worldTranslation": [
+          0.9852,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Thigh",
+        "worldTranslation": [
+          -0.96646,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_Pelvis",
+        "worldTranslation": [
+          -0.00079,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Thigh",
+        "worldTranslation": [
+          0.96487,
+          10.95408,
+          -0.15048
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.03798,
+          -0.41259
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          15.98939,
+          0.22437
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.97944,
+          0.02022
+        ]
+      }
+    ]
+  },
+  {
+    "file": "public/models/ran-male-outfit-f-shoes.glb",
+    "bytes": 126552,
+    "skins": [
+      {
+        "name": "skin",
+        "jointCount": 44,
+        "skeleton": null,
+        "inverseBindMatrices": 30
+      }
+    ],
+    "meshNodes": [
+      {
+        "node": "m2_wds_foot",
+        "mesh": null,
+        "skin": 0,
+        "nodeTranslation": [
+          0,
+          0,
+          0
+        ],
+        "nodeRotation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodeScale": [
+          1,
+          1,
+          1
+        ],
+        "worldTranslation": [
+          -0.02251,
+          18.87852,
+          0.67176
+        ],
+        "primitives": [
+          {
+            "min": [
+              -1.9577006101608276,
+              -18.880077362060547,
+              -2.207333564758301
+            ],
+            "max": [
+              2.001823663711548,
+              -17.514326095581055,
+              0.8871874213218689
+            ],
+            "count": 140,
+            "type": "VEC3"
+          }
+        ]
+      }
+    ],
+    "jointSamples": [
+      {
+        "skin": 0,
+        "name": "Bip01_R_Foot",
+        "worldTranslation": [
+          -1.01048,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Toe0",
+        "worldTranslation": [
+          -1.01048,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Calf",
+        "worldTranslation": [
+          -0.98679,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Foot",
+        "worldTranslation": [
+          1.00889,
+          1.09344,
+          -0.84861
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Toe0",
+        "worldTranslation": [
+          1.00889,
+          -0.01707,
+          0.77468
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Calf",
+        "worldTranslation": [
+          0.9852,
+          6.4025,
+          -0.19956
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Thigh",
+        "worldTranslation": [
+          -0.96646,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_Pelvis",
+        "worldTranslation": [
+          -0.00079,
+          10.95408,
+          -0.15047
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_L_Thigh",
+        "worldTranslation": [
+          0.96487,
+          10.95408,
+          -0.15048
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Hand",
+        "worldTranslation": [
+          -7.28416,
+          16.03798,
+          -0.41259
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger01",
+        "worldTranslation": [
+          -8.31946,
+          15.98939,
+          0.22437
+        ]
+      },
+      {
+        "skin": 0,
+        "name": "Bip01_R_Finger0",
+        "worldTranslation": [
+          -7.99337,
+          15.97944,
+          0.02022
+        ]
+      }
+    ]
+  }
+]
