@@ -4,6 +4,7 @@ import { createRanCharacterAnimator } from './character-animation.js';
 import { loadRanBinAnimationPlayer } from './ran-bin-animation-player.js';
 
 const mount = document.getElementById('game');
+const syntheticMapObjects = []; // Hide only after verified original WLD0 geometry mounts successfully.
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x77796f);
 scene.fog = new THREE.Fog(0x77796f, 58, 145);
@@ -20,14 +21,14 @@ sun.position.set(-24, 34, 18); sun.castShadow = true; sun.shadow.mapSize.set(204
 
 function box(x, y, z, a, b, c, color, materialOptions = {}) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(a, b, c), new THREE.MeshStandardMaterial({ color, roughness: .92, ...materialOptions }));
-  mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); return mesh;
+  mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); syntheticMapObjects.push(mesh); return mesh;
 }
 function cylinder(x,y,z,rt,rb,h,color,segments=12){
  const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),new THREE.MeshStandardMaterial({color,roughness:.88}));
- m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;
+ m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);syntheticMapObjects.push(m);return m;
 }
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshStandardMaterial({ color: 0x55594d, roughness:1 }));
-ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground); syntheticMapObjects.push(ground);
 // Weathered square paving, with a broad central plaza and the avenue leading to the fountain.
 const stoneColors=[0x77766b,0x858276,0x6d7068,0x918c7c,0x777a72,0x666960];
 for(let x=-24;x<=24;x+=3.2) for(let z=-25;z<=22;z+=3.2){
@@ -60,7 +61,7 @@ cylinder(0,.34,-19,5.1,5.35,.55,0x777467,8);
 cylinder(0,.65,-19,4.65,4.9,.22,0xaaa18a,8);
 cylinder(0,.83,-19,4.2,4.35,.18,0x5b665e,8);
 const water=new THREE.Mesh(new THREE.CylinderGeometry(3.95,3.95,.08,8),new THREE.MeshStandardMaterial({color:0x566b69,roughness:.24,metalness:.18}));
-water.position.set(0,.96,-19);scene.add(water);
+water.position.set(0,.96,-19);scene.add(water);syntheticMapObjects.push(water);
 cylinder(0,1.65,-19,1.85,2.2,1.45,0x5d665d,8);
 cylinder(0,2.7,-19,1.25,1.55,.7,0x817d6d,8);
 cylinder(0,3.55,-19,.72,1.0,1.15,0x5a635d,8);
@@ -77,6 +78,79 @@ for(const side of [-1,1]){
  box(side*11,6.95,5,2,.35,2,0x302b24);
  box(side*11,1,5,2.1,.5,2.1,0x37362e);
 }
+
+
+async function mountOriginalRanTerrain(mapName = 'LDG02') {
+  const response = await fetch('/api/ran-map/terrain?map=' + encodeURIComponent(mapName));
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error || '原版地形載入失敗');
+  const bounds = payload.bounds;
+  const spanX = Math.abs(bounds.max[0] - bounds.min[0]) || 1;
+  const spanZ = Math.abs(bounds.max[2] - bounds.min[2]) || 1;
+  const scale = 80 / Math.max(spanX, spanZ);
+  const centerX = (bounds.max[0] + bounds.min[0]) * .5;
+  const centerZ = (bounds.max[2] + bounds.min[2]) * .5;
+  const root = new THREE.Group();
+  root.name = 'RAN_ORIGINAL_WLD0_' + payload.map;
+  const materialCache = new Map();
+  for (const source of payload.meshes) {
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(source.positions.length);
+    for (let i = 0; i < source.positions.length; i += 3) {
+      positions[i] = (-source.positions[i] - centerX) * scale;
+      positions[i + 1] = source.positions[i + 1] * scale;
+      positions[i + 2] = (source.positions[i + 2] - centerZ) * scale;
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    if (source.uvs) geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(source.uvs), 2));
+    if (source.normals) {
+      const normals = new Float32Array(source.normals);
+      for (let i = 0; i < normals.length; i += 3) normals[i] = -normals[i];
+      geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    }
+    if (source.colors) {
+      const colors = new Float32Array(source.colors.length * 4);
+      for (let i = 0; i < source.colors.length; i++) {
+        const c = source.colors[i] >>> 0;
+        colors[i * 4] = (c & 255) / 255;
+        colors[i * 4 + 1] = ((c >>> 8) & 255) / 255;
+        colors[i * 4 + 2] = ((c >>> 16) & 255) / 255;
+        colors[i * 4 + 3] = ((c >>> 24) & 255) / 255;
+      }
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 4));
+    }
+    const indices = new Uint32Array(source.indices.length);
+    for (let i = 0; i < source.indices.length; i += 3) {
+      indices[i] = source.indices[i];
+      indices[i + 1] = source.indices[i + 2];
+      indices[i + 2] = source.indices[i + 1];
+    }
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    if (!geometry.getAttribute('normal')) geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    const key = source.bucket + ':' + (source.colors ? 'vertex-colour' : 'plain');
+    if (!materialCache.has(key)) materialCache.set(key, new THREE.MeshStandardMaterial({
+      color: 0xffffff, vertexColors: !!source.colors, roughness: .96,
+      side: THREE.DoubleSide
+    }));
+    const mesh = new THREE.Mesh(geometry, materialCache.get(key));
+    mesh.name = source.name || 'RAN terrain mesh';
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.frustumCulled = false;
+    root.add(mesh);
+  }
+  scene.add(root);
+  for (const item of syntheticMapObjects) item.visible = false;
+  scene.fog = new THREE.Fog(0x77796f, 100, 240);
+  console.info('[PROJECT RAN] Original WLD0 terrain mounted', {
+    map: payload.map, vertices: payload.vertices, triangles: payload.triangles,
+    meshes: payload.meshes.length, scale
+  });
+  return payload;
+}
+mountOriginalRanTerrain(new URLSearchParams(location.search).get('map') || 'LDG02')
+  .catch(error => console.warn('[PROJECT RAN] Original terrain not mounted; retaining fallback scene:', error.message));
 
 function tag(text) {
   const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 64;
