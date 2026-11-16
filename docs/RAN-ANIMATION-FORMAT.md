@@ -166,3 +166,22 @@ Source references:
 - `[Lib]__Engine/Sources/Common/SerialMemory.cpp` (RCC extraction and conditional CompByte decode)
 - `[Lib]__Engine/Sources/DxMeshs/DxSkinAniManSaveLoad.cpp` (CFG loader call)
 - `[Lib]__Engine/Sources/Common/SerialFile.cpp` (plain serial-file read path)
+
+
+## RAN2 FileCrypt transform discovered (2026-11-16)
+
+A second public RAN source repository (`jhemmmm/RanOnline`) contains the dedicated `FileCrypt` utility and its `StreamDecryptR2()` implementation. This is a direct match for the supplied BIN layout:
+
+1. Decode bytes beginning at offset 132 using `BYTECRYPT::byte_decode(..., EMBYTECRYPT_RAN2)`.
+2. Remove the 12 decoded bytes at offsets 132-143.
+3. The resulting serial animation container starts at offset 132.
+
+The exact implementation is in `Tool -- FileCrypt/FileCryptDlgCrypt.cpp`; the lookup table is `ARRAY_RAN2[256]` in `Lib -- Engine/Common/ByteCryptDef.h`; the inverse-table algorithm is in `Lib -- Engine/Common/ByteCrypt.cpp`.
+
+This explains both earlier observations:
+- The 12 bytes at 132-143 are a RAN2-specific extra prefix that must be removed after decoding.
+- The repeated `0x2A`-looking bytes around offset 144 were a misleading clue: the RAN2 substitution table is a byte permutation, not XOR. The old XOR-0x2A hypothesis remains rejected.
+
+Added `scripts/decode-ran2-animation-bins.py`, which recursively opens nested ZIP/RCC archives, applies the exact published RAN2 substitution table from byte 132 onward, strips the 12-byte RAN2 prefix, and checks the first container count and first SAnimation version. The workflow now runs this structural probe on each uploaded animation archive and stores a JSON validation report under `logs/`.
+
+Important validation status: the algorithm is source-verified and the decoder/probe is committed, but the actual uploaded wait/walk/run samples have not yet been run through the new CI probe in this turn. Do not claim successful BIN parsing until the workflow report confirms plausible counts and valid record versions across those clips.
