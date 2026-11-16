@@ -236,6 +236,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // the female fitting-room strategy while preventing same-named cloth bones
     // from different independently equipped slots from colliding.
     const maleEquipmentBoneTargets = new Map();
+    let maleEquipmentHelperBoneCount = 0;
     const femaleEquipmentParts = new Set();
     const femaleEquipmentScenes = [];
     const femaleEquipmentSlotMeshes = {};
@@ -335,6 +336,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
           maleEquipmentBoneTargets.set(helper, helper);
         }
         const helperCount = helperBones.length;
+        maleEquipmentHelperBoneCount += helperCount;
         console.info('[PROJECT RAN] Male equipment helper bones attached', { slot, variant, helperCount });
         maleEquipmentScenes.push(partScene);
       }
@@ -846,6 +848,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       maleHairSkinnedMeshCount: maleHairParts.size,
       maleEquipmentMeshCount: maleEquipmentParts.size,
       maleEquipmentMirrorZMeshCount: maleEquipmentMirrorZParts.size,
+      maleEquipmentHelperBoneCount,
       maleEquipmentSlotMeshes: maleEquipmentSlotMeshes,
       maleEquipmentReboundCount: [...maleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
       maleEquipmentBoneBindingMismatchCount,
