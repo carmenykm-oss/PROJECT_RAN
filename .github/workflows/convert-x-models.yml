@@ -229,6 +229,13 @@ jobs:
           print(f"Converted {converted} DDS textures and patched all GLB texture references.")
           PY
 
+      - name: Inventory male and female character-part source models
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/inspect-character-parts.py
+          cat logs/character-part-inventory.json
+
       - name: Validate warrior GLB structure and female animation rig
         shell: bash
         run: |
