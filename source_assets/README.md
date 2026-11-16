@@ -18,3 +18,5 @@ Important: successful Assimp export only proves that a file was written. It does
 - `s_m_bs.x` is the male base-body source (113,951 bytes), containing four skinned meshes and the Bip01 skeleton.
 - The conversion workflow publishes it as `ran-male-underwear-body.glb` after structural validation.
 - The current preview uses temporary m2_wdb hand/leg/foot texture fallbacks because the matching m2_bs DDS atlases are not in the source bundle.
+
+Conversion validation trigger: native male base integration.
