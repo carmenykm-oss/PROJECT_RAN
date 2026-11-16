@@ -154,3 +154,6 @@ Optional environment overrides:
 #### Scope boundary
 
 This is a terrain-only integration milestone, not a complete map restoration. It does not yet decode/place the `.wld` scene's buildings and props, resolve `.pis/.pie` object pieces, or load the referenced DDS texture/effect maps. The actual installed LDG02 file has not yet been run through the new local endpoint in this environment, so no claim is made that it has rendered successfully. The next required validation is the endpoint response from the user's installed client; after that, continue with scene placement and texture resolution using the same map's referenced resources.
+
+
+The terrain client also now binds referenced `.dds` files through a restricted local texture endpoint and uses separate Three.js materials per source texture. This is an attempted texture path only; texture success must be confirmed against the installed client's actual folder names and file references. TGA and other texture formats are not yet decoded in the browser.
