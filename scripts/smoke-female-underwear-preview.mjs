@@ -34,7 +34,7 @@ try {
   await page.screenshot({ path: 'preview-screenshots/female-underwear-body-run.png' });
   await page.keyboard.up('w'); await page.keyboard.up('Shift');
   const walkDelta = delta(idlePose, walkPose), runDelta = delta(walkPose, runPose);
-  if (!status.includes('女角色已載入') || !debug) throw new Error('Female GLB failed to load: ' + status);
+  if (!status.includes('女角色已載入') || !debug) throw new Error('Female GLB failed to load: ' + status + '; browser errors: ' + errors.join(' | '));
   if (debug.meshCount < 1 || debug.skinnedMeshCount < 1 || debug.reboundSkinCount < 1 || debug.boneCount < 1 ||
       !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2)
     throw new Error('Female rebound skinning incomplete: ' + JSON.stringify(debug));
