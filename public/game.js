@@ -231,6 +231,10 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     const maleFaceParts = new Set();
     const maleHairParts = new Set();
     const maleEquipmentParts = new Set();
+    const femaleEquipmentParts = new Set();
+    const femaleEquipmentScenes = [];
+    const femaleEquipmentSlotMeshes = {};
+    let femaleEquipmentHelperBoneCount = 0;
     const malePartScenes = [];
     const maleEquipmentScenes = [];
     const maleEquipmentSlotMeshes = {};
@@ -338,6 +342,57 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         for (const part of rejectedHairMeshes) part.parent?.remove(part);
         model.add(hairScene);
       }
+
+      // Female outfits are split into independent upper/gloves/lower/shoes GLBs.
+      // Preserve their extra cloth/helper bones by reparenting them to the matching
+      // selected-base bone while keeping their world-space bind-pose transforms.
+      const femaleParams = new URLSearchParams(location.search);
+      for (const slot of ['upper', 'gloves', 'lower', 'shoes']) {
+        const key = 'female' + slot[0].toUpperCase() + slot.slice(1);
+        const variant = femaleParams.get(key);
+        if (!variant) continue;
+        if (!['a', 's'].includes(variant)) throw new Error('不支援的女角色裝備來源：' + key);
+        const partUrl = './models/ran-female-outfit-' + variant + '-' + slot + '.glb';
+        const partGltf = await gltfLoader.loadAsync(new URL(partUrl, import.meta.url).href);
+        const partScene = partGltf.scene || partGltf.scenes?.[0];
+        if (!partScene) throw new Error('女角色' + slot + '裝備 GLB 沒有可載入場景');
+        model.add(partScene);
+        model.updateMatrixWorld(true);
+
+        const helperBones = [];
+        partScene.traverse((obj) => {
+          if (obj.isBone && obj.name && !baseRigBones.has(obj.name)) helperBones.push(obj);
+        });
+        const helperSet = new Set(helperBones);
+        const helperOriginalNames = new Map(helperBones.map(bone => [bone, bone.name]));
+        const helperRoots = helperBones.filter(bone => !helperSet.has(bone.parent));
+        for (const root of helperRoots) {
+          let ancestor = root.parent;
+          while (ancestor && !(ancestor.isBone && baseRigBones.has(ancestor.name))) ancestor = ancestor.parent;
+          if (!ancestor) throw new Error('女角色裝備輔助骨骼找不到基底父骨骼：' + root.name);
+          const baseParent = baseRigBones.get(ancestor.name);
+          root.updateMatrixWorld(true);
+          baseParent.updateMatrixWorld(true);
+          const worldMatrix = root.matrixWorld.clone();
+          const localMatrix = baseParent.matrixWorld.clone().invert().multiply(worldMatrix);
+          root.parent.remove(root);
+          baseParent.add(root);
+          localMatrix.decompose(root.position, root.quaternion, root.scale);
+          root.updateMatrix();
+        }
+        for (const helper of helperBones) {
+          helper.name = 'RAN_FemaleEquip_' + slot + '_' + variant + '_' + helperOriginalNames.get(helper);
+        }
+        femaleEquipmentHelperBoneCount += helperBones.length;
+        const before = femaleEquipmentParts.size;
+        partScene.traverse((obj) => {
+          if (obj.isSkinnedMesh && obj.skeleton) femaleEquipmentParts.add(obj);
+        });
+        const added = femaleEquipmentParts.size - before;
+        if (added < 1) throw new Error('女角色' + slot + '裝備沒有有效蒙皮網格');
+        femaleEquipmentSlotMeshes[slot] = added;
+        femaleEquipmentScenes.push(partScene);
+      }
       model.updateMatrixWorld(true);
     }
 
@@ -420,6 +475,9 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
           if (maleWarriorParts.has(source) || maleEquipmentParts.has(source) || maleFaceParts.has(source) || maleHairParts.has(source)) {
             throw new Error(`男角色獨立部件缺少對應骨骼：${bone.name}`);
           }
+          if (femaleEquipmentParts.has(source)) {
+            throw new Error(`女角色裝備缺少可掛接的輔助骨骼：${bone.name}`);
+          }
           if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
             if (useFemaleHeadCandidate && /^(Bone33|Bone34)$/.test(bone.name)) {
               const headBone = model.getObjectByName('Bip01_Head');
@@ -450,7 +508,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       // geometry. Remove its duplicate skeleton so only the native player rig
       // remains active and equipment stays independently removable.
       if (warriorScene) model.remove(warriorScene);
-      for (const partScene of [...malePartScenes, ...maleEquipmentScenes]) model.remove(partScene);
+      for (const partScene of [...malePartScenes, ...maleEquipmentScenes, ...femaleEquipmentScenes]) model.remove(partScene);
       model.updateMatrixWorld(true);
     } else if (requestedCharacter === 'male' || requestedCharacter === 'female') {
       const sourceParts = [];
@@ -678,6 +736,10 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     };
     window.__ranCharacterDebug = {
       character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, reboundSkinCount, recoveredMeshNodes,
+      femaleEquipmentMeshCount: femaleEquipmentParts.size,
+      femaleEquipmentSlotMeshes: femaleEquipmentSlotMeshes,
+      femaleEquipmentHelperBoneCount,
+      femaleEquipmentReboundCount: [...femaleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
       maleFaceSkinnedMeshCount: maleFaceParts.size,
       maleHairSkinnedMeshCount: maleHairParts.size,
       maleEquipmentMeshCount: maleEquipmentParts.size,
