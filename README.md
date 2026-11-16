@@ -53,7 +53,7 @@ The preview-only **角色換裝試衣間** panel lets you:
 - Independently show or remove the face and hair.
 - Choose from nine female hairstyles.
 - Independently equip or remove upper clothing, gloves, lower clothing and shoes.
-- Choose outfit A or F for male slots; female outfit A is currently the validated set.
+- Choose outfit A or F independently for each male slot; female outfit A is currently the validated set.
 
 Changing a selection reloads the preview with that combination. It does not replace the other slots.
 
@@ -62,7 +62,9 @@ Changing a selection reloads the preview with that combination. It does not repl
 **Male**
 - Selected base body, face and hair are separate.
 - Two outfit source variants have been split into independent upper, gloves, lower and shoes candidates.
-- Both outfit variants passed browser attachment tests; the four slots can be loaded independently.
+- Visual comparison found that A upper leaves substantial body areas exposed, while F upper gives better torso/arm coverage. The current recommended mixed preview is F upper + F gloves + A lower + A shoes:
+  `https://carmenykm-oss.github.io/PROJECT_RAN/?preview=1&character=male&skinning=1&maleUpper=f&maleGloves=f&maleLower=a&maleShoes=a`
+- That exact four-slot combination passed the browser test with 5 rebound equipment meshes, all four slots present, and zero bone-binding mismatches. This is the best current preview combination, not yet proof of natural animation or a persistent inventory integration.
 
 **Female**
 - Selected underwear body remains the base.
@@ -79,9 +81,9 @@ The latest GitHub Actions browser run passed:
 - Zero equipment bone-binding mismatches in the tested combinations.
 - Female hairstyle selection and face/hair removal.
 - Male face/hair removal and restoration.
-- Male idle/walk/run bone-pose checks.
+- Male idle/walk/run BIN keyframe changes were detected, but visual screenshots show the experimental original-BIN pose can collapse/tilt the character. This experimental path remains disabled by default and is not accepted as visually correct animation.
 
-The fitting room is currently a preview/testing workflow. The existing server inventory/economy equipment system has not yet been connected to these six 3D appearance slots, and the screenshots still show a T-pose validation stance. Do not treat the preview fitting panel as a completed persistent player inventory feature.
+The fitting room is currently a preview/testing workflow. The existing server inventory/economy equipment system has not yet been connected to these six 3D appearance slots. The recommended mixed outfit screenshot is a T-pose fit check; natural idle/walk/run deformation still requires visual correction and acceptance. Do not treat the preview fitting panel as a completed persistent player inventory feature.
 
 ## Original animation conversion
 
