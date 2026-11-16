@@ -22,7 +22,7 @@ async function verifyVariant(variant, expectedEquipment, screenshotName) {
     skinning: '1',
     v: 'male-independent-parts-' + variant
   });
-  if (expectedEquipment === 4) {
+  if (expectedEquipment > 1) {
     params.set('maleUpper', variant);
     params.set('maleGloves', variant);
     params.set('maleLower', variant);
