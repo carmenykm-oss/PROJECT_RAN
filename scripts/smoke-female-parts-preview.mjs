@@ -8,7 +8,7 @@ const browser = await chromium.launch({
   args: ['--no-sandbox', '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist']
 });
 
-async function verifyVariant(variant, expectedMeshes, screenshotName, singleSlot = false) {
+async function verifyVariant(variant, expectedMeshes, screenshotName, singleSlot = false, hairVariant = 'w_hair00') {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -16,7 +16,8 @@ async function verifyVariant(variant, expectedMeshes, screenshotName, singleSlot
   const params = new URLSearchParams({
     preview: '1', character: 'female', underwear: '1',
     headCandidate: '1', hairCandidate: '1', skinning: '1',
-    v: 'female-independent-parts-' + variant + (singleSlot ? '-single' : '')
+    v: 'female-independent-parts-' + variant + (singleSlot ? '-single' : ''),
+    femaleHair: hairVariant
   });
   params.set('femaleUpper', variant);
   if (!singleSlot) {
@@ -59,8 +60,8 @@ async function verifyVariant(variant, expectedMeshes, screenshotName, singleSlot
 
 try {
   await verifyVariant('a', 6, 'female-independent-parts-outfit-a.png');
-  await verifyVariant('s', 9, 'female-independent-parts-outfit-s.png');
-  await verifyVariant('a', 2, 'female-independent-single-upper.png', true);
+  await verifyVariant('s', 9, 'female-independent-parts-outfit-s.png', false, 'w_hair02');
+  await verifyVariant('a', 2, 'female-independent-single-upper.png', true, 'w_hair04');
 } finally {
   await browser.close();
 }
