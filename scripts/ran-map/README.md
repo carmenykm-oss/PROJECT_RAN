@@ -27,3 +27,26 @@ node .\scripts\ran-map\export-wld0-obj.js "C:\Program Files (x86)\XtraVision\Ran
 The PNG is a shaded top-down geometry check. The OBJ/MTL pair is the editable terrain mesh export; copy the referenced DDS textures into the output folder and convert them if your viewer cannot read DDS. These commands operate on loose files and do not alter the client.
 
 **Current scope:** terrain from `.wld0` only. Scene objects embedded in `.wld`, replacement pieces (`.pis`), lights/effects, and final Three.js integration are separate follow-on stages. Do not treat a successful terrain-only export as a complete map restoration.
+
+## Live Three.js terrain endpoint
+
+The local game server now exposes the installed client's map inventory and a WLD0 geometry endpoint:
+
+- `GET /api/ran-map/catalog` lists matching `.wld` / `.wld0` pairs in the local map folder.
+- `GET /api/ran-map/terrain?map=LDG02` parses the selected `.wld0` and returns original mesh vertices, indices, UVs, vertex colours, normals and bounds.
+- `public/game.js` requests this endpoint on startup. Only after a non-empty geometry response is mounted does it hide the synthetic campus placeholder. If parsing fails, the existing fallback remains visible.
+
+By default, the server looks in:
+
+`C:\\Program Files (x86)\\XtraVision\\Ran2Online\\General\\RData\\map`
+
+Override the source when launching the server:
+
+```powershell
+$env:RAN_DATA_ROOT = 'C:\\Path\\To\\Ran2Online\\General\\RData'
+npm start
+```
+
+Or set `RAN_MAP_DIR` directly to the folder containing the loose map files. Use `?map=w_school_01` or `?map=LDG02` in the game URL to select a map name.
+
+This first live path mounts WLD0 static terrain geometry only. It does not yet place the WLD scene's buildings/objects, resolve .pis/.pie pieces, or bind DDS textures. Those are separate follow-up stages; a successful API response is not by itself proof that the complete original scene has been restored.
