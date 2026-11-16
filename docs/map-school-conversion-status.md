@@ -117,3 +117,20 @@ It also documents an AES-256-ECB layer for selected GLogic resources, not as a b
 The previously reported headers are `LAND.MAN` for `LDG02.wld` and `default` for `LDG02.wld0`. Under the reference source's exact dispatch rules, those are the plaintext spellings, so the dedicated WLD codec must not be applied to these two files as-is. The public reference also describes the RCC CCrypt transform as an archive-entry layer; it is not evidence that arbitrary loose files in `General\\RData\\map` should receive that transform.
 
 Therefore these discoveries explain the WLD encryption mechanism in a related RAN source lineage, but they do not yet decode the user's LDG02 sample. The next discriminating check is to establish whether the loose map files are copied directly from an archive, have an additional client-build wrapper, or use a different file-type marker in the actual first 128 bytes. Keep the previous FAIL status until a candidate yields the expected WLD FileMark version `0x0100`, size `16`, valid section marks, and WLD0 mesh version `0x0102`.
+### Loose WLD0 terrain geometry reader added (2026-11-16)
+
+Added `scripts/ran-map/` as a first geometry-conversion layer:
+- `fvf.js`: derives D3D9 vertex strides and component offsets from FVF flags.
+- `octree.js`: reads the AABB binary tree and node-local vertex/index buffers; refuses unknown un-sized geometry versions.
+- `staticmesh.js`: reads versioned WLD0 material buckets, texture names, effects and mesh octrees.
+- `wld.js`: applies the dedicated WLD cipher only for the exact encrypted type markers.
+- `png.js`: minimal PNG writer.
+- `preview-wld0.js`: reads a loose `.wld0` file, validates triangle indices and finite vertex coordinates, and writes a shaded top-down PNG plus geometry statistics.
+
+Run from the PROJECT_RAN repository root with Node.js:
+
+```powershell
+node .\\scripts\\ran-map\\preview-wld0.js "C:\\Program Files (x86)\\XtraVision\\Ran2Online\\General\\RData\\map\\LDG02.wld0" --out .\\preview\\LDG02-terrain.png
+```
+
+The reader does not apply an RCC transform to loose files. It only applies the WLD body cipher when the file type explicitly says `Default_Crypt`. If the local file still reports an unknown WLD0 container version or has no valid geometry nodes, this is a useful format mismatch result—not a generated placeholder. No claim of a successful LDG02 render is made until the user's actual local file passes this parser and produces a coherent preview.
