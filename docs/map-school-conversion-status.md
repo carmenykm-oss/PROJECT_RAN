@@ -134,3 +134,23 @@ node .\\scripts\\ran-map\\preview-wld0.js "C:\\Program Files (x86)\\XtraVision\\
 ```
 
 The reader does not apply an RCC transform to loose files. It only applies the WLD body cipher when the file type explicitly says `Default_Crypt`. If the local file still reports an unknown WLD0 container version or has no valid geometry nodes, this is a useful format mismatch result—not a generated placeholder. No claim of a successful LDG02 render is made until the user's actual local file passes this parser and produces a coherent preview.
+
+### Live original terrain path connected to the game (2026-11-16)
+
+The local Node server and Three.js client now have a first end-to-end WLD0 path:
+
+- `server.js` exposes `GET /api/ran-map/catalog` to enumerate local map/WLD0 pairs and `GET /api/ran-map/terrain?map=NAME` to parse a selected WLD0 through the version-aware reader.
+- The terrain response retains per-node positions, indices, UVs, authored normals, vertex colours, material bucket names, and map bounds.
+- `public/game.js` builds real Three.js BufferGeometry from that response, recentres the source map into the current playable coordinate range, and hides the synthetic campus meshes only after at least one valid geometry mesh has mounted.
+- If the local map file is absent or the reader rejects its format, the current placeholder remains visible and the browser console records the reason. This is deliberately fail-closed: no empty or fabricated geometry is presented as a successful restoration.
+
+Default local source folder:
+`C:\\Program Files (x86)\\XtraVision\\Ran2Online\\General\\RData\\map`
+
+Optional environment overrides:
+- `RAN_DATA_ROOT`: installed client's `RData` directory.
+- `RAN_MAP_DIR`: direct directory containing loose `.wld` and `.wld0` files.
+
+#### Scope boundary
+
+This is a terrain-only integration milestone, not a complete map restoration. It does not yet decode/place the `.wld` scene's buildings and props, resolve `.pis/.pie` object pieces, or load the referenced DDS texture/effect maps. The actual installed LDG02 file has not yet been run through the new local endpoint in this environment, so no claim is made that it has rendered successfully. The next required validation is the endpoint response from the user's installed client; after that, continue with scene placement and texture resolution using the same map's referenced resources.
