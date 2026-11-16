@@ -34,6 +34,22 @@ Controls:
 - Current acceptance priority for both base models: a stable upright idle stance, then visibly natural walking and running without body folding, curling, or broken limb deformation.
 - Head, hair, face and wearable equipment are subsequent attachment tasks. Equipment must remain separate replaceable parts rather than being merged into one inseparable character mesh.
 
+## Shared male/female equipment-part standard
+
+Both selected base characters must support the same six independently equippable slots:
+1. Hair
+2. Face
+3. Upper clothing
+4. Gloves (left/right attachment points where the source supports them)
+5. Lower clothing
+6. Shoes (left/right attachment points where the source supports them)
+
+The body/rig remains the character base. Each equipment item must remain a separate skinned GLB (or a separately addressable mesh asset) with its own materials/textures and a validated mapping to the selected character skeleton. Removing or replacing one slot must not replace or merge the other slots.
+
+Do not manufacture a head, hairstyle, glove, or shoe asset by renaming a full-body/outfit GLB. The source inventory workflow records which original X files exist and inspects converted mesh nodes, skins, joints, and materials. A slot remains pending until a genuine source mesh is isolated, converted, aligned, and validated in the browser. Current known female head/hair candidates are separate; the male source inventory still needs dedicated head and hair assets identified.
+
+Run `python3 scripts/inspect-character-parts.py` after X-to-GLB conversion to generate `logs/character-part-inventory.json`.
+
 ## Original animation conversion
 
 The source archive contains female `AnimContainer` files for stay, walk, run and attack. Their 128-byte file-type header and `0x0100` version are identifiable, but the payload does not match the raw count/key layout in the public engine source examined so far. The original animation BIN conversion is therefore still pending; the procedural controller must not be mistaken for recovered original animation data.
