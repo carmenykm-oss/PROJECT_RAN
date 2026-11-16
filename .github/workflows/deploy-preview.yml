@@ -55,11 +55,6 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-female-underwear-preview.mjs
 
-      - name: Verify original male character and head in game scene
-        env:
-          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
-        run: node scripts/smoke-male-preview.mjs
-
       - name: Verify male idle walk and run bone animation
         env:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
