@@ -1450,3 +1450,83 @@ if (new URLSearchParams(location.search).get('preview') === '1') {
   enterGame();
   notice('預覽模式：WASD 移動、Shift 跑步、空白鍵或攻擊按鈕測試動作。此模式不連接伺服器。');
 }
+
+if (new URLSearchParams(location.search).get('preview') === '1') {
+  const fitting = document.getElementById('characterFitting');
+  const gender = document.getElementById('fittingGender');
+  const hair = document.getElementById('fittingHair');
+  const slotsRoot = document.getElementById('fittingSlots');
+  const params = new URLSearchParams(location.search);
+  const currentGender = params.get('character') === 'male' ? 'male' : 'female';
+  fitting.hidden = false;
+  gender.value = currentGender;
+  const hairOptions = [
+    ['w_hair00','原始髮型'],['w_Hair01','髮型 01'],['w_hair02','髮型 02'],
+    ['w_hair03','髮型 03'],['w_hair04','髮型 04'],['w_hair05','髮型 05'],
+    ['w_hair06','髮型 06'],['w_hair07','髮型 07'],['w_hair08','髮型 08']
+  ];
+  const slotLabels = [['Upper','上衣'],['Gloves','手套'],['Lower','下衣'],['Shoes','鞋子']];
+  function fittingSelect(label, id, options, value) {
+    const wrap = document.createElement('label');
+    wrap.style.cssText = 'display:block;margin:8px 0';
+    wrap.textContent = label;
+    const select = document.createElement('select');
+    select.id = id;
+    select.style.cssText = 'display:block;width:100%;padding:7px;margin-top:4px';
+    for (const [optionValue, optionLabel] of options) {
+      const option = document.createElement('option');
+      option.value = optionValue;
+      option.textContent = optionLabel;
+      select.appendChild(option);
+    }
+    select.value = value || '';
+    wrap.appendChild(select);
+    return {wrap, select};
+  }
+  const hairControl = fittingSelect('髮型', 'fittingHairSelect',
+    currentGender === 'female' ? hairOptions : [['base','角色原生髮型']],
+    currentGender === 'female' ? (params.get('femaleHair') || 'w_hair00') : 'base');
+  hair.replaceWith(hairControl.wrap);
+  const slotControls = new Map();
+  for (const [suffix, label] of slotLabels) {
+    const key = currentGender.toLowerCase() + suffix;
+    const control = fittingSelect(label, 'fitting' + suffix,
+      currentGender === 'female'
+        ? [['','不穿戴'],['a','套裝 A']]
+        : [['','不穿戴'],['a','套裝 A'],['f','套裝 F']],
+      params.get(key) || '');
+    slotsRoot.appendChild(control.wrap);
+    slotControls.set(key, control.select);
+  }
+  function applyFittingChange() {
+    const next = new URLSearchParams(location.search);
+    next.set('character', gender.value);
+    if (gender.value === 'female') {
+      next.set('underwear','1');
+      next.set('headCandidate','1');
+      next.set('hairCandidate','1');
+      next.set('femaleHair', document.getElementById('fittingHairSelect').value || 'w_hair00');
+      next.delete('maleHair');
+      for (const suffix of ['Upper','Gloves','Lower','Shoes']) {
+        next.delete('male' + suffix);
+        const select = document.getElementById('fitting' + suffix);
+        if (select?.value) next.set('female' + suffix, select.value);
+        else next.delete('female' + suffix);
+      }
+    } else {
+      next.delete('underwear'); next.delete('headCandidate'); next.delete('hairCandidate');
+      next.delete('femaleHair');
+      for (const suffix of ['Upper','Gloves','Lower','Shoes']) {
+        next.delete('female' + suffix);
+        const select = document.getElementById('fitting' + suffix);
+        if (select?.value) next.set('male' + suffix, select.value);
+        else next.delete('male' + suffix);
+      }
+    }
+    next.set('preview','1');
+    location.search = next.toString();
+  }
+  gender.addEventListener('change', applyFittingChange);
+  hairControl.select.addEventListener('change', applyFittingChange);
+  for (const select of slotControls.values()) select.addEventListener('change', applyFittingChange);
+}
