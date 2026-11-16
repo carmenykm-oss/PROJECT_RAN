@@ -1,9 +1,0 @@
-{
-  "status": "ready",
-  "clips": {
-    "idle": "a_x01bs_lv1_wait.json",
-    "walk": "a_x01bs_lv1_walk.json",
-    "run": "a_x01bs_lv1_run.json"
-  },
-  "timebase": 4800
-}
