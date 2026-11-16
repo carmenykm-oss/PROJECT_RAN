@@ -104,3 +104,21 @@ function normalizeQuaternion(q) {
   const length = Math.hypot(...q) || 1;
   return q.map(value => value / length);
 }
+
+export async function loadRanBinAnimationPlayer(model, THREE, baseUrl = './animations/') {
+  const files = {
+    idle: 'a_x01bs_lv1_wait.json',
+    walk: 'a_x01bs_lv1_walk.json',
+    run: 'a_x01bs_lv1_run.json'
+  };
+  const entries = await Promise.all(Object.entries(files).map(async ([action, file]) => {
+    const response = await fetch(new URL(file, new URL(baseUrl, import.meta.url)), { cache: 'no-cache' });
+    if (!response.ok) throw new Error('Missing original RAN animation clip: ' + file);
+    return [action, await response.json()];
+  }));
+  const player = createRanBinAnimationPlayer(model, THREE, Object.fromEntries(entries));
+  if (!player.has('idle') || !player.has('walk') || !player.has('run')) {
+    throw new Error('Original RAN idle/walk/run clips did not all produce playable tracks');
+  }
+  return player;
+}
