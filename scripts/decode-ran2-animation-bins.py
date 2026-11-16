@@ -42,22 +42,104 @@ def decode_ran2(raw: bytes) -> bytes:
     decoded = raw[:132] + raw[132:].translate(DECODE)
     return decoded[:132] + decoded[144:]
 
+def parse_container(data: bytes) -> dict:
+    if data[:12] != b"AnimContainer":
+        raise ValueError("unexpected animation container type")
+    container_version = struct.unpack_from("<I", data, 128)[0]
+    if container_version not in (0x0100, 0x0101, 0x0102):
+        raise ValueError(f"unsupported container version {container_version:#x}")
+    offset = 132
+    parsed = {"container_version": hex(container_version), "animation_records": 0,
+              "lower_body_count": 0, "upper_body_count": 0, "tracks": []}
+
+    def read_u32():
+        nonlocal offset
+        if offset + 4 > len(data):
+            raise ValueError("truncated DWORD")
+        value = struct.unpack_from("<I", data, offset)[0]
+        offset += 4
+        return value
+
+    def skip_bytes(size, label):
+        nonlocal offset
+        if size < 0 or offset + size > len(data):
+            raise ValueError(f"truncated {label}: need {size} bytes at {offset}, file={len(data)}")
+        offset += size
+
+    def read_string():
+        nonlocal offset
+        size = read_u32()
+        if size < 1 or size > 4096:
+            raise ValueError(f"invalid bone-name string length {size}")
+        if offset + size > len(data):
+            raise ValueError("truncated bone-name string")
+        raw = data[offset:offset+size]
+        offset += size
+        if raw[-1] != 0:
+            raise ValueError("bone-name string is not NUL terminated")
+        return raw[:-1].decode("ascii", errors="strict")
+
+    def read_track():
+        version = read_u32()
+        if version not in (0x0100, 0x0101, 0x0102):
+            raise ValueError(f"invalid SAnimation version {version:#x} at {offset-4}")
+        counts = {}
+        if version == 0x0102:
+            bone = read_string()
+            counts["rotation"] = read_u32(); skip_bytes(counts["rotation"] * 20, "rotation keys")
+            counts["position"] = read_u32(); skip_bytes(counts["position"] * 16, "position keys")
+            read_u32()  # legacy unused DWORD
+            counts["quat_position"] = read_u32(); skip_bytes(counts["quat_position"] * 36, "quat-position keys")
+            read_u32()  # legacy unused DWORD
+            counts["matrix"] = read_u32(); skip_bytes(counts["matrix"] * 68, "matrix keys")
+            counts["scale"] = read_u32(); skip_bytes(counts["scale"] * 16, "scale keys")
+        else:
+            counts["position"] = read_u32(); skip_bytes(counts["position"] * 16, "position keys")
+            counts["rotation"] = read_u32(); skip_bytes(counts["rotation"] * 20, "rotation keys")
+            counts["scale"] = read_u32(); skip_bytes(counts["scale"] * 16, "scale keys")
+            counts["matrix"] = read_u32(); skip_bytes(counts["matrix"] * 68, "matrix keys")
+            if version == 0x0101:
+                counts["quat_position"] = read_u32(); skip_bytes(counts["quat_position"] * 36, "quat-position keys")
+            bone = read_string()
+        if not bone:
+            raise ValueError("empty bone name")
+        return {"version": hex(version), "bone": bone, "key_counts": counts}
+
+    def read_group(group):
+        count = read_u32()
+        if count > 10000:
+            raise ValueError(f"implausible {group} animation count {count}")
+        parsed[group + "_count"] = count
+        for _ in range(count):
+            parsed["tracks"].append(read_track())
+        parsed["animation_records"] += count
+
+    if container_version in (0x0100, 0x0101):
+        read_group("lower_body")
+        if container_version == 0x0101:
+            read_group("upper_body")
+    else:
+        read_group("upper_body")
+        read_group("lower_body")
+    parsed["bytes_consumed"] = offset
+    parsed["trailing_bytes"] = len(data) - offset
+    if parsed["animation_records"] == 0:
+        raise ValueError("container has no animation records")
+    return parsed
+
+
 def probe(name: str, raw: bytes) -> dict:
     try:
         out = decode_ran2(raw)
-        if len(out) < 140:
-            raise ValueError("decoded file too short")
-        lower_count = struct.unpack_from("<I", out, 132)[0]
-        first_version = struct.unpack_from("<I", out, 136)[0]
-        plausible_count = 0 < lower_count <= 10000
-        valid_version = first_version in VALID_ANIM_VERSIONS if lower_count else False
-        return {
-            "name": name, "input_bytes": len(raw), "decoded_bytes": len(out),
-            "lower_body_count": lower_count, "first_record_version": hex(first_version),
-            "plausible_count": plausible_count, "valid_first_record_version": valid_version,
-            "structural_gate_pass": plausible_count and valid_version,
-            "decoded_sha256": __import__("hashlib").sha256(out).hexdigest()
-        }
+        parsed = parse_container(out)
+        tracks = parsed.pop("tracks")
+        parsed["sample_tracks"] = tracks[:12]
+        parsed["input_bytes"] = len(raw)
+        parsed["decoded_bytes"] = len(out)
+        parsed["structural_gate_pass"] = True
+        parsed["decoded_sha256"] = __import__("hashlib").sha256(out).hexdigest()
+        parsed["name"] = name
+        return parsed
     except Exception as exc:
         return {"name": name, "structural_gate_pass": False, "error": str(exc)}
 
