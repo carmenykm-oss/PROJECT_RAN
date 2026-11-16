@@ -62,11 +62,15 @@ def main():
     # 0-3 are the four body sections; head part 0 is hair; head part 1 is face.
     groups = {
         "ran-male-body.glb": {n["name"] for _, n, _ in nodes if n.get("name", "").startswith("male_mesh_part_")},
+        # Dedicated underwear/base-body asset: same original skinned body geometry,
+        # isolated from face and hair, with no outfit meshes merged into it.
+        "ran-male-underwear-body.glb": {n["name"] for _, n, _ in nodes if n.get("name", "").startswith("male_mesh_part_")},
         "ran-male-hair.glb": {"male_head_mesh_part_0"},
         "ran-male-face.glb": {"male_head_mesh_part_1"},
     }
     expected = {
         "ran-male-body.glb": 4,
+        "ran-male-underwear-body.glb": 4,
         "ran-male-hair.glb": 1,
         "ran-male-face.glb": 1,
     }
