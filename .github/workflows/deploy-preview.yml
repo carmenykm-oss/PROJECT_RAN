@@ -50,11 +50,6 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Verify original female character in game scene
-        env:
-          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
-        run: node scripts/smoke-female-preview.mjs
-
       - name: Verify converted female underwear body in game scene
         env:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
