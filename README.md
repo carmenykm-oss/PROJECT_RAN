@@ -46,7 +46,16 @@ Both selected base characters must support the same six independently equippable
 
 The body/rig remains the character base. Each equipment item must remain a separate skinned GLB (or a separately addressable mesh asset) with its own materials/textures and a validated mapping to the selected character skeleton. Removing or replacing one slot must not replace or merge the other slots.
 
-Do not manufacture a head, hairstyle, glove, or shoe asset by renaming a full-body/outfit GLB. The source inventory workflow records which original X files exist and inspects converted mesh nodes, skins, joints, and materials. A slot remains pending until a genuine source mesh is isolated, converted, aligned, and validated in the browser. Current known female head/hair candidates are separate; the male source inventory still needs dedicated head and hair assets identified.
+**Male split assets generated from the selected `ran-male.glb`:**
+- `ran-male-body.glb`: the four original body meshes (hand, leg, torso, foot).
+- `ran-male-face.glb`: the original `m2_face00` mesh.
+- `ran-male-hair.glb`: the original `m_hair00` mesh.
+
+The original `ran-male.glb` remains unchanged as the selected base. The conversion workflow also extracts separate upper/hand/lower/foot equipment candidates from the two male source outfit models, but these are equipment candidates only, not alternate playable base characters. Their bone names are checked against the selected male rig; in-game visual fit still needs validation.
+
+Female head and hair candidates are already separate. Female outfit source models have been found, but include extra helper bones not present in the selected female base rig; these need deliberate remapping before they can be approved as wearable parts.
+
+Do not manufacture a head, hairstyle, glove, or shoe asset by renaming a full-body/outfit GLB. The source inventory workflow records original X files and inspects converted mesh nodes, skins, joints, and materials. A slot remains pending until a genuine source mesh is isolated, converted, aligned, and validated in the browser.
 
 Run `python3 scripts/inspect-character-parts.py` after X-to-GLB conversion to generate `logs/character-part-inventory.json`.
 
