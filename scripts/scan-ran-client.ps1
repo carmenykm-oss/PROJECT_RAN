@@ -37,7 +37,7 @@ $maxMatchesPerFile = 24
 function Get-PrintableStrings {
     param([byte[]]$Bytes)
     $found = New-Object System.Collections.Generic.List[string]
-    $latin = [Text.Encoding]::Latin1.GetString($Bytes)
+    $latin = [Text.Encoding]::GetEncoding(28591).GetString($Bytes)
     foreach ($m in [regex]::Matches($latin, '[\x20-\x7E]{5,}')) {
         $s = $m.Value.Trim()
         if ($s.Length -gt 180) { $s = $s.Substring(0, 180) }
