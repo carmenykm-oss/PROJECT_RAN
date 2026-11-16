@@ -34,6 +34,7 @@ The local game server now exposes the installed client's map inventory and a WLD
 
 - `GET /api/ran-map/catalog` lists matching `.wld` / `.wld0` pairs in the local map folder.
 - `GET /api/ran-map/terrain?map=LDG02` parses the selected `.wld0` and returns original mesh vertices, indices, UVs, vertex colours, normals and bounds.
+- Add `&summary=1` to return only mesh/vertex/triangle counts, bounds and texture names for a quick diagnostic without transferring all vertex arrays.
 - `GET /api/ran-map/texture?name=...` serves a referenced local texture from the known RData texture/map roots after rejecting absolute paths and traversal.
 - `public/game.js` requests this endpoint on startup. Only after a non-empty geometry response is mounted does it hide the synthetic campus placeholder. If parsing fails, the existing fallback remains visible.
 
