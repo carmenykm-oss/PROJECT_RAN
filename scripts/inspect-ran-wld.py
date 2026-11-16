@@ -82,8 +82,9 @@ def inspect_static(name: str, data: bytes) -> list[str]:
     magic = data[:FILE_TYPE_SIZE].split(b"\0", 1)[0]
     file_id = u32(data, FILE_TYPE_SIZE)
     version = u32(data, HEADER_SIZE)
-    bounds = floats(data, HEADER_SIZE + 4, 6)
-    out.append(f"  fileType={magic!r}, fileID=0x{file_id:08X}, staticMeshVersion=0x{version:08X}")
+    block_size = u32(data, HEADER_SIZE + 4)
+    bounds = floats(data, HEADER_SIZE + 8, 6)
+    out.append(f"  fileType={magic!r}, fileID=0x{file_id:08X}, staticMeshVersion=0x{version:08X}, boundsBlockSize={block_size}")
     out.append(f"  bounds={bounds}")
     errors = []
     if magic != b"default":
