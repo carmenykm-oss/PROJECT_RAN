@@ -10,6 +10,7 @@ on:
       - 'scripts/split-*.py'
       - 'scripts/smoke-*-parts-preview.mjs'
       - 'scripts/inspect-character-parts.py'
+      - 'scripts/diagnose-male-bind-pose.py'
 
 permissions:
   contents: write
@@ -320,6 +321,12 @@ jobs:
                       raise SystemExit(f"Unconverted DDS reference in {path}")
               print(f"PASS {path.name}: {len(meshes)} meshes, {len(skins[0]['joints'])} joints, {len(doc.get('images', []))} textures")
           PY
+
+      - name: Diagnose male head and equipment bind-pose alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/diagnose-male-bind-pose.py
 
       - name: Upload converted models and logs
         if: always()
