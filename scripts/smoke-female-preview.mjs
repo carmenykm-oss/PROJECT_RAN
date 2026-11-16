@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 const base = process.env.PREVIEW_URL || 'https://carmenykm-oss.github.io/PROJECT_RAN/';
-const url = new URL('?preview=1&character=female&skinning=1&v=original-bin-animation-smoke', base).href;
+const url = new URL('?preview=1&character=female&skinning=1&originalBin=1&v=original-bin-animation-smoke-2', base).href;
 await mkdir('preview-screenshots', { recursive: true });
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
