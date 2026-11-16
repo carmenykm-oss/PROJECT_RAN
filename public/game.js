@@ -144,6 +144,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       const faceGltf = await gltfLoader.loadAsync(faceUrl);
       faceGltf.scene.updateMatrixWorld(true);
       faceGltf.scene.traverse((obj) => {
+        // The face-source X also bundles several legacy hair variants. Remove
+        // those meshes so only the separately selected original w_hair00 style
+        // is shown; otherwise a second hairstyle can appear near the feet.
+        if (obj.isMesh && /hair/i.test(obj.name)) {
+          obj.parent?.remove(obj);
+          return;
+        }
         if (obj.isSkinnedMesh && obj.skeleton) femaleFaceParts.add(obj);
       });
       model.add(faceGltf.scene);
