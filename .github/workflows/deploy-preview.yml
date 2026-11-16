@@ -44,6 +44,9 @@ jobs:
       - name: Install browser smoke test
         run: npm install --no-save playwright
 
+      - name: Test original RAN BIN animation player on Three.js skeleton
+        run: node scripts/test-ran-bin-animation-player.mjs
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
