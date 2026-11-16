@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 const base = process.env.PREVIEW_URL || 'https://carmenykm-oss.github.io/PROJECT_RAN/';
-const url = new URL('?preview=1&character=female&underwear=1&skinning=1&v=underwear01', base).href;
+const url = new URL('?preview=1&character=female&underwear=1&headCandidate=1&hairCandidate=1&skinning=1&v=female-head-hair-candidate', base).href;
 await mkdir('preview-screenshots', { recursive: true });
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
@@ -38,8 +38,8 @@ try {
   if (debug.meshCount < 1 || debug.skinnedMeshCount < 1 || debug.reboundSkinCount < 1 || debug.boneCount < 1 ||
       !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2)
     throw new Error('Female rebound skinning incomplete: ' + JSON.stringify(debug));
-  if (debug.femaleFaceSkinnedMeshCount < 1)
-    throw new Error('Female face source has no skinned face meshes: ' + JSON.stringify(debug));
+  if (debug.femaleFaceSkinnedMeshCount < 1 || debug.femaleHairSkinnedMeshCount < 1)
+    throw new Error('Selected female head/hair candidates are not both attached: ' + JSON.stringify(debug));
   if (!idlePose || !walkPose || !runPose || walkDelta < 0.001 || runDelta < 0.001)
     throw new Error('Female underwear body walk/run pose did not change: ' + JSON.stringify({idlePose,walkPose,runPose,walkDelta,runDelta}));
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
