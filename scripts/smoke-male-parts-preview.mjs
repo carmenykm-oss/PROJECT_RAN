@@ -81,7 +81,10 @@ async function verifyMixedOutfit() {
   try {
     const response = await page.goto(new URL('?' + params.toString(), base).href, { waitUntil: 'domcontentloaded', timeout: 90000 });
     if (!response || !response.ok()) throw new Error('Mixed male outfit HTTP status: ' + (response?.status() ?? 'no response'));
-    await page.waitForFunction(() => window.__ranCharacterDebug?.character === 'male', { timeout: 90000 });
+    await page.waitForFunction(() => {
+      const status = document.querySelector('#connection')?.textContent || '';
+      return window.__ranCharacterDebug?.character === 'male' || status.includes('男戰士模型載入失敗');
+    }, { timeout: 90000 });
     await page.waitForTimeout(1200);
     const status = (await page.locator('#connection').innerText()).trim();
     const debug = await page.evaluate(() => window.__ranCharacterDebug || null);
