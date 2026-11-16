@@ -229,6 +229,12 @@ jobs:
           print(f"Converted {converted} DDS textures and patched all GLB texture references.")
           PY
 
+      - name: Split selected male base into body, face and hair GLBs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/split-selected-character-glbs.py
+
       - name: Inventory male and female character-part source models
         shell: bash
         run: |
@@ -290,7 +296,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/ran-female-underwear-body.glb public/models/ran-female-face-source.glb public/models/ran-female-head-candidate.glb public/models/ran-female-hair.glb public/models/*.png
+          git add public/models/ran-male-original.glb public/models/ran-male-body.glb public/models/ran-male-face.glb public/models/ran-male-hair.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/ran-female-underwear-body.glb public/models/ran-female-face-source.glb public/models/ran-female-head-candidate.glb public/models/ran-female-hair.glb public/models/*.png
           if [ -f public/models/ran-female-hair.glb ]; then git add public/models/ran-female-hair.glb; fi
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
