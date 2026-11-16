@@ -227,6 +227,17 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // the same named bones in the 45-joint body skeleton.
     const femaleFaceParts = new Set();
     const femaleHairParts = new Set();
+    const maleWarriorParts = new Set();
+    const warriorVariant = requestedCharacter === 'male' ? new URLSearchParams(location.search).get('warrior') : null;
+    const warriorAssetByVariant = {
+      outer: './models/ran-male-original.glb',
+      a: './models/ran-warrior-male-a.glb',
+      f: './models/ran-warrior-male-f.glb'
+    };
+    const warriorAsset = warriorAssetByVariant[warriorVariant] || null;
+    let warriorScene = null;
+    const baseRigBones = new Map();
+    model.traverse((obj) => { if (obj.isBone && obj.name) baseRigBones.set(obj.name, obj); });
     const useFemaleHeadCandidate = useFemaleUnderwearCandidate &&
       new URLSearchParams(location.search).get('headCandidate') === '1';
     const useFemaleHairCandidate = useFemaleUnderwearCandidate &&
@@ -280,6 +291,30 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       model.updateMatrixWorld(true);
     }
 
+    // Keep each male warrior outfit as a separate source asset. The source GLB
+    // uses the same named RAN bones as the native male body, so its meshes can
+    // be rebound to the existing player rig without merging equipment parts.
+    if (warriorAsset) {
+      const warriorUrl = new URL(warriorAsset, import.meta.url).href;
+      const warriorGltf = await gltfLoader.loadAsync(warriorUrl);
+      warriorScene = warriorGltf.scene || warriorGltf.scenes?.[0];
+      if (!warriorScene) throw new Error(`男戰士部件 GLB 沒有可載入場景：${warriorAsset}`);
+      warriorScene.traverse((obj) => {
+        if (obj.isSkinnedMesh && obj.skeleton) maleWarriorParts.add(obj);
+      });
+      if (!maleWarriorParts.size) throw new Error(`男戰士部件沒有有效蒙皮網格：${warriorAsset}`);
+      const missingWarriorBones = [...new Set(
+        [...maleWarriorParts].flatMap((part) =>
+          part.skeleton.bones.map((bone) => bone.name).filter((name) => !baseRigBones.has(name))
+        )
+      )];
+      if (missingWarriorBones.length) {
+        throw new Error(`男戰士部件骨骼與基底不匹配：${missingWarriorBones.join(', ')}`);
+      }
+      model.add(warriorScene);
+      model.updateMatrixWorld(true);
+    }
+
     // Some original RAN X -> GLB exports contain valid skinned body mesh nodes
     // that are present in the GLB JSON but accidentally omitted from the active
     // scene root. GLTFLoader correctly ignores unreachable nodes, which leaves
@@ -330,8 +365,11 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         const geometry = source.geometry.clone();
         geometry.applyMatrix4(relative);
         const sharedBones = source.skeleton.bones.map((bone) => {
-          const shared = model.getObjectByName(bone.name);
+          const shared = baseRigBones.get(bone.name) || model.getObjectByName(bone.name);
           if (shared) return shared;
+          if (maleWarriorParts.has(source)) {
+            throw new Error(`男戰士部件缺少對應骨骼：${bone.name}`);
+          }
           if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
             if (useFemaleHeadCandidate && /^(Bone33|Bone34)$/.test(bone.name)) {
               const headBone = model.getObjectByName('Bip01_Head');
@@ -358,6 +396,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       }
       model.updateMatrixWorld(true);
       model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) obj.skeleton.update(); });
+      // The overlay's mesh transforms have already been baked into the rebound
+      // geometry. Remove its duplicate skeleton so only the native player rig
+      // remains active and equipment stays independently removable.
+      if (warriorScene) {
+        model.remove(warriorScene);
+        model.updateMatrixWorld(true);
+      }
     } else if (requestedCharacter === 'male' || requestedCharacter === 'female') {
       const sourceParts = [];
       model.traverse((obj) => { if (obj.isSkinnedMesh) sourceParts.push(obj); });
@@ -389,6 +434,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       }
       model.updateMatrixWorld(true);
     }
+
+    const warriorOverlayMeshNames = [...maleWarriorParts].map((part) => part.name);
+    const warriorOverlayReboundNames = new Set(warriorOverlayMeshNames.map((name) => name + '_rebound_skin'));
+    let warriorOverlayReboundCount = 0;
+    model.traverse((obj) => {
+      if (obj.isSkinnedMesh && warriorOverlayReboundNames.has(obj.name)) warriorOverlayReboundCount++;
+    });
 
     let meshCount = 0, skinnedMeshCount = 0;
     model.traverse((obj) => {
@@ -557,6 +609,10 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       femaleHairSkinnedMeshCount: femaleHairParts.size,
       femaleHeadCandidate: useFemaleHeadCandidate,
       femaleHairCandidate: useFemaleHairCandidate,
+      warriorVariant: warriorAsset ? warriorVariant : null,
+      warriorOverlayMeshCount: maleWarriorParts.size,
+      warriorOverlayReboundCount,
+      warriorOverlayMeshNames,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bindPosePartDiagnostics,
