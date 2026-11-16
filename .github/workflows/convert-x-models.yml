@@ -344,9 +344,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The converted model binaries are already versioned in main. Re-publishing
+          # every GLB from a long-running job causes binary rebase conflicts when
+          # another preview commit lands during conversion. Publish only the
+          # fresh diagnostics report from this workflow.
           git add logs/male-bind-pose-diagnostics.json
-          git add public/models/ran-male-original.glb public/models/ran-male-body.glb public/models/ran-male-face.glb public/models/ran-male-hair.glb public/models/ran-male-outfit-a-upper.glb public/models/ran-male-outfit-a-gloves.glb public/models/ran-male-outfit-a-lower.glb public/models/ran-male-outfit-a-shoes.glb public/models/ran-male-outfit-f-upper.glb public/models/ran-male-outfit-f-gloves.glb public/models/ran-male-outfit-f-lower.glb public/models/ran-male-outfit-f-shoes.glb public/models/ran-female-face.glb public/models/ran-female-hair-*.glb public/models/ran-female-outfit-a-upper.glb public/models/ran-female-outfit-a-gloves.glb public/models/ran-female-outfit-a-lower.glb public/models/ran-female-outfit-a-shoes.glb public/models/ran-female-outfit-s-upper.glb public/models/ran-female-outfit-s-gloves.glb public/models/ran-female-outfit-s-lower.glb public/models/ran-female-outfit-s-shoes.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/ran-female-underwear-body.glb public/models/ran-female-face-source.glb public/models/ran-female-head-candidate.glb public/models/ran-female-hair.glb public/models/*.png
-          if [ -f public/models/ran-female-hair.glb ]; then git add public/models/ran-female-hair.glb; fi
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
             git pull --rebase origin main
