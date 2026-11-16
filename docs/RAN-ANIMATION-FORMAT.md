@@ -134,3 +134,16 @@ python scripts/probe-ran-animation-prefix.py /path/to/animation.zip
 ```
 
 This is a diagnostic checkpoint only. No BIN-to-GLB animation export or original animation playback is claimed yet.
+
+
+## XOR 0x2A hypothesis rejected by record-version validation (2026-11-16)
+
+A quick visual clue suggested XORing bytes with `0x2A`: at offset 144, the first DWORD `0x2A2A2A80` becomes `0x000000AA` (170). This is only a plausible-looking count, not a valid decode. The next DWORD becomes `0x00006F6F`, whereas the first `SAnimation` record must begin with version `0x0100`, `0x0101`, or `0x0102`. The candidate therefore fails immediately and must not be used for conversion. The probe script now records this second-DWORD validation.
+
+A fresh archive-wide pass over 3,676 BINs confirms:
+- 3,667 distinct 12-byte values at offsets 132-143.
+- At offsets 145-159, only nine patterns occur; the most common tails are ASCII-like `***EE**********` and `****E**********`.
+- Byte 144 itself varies across 123 values.
+- This low-entropy, highly patterned region is inconsistent with treating the whole payload as ordinary AES ciphertext. It appears to be a custom per-file wrapper/encoding or a protected representation, but the exact transform is still unknown.
+
+The 12-byte field and the patterned region must be investigated together. No offset stripping, constant XOR, or guessed decryption is accepted unless the decoded container count, first animation-record version, all key-array bounds, and bone-name strings validate across multiple clips.
