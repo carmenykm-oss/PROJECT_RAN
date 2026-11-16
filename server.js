@@ -261,19 +261,24 @@ const server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://localhost');
       const mapName = url.searchParams.get('map') || 'LDG02';
+      const summaryOnly = url.searchParams.get('summary') === '1';
       const file = safeMapFile(mapName, '.wld0');
       if (!fs.existsSync(file)) return json(res, 404, { error:'找不到地形檔', file });
       const SM = require('./scripts/ran-map/staticmesh');
       const parsed = SM.parse(fs.readFileSync(file));
       const meshes = [];
-      let vertices = 0, triangles = 0;
+      const textureNames = new Set();
+      let meshCount = 0, vertices = 0, triangles = 0;
       for (const bucket of parsed.buckets) for (const mesh of bucket.meshes) {
         if (!mesh.octree) continue;
         for (const node of mesh.octree.nodes || []) {
           const g = node.geometry;
           if (!g || !g.vertexCount || !g.indices?.length) continue;
+          const textureName = mesh.texName || mesh.key || bucket.name;
+          if (mesh.texName) textureNames.add(mesh.texName);
+          meshCount++;
           const item = {
-            name: mesh.texName || mesh.key || bucket.name,
+            name: textureName,
             bucket: bucket.name,
             positions: Array.from(g.positions),
             indices: Array.from(g.indices),
@@ -281,10 +286,13 @@ const server = http.createServer(async (req, res) => {
             colors: g.vbColors ? Array.from(g.vbColors) : null,
             normals: g.vbNormals ? Array.from(g.vbNormals) : null
           };
-          meshes.push(item); vertices += g.vertexCount; triangles += g.indices.length / 3;
+          if (!summaryOnly) meshes.push(item);
+          vertices += g.vertexCount; triangles += g.indices.length / 3;
         }
       }
-      if (!meshes.length) return json(res, 422, { error:'WLD0 已讀取，但沒有可用三角形地形', map:mapName, version:parsed.version });
+      if (!meshCount) return json(res, 422, { error:'WLD0 已讀取，但沒有可用三角形地形', map:mapName, version:parsed.version });
+      if (summaryOnly) return json(res, 200, { map:mapName, file:path.basename(file), version:parsed.version,
+        bounds:{ min:parsed.vMin, max:parsed.vMax }, meshCount, vertices, triangles, textureNames:[...textureNames] });
       return json(res, 200, { map:mapName, file:path.basename(file), version:parsed.version,
         bounds:{ min:parsed.vMin, max:parsed.vMax }, vertices, triangles, meshes });
     } catch (e) { return json(res, 422, { error:e.message }); }
