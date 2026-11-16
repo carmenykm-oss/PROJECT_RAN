@@ -12,6 +12,7 @@ on:
       - 'scripts/smoke-*-parts-preview.mjs'
       - 'scripts/inspect-character-parts.py'
       - 'scripts/diagnose-male-bind-pose.py'
+      - 'scripts/split-male-native-head-parts.py'
 
 permissions:
   contents: write
@@ -175,6 +176,20 @@ jobs:
                       raise SystemExit(f"Missing female outfit texture source: {source_texture}")
                   shutil.copy2(source_texture, target)
 
+          # The native male face/hair X files reference legacy atlas names that
+          # differ from the supplied DDS filenames. Keep exact aliases so the
+          # selected native head meshes load their own original textures.
+          male_head_texture_aliases = {
+              "m_face00.png": "m2_face00.png",
+              "m_hair00_a.png": "m_hair00.png",
+          }
+          for target_name, source_name in male_head_texture_aliases.items():
+              target = out_dir / target_name
+              source_texture = out_dir / source_name
+              if not source_texture.is_file():
+                  raise SystemExit(f"Missing native male head texture source: {source_texture}")
+              shutil.copy2(source_texture, target)
+
           # Temporary visual fallback: original s_m_bs hand/leg/foot atlases
           # were not included in the uploaded source set. Replace when found.
           male_base_texture_fallbacks = {
@@ -280,6 +295,12 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/publish-s-m-bs-male-base.py
+
+      - name: Publish original male face and hair as independent native parts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/split-male-native-head-parts.py
 
       - name: Split male outfit sources into independent equipment candidates
         shell: bash
