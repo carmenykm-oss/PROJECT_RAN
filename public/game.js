@@ -438,8 +438,13 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     const warriorOverlayMeshNames = [...maleWarriorParts].map((part) => part.name);
     const warriorOverlayReboundNames = new Set(warriorOverlayMeshNames.map((name) => name + '_rebound_skin'));
     let warriorOverlayReboundCount = 0;
+    let warriorOverlayBoneBindingMismatchCount = 0;
     model.traverse((obj) => {
-      if (obj.isSkinnedMesh && warriorOverlayReboundNames.has(obj.name)) warriorOverlayReboundCount++;
+      if (!obj.isSkinnedMesh || !warriorOverlayReboundNames.has(obj.name)) return;
+      warriorOverlayReboundCount++;
+      for (const bone of obj.skeleton?.bones || []) {
+        if (baseRigBones.get(bone.name) !== bone) warriorOverlayBoneBindingMismatchCount++;
+      }
     });
 
     let meshCount = 0, skinnedMeshCount = 0;
@@ -623,6 +628,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       warriorVariant: warriorAsset ? warriorVariant : null,
       warriorOverlayMeshCount: maleWarriorParts.size,
       warriorOverlayReboundCount,
+      warriorOverlayBoneBindingMismatchCount,
       warriorOverlayMeshNames,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
