@@ -38,6 +38,11 @@ try {
   if (debug.meshCount < 1 || debug.skinnedMeshCount < 1 || debug.reboundSkinCount < 1 || debug.boneCount < 1 ||
       !Array.isArray(debug.evaluatedSkinnedSize) || debug.evaluatedSkinnedSize[1] < 0.2)
     throw new Error('Female rebound skinning incomplete: ' + JSON.stringify(debug));
+  if (debug.originalFemaleHairMeshCount !== 1 || debug.originalFemaleHairHiddenAlternates < 1)
+    throw new Error('Original female hair was not isolated as one independent skinned hairstyle: ' + JSON.stringify({
+      hairMeshes: debug.originalFemaleHairMeshCount,
+      hiddenAlternates: debug.originalFemaleHairHiddenAlternates
+    }));
   if (!idlePose || !walkPose || !runPose || walkDelta < 0.001 || runDelta < 0.001)
     throw new Error('Female underwear body walk/run pose did not change: ' + JSON.stringify({idlePose,walkPose,runPose,walkDelta,runDelta}));
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
