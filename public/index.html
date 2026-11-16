@@ -38,6 +38,17 @@
   </section>
   <div class="brand">PROJECT RAN <span>CLASSIC · PROTOTYPE 1.3.1</span></div>
   <div class="classic-location"><div class="classic-compass"><span class="north">N</span><span class="east">E</span><span class="south">S</span><span class="west">W</span><i></i><b></b></div><div class="location-caption">[1] 鳳凰學園【1F】</div><small>練功廣場</small></div>
+  <aside id="characterFitting" hidden style="position:fixed;left:16px;top:84px;z-index:30;width:min(290px,calc(100vw - 32px));max-height:75vh;overflow:auto;padding:14px;border:1px solid #71849a;border-radius:12px;background:rgba(9,18,29,.94);color:#edf4fb;box-shadow:0 12px 36px #0008">
+    <strong style="display:block;margin-bottom:10px">角色換裝試衣間</strong>
+    <label style="display:block;margin:8px 0">角色性別
+      <select id="fittingGender" style="display:block;width:100%;padding:7px;margin-top:4px"><option value="female">女角色</option><option value="male">男角色</option></select>
+    </label>
+    <label style="display:block;margin:8px 0">髮型
+      <select id="fittingHair" style="display:block;width:100%;padding:7px;margin-top:4px"></select>
+    </label>
+    <div id="fittingSlots"></div>
+    <small style="display:block;opacity:.72;margin-top:8px">選擇後會重新載入預覽角色，保留各部件獨立模型。</small>
+  </aside>
   <div class="hud">
     <div class="player-card"><div class="stats">
       <div class="player-heading"><strong id="playerName">Student</strong><strong class="player-level">Lv. <b id="level">1</b></strong></div>
@@ -74,5 +85,5 @@
   <div class="potion-hotbar" id="potionHotbar"><div class="hotbar-slot" data-hotbar="0"><span>拖放藥水</span></div><div class="hotbar-slot" data-hotbar="1"><span>拖放藥水</span></div><div class="hotbar-slot" data-hotbar="2"><span>拖放藥水</span></div><div class="hotbar-slot" data-hotbar="3"><span>拖放藥水</span></div></div>
   <div class="action-wheel" id="skillHotbar"><button class="skill-slot" id="skill1" data-skill-index="0" type="button"><kbd>1</kbd><strong>技能1</strong><small>MP --</small></button><button class="skill-slot" id="skill2" data-skill-index="1" type="button"><kbd>2</kbd><strong>技能2</strong><small>MP --</small></button><button class="skill-slot" id="skill3" data-skill-index="2" type="button"><kbd>3</kbd><strong>技能3</strong><small>MP --</small></button><button class="skill-slot" id="skill4" data-skill-index="3" type="button"><kbd>4</kbd><strong>技能4</strong><small>MP --</small></button><button class="attack" id="attackBtn" type="button" aria-label="普通攻擊"><kbd class="attack-hotkey">SPACE</kbd><span class="attack-icon">⚔</span></button></div>
   <div class="chat"><div id="chatLog"><div class="system">鳳凰學園練功區：點擊攻擊或技能，角色會自動接近可施放距離。</div></div><form id="chatForm"><input id="chatInput" maxlength="120" placeholder="輸入訊息…"><button>送出</button></form></div>
-  <div class="death-overlay" id="deathOverlay" hidden><div class="death-card"><strong>角色倒下了</strong><p>你被怪物擊敗，正在等待復活…</p><div id="respawnCountdown">6</div><small>復活後 HP / MP 將會恢復</small></div></div><div class="crosshair">+</div><script type="module" src="./game.js?v=5520"></script>
+  <div class="death-overlay" id="deathOverlay" hidden><div class="death-card"><strong>角色倒下了</strong><p>你被怪物擊敗，正在等待復活…</p><div id="respawnCountdown">6</div><small>復活後 HP / MP 將會恢復</small></div></div><div class="crosshair">+</div><script type="module" src="./game.js?v=5521"></script>
 </body></html>
