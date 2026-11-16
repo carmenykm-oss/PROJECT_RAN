@@ -185,7 +185,7 @@ def main():
         "run": "a_x01bs_lv1_run.json"
     }
     files_written = {item.get("file") for item in selected if "error" not in item}
-    ready = all(name in files_written for name in required.values())
+    ready = all(name in files_written for name in required.values()) and not any("error" in item for item in selected)
     if args.strict_skeleton and any(item.get("unmatched_bones") for item in selected):
         ready = False
     report = {"selected":len(selected),"ready":ready,"results":selected}
