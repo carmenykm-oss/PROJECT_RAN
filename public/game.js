@@ -137,26 +137,58 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // Attach its matching source GLB and retarget its six facial joints to
     // the same named bones in the 45-joint body skeleton.
     const femaleFaceParts = new Set();
+    const femaleHairParts = new Set();
+    const useFemaleHeadCandidate = useFemaleUnderwearCandidate &&
+      new URLSearchParams(location.search).get('headCandidate') === '1';
+    const useFemaleHairCandidate = useFemaleUnderwearCandidate &&
+      new URLSearchParams(location.search).get('hairCandidate') === '1';
     if (useFemaleUnderwearCandidate) {
-      const faceUrl = new URL('./models/ran-female-face-source.glb', import.meta.url).href;
-      const faceGltf = await gltfLoader.loadAsync(faceUrl);
-      const faceScene = faceGltf.scene || faceGltf.scenes?.[0];
-      if (!faceScene) throw new Error('女角色臉部 GLB 沒有可載入場景');
-      faceScene.updateMatrixWorld(true);
-      const legacyFaceHair = [];
-      faceScene.traverse((obj) => {
-        // The face-source X also bundles several legacy hair variants. Collect
-        // them first and remove after traversal so Three.js child iteration is stable.
-        if (obj.isMesh && /hair/i.test(obj.name)) {
-          legacyFaceHair.push(obj);
+      // Keep the previous face source as the control sample. The candidate test
+      // swaps only the selected face mesh from s_w1_head.x, not its entire set
+      // of mutually-exclusive face/hair variants.
+      const headUrl = new URL(
+        useFemaleHeadCandidate ? './models/ran-female-head-candidate.glb' : './models/ran-female-face-source.glb',
+        import.meta.url
+      ).href;
+      const headGltf = await gltfLoader.loadAsync(headUrl);
+      const headScene = headGltf.scene || headGltf.scenes?.[0];
+      if (!headScene) throw new Error('女角色頭部 GLB 沒有可載入場景');
+      const rejectedHeadMeshes = [];
+      headScene.traverse((obj) => {
+        if (!obj.isMesh) return;
+        const keep = useFemaleHeadCandidate
+          ? obj.name === 'w1_face00'
+          : !/hair/i.test(obj.name);
+        if (!keep) {
+          rejectedHeadMeshes.push(obj);
           return;
         }
         if (obj.isSkinnedMesh && obj.skeleton) femaleFaceParts.add(obj);
       });
-      for (const part of legacyFaceHair) part.parent?.remove(part);
-      model.add(faceScene);
+      for (const part of rejectedHeadMeshes) part.parent?.remove(part);
+      model.add(headScene);
 
-
+      if (useFemaleHairCandidate) {
+        // s_w_hair00.x is a collection of independent hairstyle meshes. Mount
+        // only w_hair00 for this first alignment test; keep it separately skinned
+        // so it can later become an independently equipable hair item.
+        const hairUrl = new URL('./models/ran-female-hair.glb', import.meta.url).href;
+        const hairGltf = await gltfLoader.loadAsync(hairUrl);
+        const hairScene = hairGltf.scene || hairGltf.scenes?.[0];
+        if (!hairScene) throw new Error('女角色頭髮 GLB 沒有可載入場景');
+        const rejectedHairMeshes = [];
+        hairScene.traverse((obj) => {
+          if (!obj.isMesh) return;
+          if (obj.name !== 'w_hair00') {
+            rejectedHairMeshes.push(obj);
+            return;
+          }
+          if (obj.isSkinnedMesh && obj.skeleton) femaleHairParts.add(obj);
+        });
+        for (const part of rejectedHairMeshes) part.parent?.remove(part);
+        model.add(hairScene);
+      }
+      model.updateMatrixWorld(true);
     }
 
     // Some original RAN X -> GLB exports contain valid skinned body mesh nodes
@@ -202,15 +234,21 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       for (const source of sourceParts) {
         let skeleton = source.skeleton;
         let geometry = source.geometry.clone();
-        if (femaleFaceParts.has(source)) {
-          // Bake imported face/hair frame transforms into body-root coordinates,
-          // then bind to the matching native Bip01 bones on the body skeleton.
+        if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
+          // Bake each imported part into body-root bind-pose coordinates, then
+          // retarget its skin to the native female body skeleton. s_w1_head.x
+          // contains three facial helper joints not present in s_w_bs.x; for the
+          // static first-pass face fit, bind those helpers to Bip01_Head.
           const relative = model.matrixWorld.clone().invert().multiply(source.matrixWorld);
           geometry.applyMatrix4(relative);
           const sharedBones = source.skeleton.bones.map((bone) => {
             const shared = model.getObjectByName(bone.name);
-            if (!shared) throw new Error(`女角部件缺少對應骨骼：${bone.name}`);
-            return shared;
+            if (shared) return shared;
+            if (useFemaleHeadCandidate && /^(Bone33|Bone34)$/.test(bone.name)) {
+              const headBone = model.getObjectByName('Bip01_Head');
+              if (headBone) return headBone;
+            }
+            throw new Error(`女角部件缺少對應骨骼：${bone.name}`);
           });
           skeleton = new THREE.Skeleton(sharedBones);
           skeleton.calculateInverses();
@@ -394,6 +432,9 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     window.__ranCharacterDebug = {
       character: requestedCharacter, meshCount, skinnedMeshCount, bakedMeshCount, reboundSkinCount, recoveredMeshNodes,
       femaleFaceSkinnedMeshCount: femaleFaceParts.size,
+      femaleHairSkinnedMeshCount: femaleHairParts.size,
+      femaleHeadCandidate: useFemaleHeadCandidate,
+      femaleHairCandidate: useFemaleHairCandidate,
       sourceHeight: size.y, appliedScale: scale,
       boneCount: target.userData.ranAnimator.boneCount,
       evaluatedSkinnedSize: evaluatedSize.toArray(), skinDiagnostics, bindPosePartDiagnostics,
