@@ -97,7 +97,7 @@ async function mountOriginalRanTerrain(mapName = 'LDG02') {
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(source.positions.length);
     for (let i = 0; i < source.positions.length; i += 3) {
-      positions[i] = (-source.positions[i] - centerX) * scale;
+      positions[i] = (-source.positions[i] + centerX) * scale;
       positions[i + 1] = source.positions[i + 1] * scale;
       positions[i + 2] = (source.positions[i + 2] - centerZ) * scale;
     }
