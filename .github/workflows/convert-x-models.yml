@@ -8,6 +8,7 @@ on:
       - '.github/workflows/convert-x-models.yml'
       - 'public/game.js'
       - 'scripts/split-*.py'
+      - 'scripts/publish-s-m-bs-male-base.py'
       - 'scripts/smoke-*-parts-preview.mjs'
       - 'scripts/inspect-character-parts.py'
       - 'scripts/diagnose-male-bind-pose.py'
