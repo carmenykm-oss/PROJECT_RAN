@@ -154,6 +154,25 @@ jobs:
                       if result.returncode != 0 or not target.exists():
                           raise RuntimeError(f"Cannot decode required DDS {dds}: Pillow={pillow_error}; ImageMagick={result.stderr}")
                   converted += 1
+
+          # The female s_w_a_bs outfit X refers to unsuffixed texture names,
+          # while the supplied DDS files carry a _s suffix. Publish exact aliases.
+          import shutil
+          female_texture_aliases = {
+              "w1_bsgs_body.png": "w1_bsgs_body_s.png",
+              "w1_bsgs_hand.png": "w1_bsgs_hand_s.png",
+              "w1_bsgs_leg.png": "w1_bsgs_leg_s.png",
+              "w1_bsgs_leg02.png": "w1_bsgs_leg_s.png",
+              "w1_bsgs_foot.png": "w1_bsgs_foot_s.png",
+          }
+          for target_name, source_name in female_texture_aliases.items():
+              target = out_dir / target_name
+              source_texture = out_dir / source_name
+              if not target.exists():
+                  if not source_texture.exists():
+                      raise SystemExit(f"Missing female outfit texture source: {source_texture}")
+                  shutil.copy2(source_texture, target)
+
           if converted == 0:
               raise SystemExit("No DDS textures were converted")
 
