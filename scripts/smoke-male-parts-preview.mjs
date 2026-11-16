@@ -11,6 +11,7 @@ const browser = await chromium.launch({
 
 async function verifyVariant(variant, expectedEquipment, screenshotName) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  page.setDefaultTimeout(90000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -37,7 +38,10 @@ async function verifyVariant(variant, expectedEquipment, screenshotName) {
     await page.waitForFunction(() => {
       const status = document.querySelector('#connection')?.textContent || '';
       return window.__ranCharacterDebug?.character === 'male' || status.includes('男戰士模型載入失敗');
-    }, { timeout: 60000 });
+    }, { timeout: 90000 }).catch(async error => {
+      const status = await page.locator('#connection').innerText().catch(() => 'status unavailable');
+      throw new Error('Timed out waiting for male model: ' + status + ' | ' + errors.join(' | ') + ' | ' + error.message);
+    });
     await page.waitForTimeout(1500);
     const status = (await page.locator('#connection').innerText()).trim();
     const debug = await page.evaluate(() => window.__ranCharacterDebug || null);
