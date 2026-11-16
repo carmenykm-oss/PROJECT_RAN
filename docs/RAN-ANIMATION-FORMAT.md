@@ -225,3 +225,19 @@ python scripts/extract-ran2-animation-clips.py Animation.zip \
 ```
 
 Use `--strict-skeleton` only when every track is expected to map to the female GLB; optional accessory/helper bones may otherwise be reported as unmatched without blocking the clip export. The game loader reads `public/animations/manifest.json` first and does not request the clip JSON files while the manifest is pending, so the preview remains clean before the real archive has been extracted.
+
+
+## Current verified browser status (2026-11-16)
+
+The historical blockers above are resolved. The supplied Library archive was decoded locally with the RAN2 inverse substitution table, the real wait/walk/run BIN files were extracted to `public/animations/`, and the resulting JSON clips are committed to the repository.
+
+The same original `a_x01bs_lv1` wait/walk/run set is now loaded by the browser player for both reconstructed rigs. It is enabled only when the essential pelvis, spine, left/right thigh, and left/right upper-arm bones map; otherwise the procedural controller remains as a safe fallback.
+
+Verified in GitHub Actions run [43842681932](https://github.com/carmenykm-oss/PROJECT_RAN/actions/runs/43842681932):
+- Female rig: compatible; 42 source bones mapped; 378 Three.js tracks across idle/walk/run.
+- Male rig: compatible; 44 source bones mapped; 396 Three.js tracks across idle/walk/run.
+- Both browser smoke tests load all three original clips.
+- Male original-BIN pose test: 44 Bip01 bones sampled; maximum pose delta idle-to-walk 1.4295 and walk-to-run 0.9775.
+- The clips contain 262 source bone tracks. Unmatched tracks are mostly accessory, sword, face, helper, and unused variant nodes not present in the reconstructed player rigs; the essential body-bone set is fully mapped.
+
+This verifies original BIN-driven idle/walk/run playback in the browser for both rigs. It does not yet verify every optional accessory/face track or the combat/death animations. Those are the next expansion targets.
