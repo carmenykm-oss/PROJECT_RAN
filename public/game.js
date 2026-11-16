@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createRanCharacterAnimator } from './character-animation.js';
+import { loadRanBinAnimationPlayer } from './ran-bin-animation-player.js';
 
 const mount = document.getElementById('game');
 const scene = new THREE.Scene();
@@ -352,6 +353,23 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     target.userData.ranModel = model;
     target.userData.ranPivot = pivot;
     target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
+    target.userData.ranOriginalAnimation = null;
+    // Prefer extracted original BIN clips when the complete idle/walk/run set is
+    // present. Until then, keep the existing controller as an explicit fallback.
+    if (requestedCharacter === 'female') {
+      loadRanBinAnimationPlayer(model, THREE, new URL('./animations/', import.meta.url).href)
+        .then(player => {
+          target.userData.ranOriginalAnimation = player;
+          player.play('idle', 0);
+          window.__ranOriginalAnimationDebug = {
+            actions: player.actions, tracks: player.trackCount,
+            missingBones: player.missingBones
+          };
+        })
+        .catch(error => {
+          window.__ranOriginalAnimationDebug = { status: 'not-loaded', reason: error.message };
+        });
+    }
     window.__ranCharacterDebugRoot = model;
 
     // Update the complete player/model hierarchy BEFORE evaluating any
@@ -1022,7 +1040,10 @@ function loop() {
     processAutoAction(dt);
   }
   const isMoving = !myPlayer?.dead && (!!(forward || side) || !!autoAction);
-  me.userData.ranAnimator?.update(isMoving ? (keys.has('shift') && (forward || side) ? 'run' : 'walk') : 'idle', dt);
+  const animationMode = isMoving ? (keys.has('shift') && (forward || side) ? 'run' : 'walk') : 'idle';
+  const originalAnimation = me.userData.ranOriginalAnimation;
+  if (originalAnimation && originalAnimation.play(animationMode)) originalAnimation.update(dt);
+  else me.userData.ranAnimator?.update(animationMode, dt);
   const nearMentor = Math.hypot(me.position.x, me.position.z + 8) <= 4.5;
   document.getElementById('npcHint').hidden = !nearMentor || !document.getElementById('questPanel').hidden;
   // Bring the player model closer to the center of the frame. The previous 10-unit
