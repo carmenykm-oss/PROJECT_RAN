@@ -75,3 +75,18 @@ The corrected offsets were checked against the actual uploaded `map_school.zip` 
 The local scan found the actual asset root at `General\\RData`, with 219 `.wld`, 178 `.wld0`, 18,328 `.dds`, 4,331 `.x`, 6,012 `.bin`, and 18 `.rcc` files. It also found parallel `Original\\RData\\map`, `object`, `piece`, and `textures` folders. `General\\RData\\GameData\\level.rcc` is 70,747,085 bytes.
 
 This makes a direct comparison between `General\\RData` and `Original\\RData` the next highest-value test: compare same-named WLD/WLD0 files by size and SHA-256, then validate both copies at the corrected offsets. Also identify the school/campus map entries in both trees. Do not infer that the RCC files contain the map payload until their directory/index format is inspected.
+
+### General vs Original comparison helper
+
+Added `scripts/compare-ran-map-trees.ps1` (commit `754be0d3fa6172bd4d0bf24a384d0bbe6a225640`). It:
+- compares same-named files in `General\\RData\\map` and `Original\\RData\\map`;
+- reports size and SHA-256 equality;
+- highlights filenames containing school/campus/academy/college;
+- checks the corrected WLD and WLD0 source-layout marker offsets;
+- does not modify client files.
+
+Run from PowerShell 5.1:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\\Downloads\\compare-ran-map-trees.ps1" -InstallRoot "C:\\Program Files (x86)\\XtraVision\\Ran2Online"
+```
