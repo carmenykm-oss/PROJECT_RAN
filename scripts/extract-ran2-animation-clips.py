@@ -60,6 +60,9 @@ def read_matrix_keys(data, offset, count):
         offset+=80
     return out,offset
 
+def normalize_bone(name):
+    return "".join(ch.lower() if ch.isalnum() else "_" for ch in str(name)).strip("_")
+
 def decode_quat(first, second):
     x=(((first>>16)&0xffff)-32767)/32768.0
     y=((first&0xffff)-32767)/32768.0
@@ -145,6 +148,9 @@ def main():
     ap.add_argument("archive",type=Path)
     ap.add_argument("--output-dir",type=Path,required=True)
     ap.add_argument("--match",action="append",default=[])
+    ap.add_argument("--skeleton-glb",type=Path)
+    ap.add_argument("--strict-skeleton",action="store_true")
+    ap.add_argument("--write-manifest",action="store_true")
     args=ap.parse_args()
     args.output_dir.mkdir(parents=True,exist_ok=True)
     selected=[]
@@ -159,7 +165,38 @@ def main():
                              "bones":sorted({t["bone"] for t in clip["tracks"]})})
         except Exception as exc:
             selected.append({"name":name,"error":str(exc)})
-    print(json.dumps({"selected":len(selected),"results":selected},indent=2))
-    if not selected or any("error" in x for x in selected):raise SystemExit(1)
+    skeleton_names = None
+    if args.skeleton_glb:
+        raw_glb = args.skeleton_glb.read_bytes()
+        if raw_glb[:4] != b"glTF": raise SystemExit("skeleton GLB has an invalid header")
+        json_size = struct.unpack_from("<I", raw_glb, 12)[0]
+        if raw_glb[16:20] != b"JSON": raise SystemExit("skeleton GLB has no JSON chunk")
+        gltf = json.loads(raw_glb[20:20+json_size].decode("utf-8").rstrip(" \\t\\r\\n\\0"))
+        skeleton_names = {normalize_bone(n.get("name", "")) for n in gltf.get("nodes", []) if n.get("name")}
+        for item in selected:
+            if "error" in item: continue
+            clip = json.loads((args.output_dir/item["file"]).read_text(encoding="utf-8"))
+            all_bones = sorted({t["bone"] for t in clip["tracks"]})
+            item["matched_bones"] = [b for b in all_bones if normalize_bone(b) in skeleton_names]
+            item["unmatched_bones"] = [b for b in all_bones if normalize_bone(b) not in skeleton_names]
+    required = {
+        "idle": "a_x01bs_lv1_wait.json",
+        "walk": "a_x01bs_lv1_walk.json",
+        "run": "a_x01bs_lv1_run.json"
+    }
+    files_written = {item.get("file") for item in selected if "error" not in item}
+    ready = all(name in files_written for name in required.values())
+    if args.strict_skeleton and any(item.get("unmatched_bones") for item in selected):
+        ready = False
+    report = {"selected":len(selected),"ready":ready,"results":selected}
+    (args.output_dir/"extraction-report.json").write_text(json.dumps(report,indent=2)+"\\n",encoding="utf-8")
+    if args.write_manifest:
+        manifest = {"status":"ready" if ready else "pending",
+                    "clips":required if ready else {},
+                    "timebase":4800,
+                    "skeleton_glb":str(args.skeleton_glb) if args.skeleton_glb else None}
+        (args.output_dir/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\\n",encoding="utf-8")
+    print(json.dumps(report,indent=2))
+    if not selected or any("error" in x for x in selected) or not ready: raise SystemExit(1)
 
 if __name__=="__main__":main()
