@@ -30,7 +30,7 @@ jobs:
       - name: Install Assimp and DDS image support
         run: |
           sudo apt-get update
-          sudo apt-get install -y assimp-utils python3-pil
+          sudo apt-get install -y assimp-utils python3-pil imagemagick
 
       - name: Convert every X model to GLB
         shell: bash
@@ -66,7 +66,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image
-          import json, struct
+          import json, struct, subprocess
 
           source = Path("source_assets")
           out_dir = Path("public/models")
@@ -75,8 +75,20 @@ jobs:
           converted = 0
           for dds in source.rglob("*"):
               if dds.is_file() and dds.suffix.lower() == ".dds":
-                  image = Image.open(dds).convert("RGBA")
-                  image.save(out_dir / (dds.stem + ".png"), optimize=True)
+                  target = out_dir / (dds.stem + ".png")
+                  try:
+                      image = Image.open(dds).convert("RGBA")
+                      image.save(target, optimize=True)
+                  except Exception as pillow_error:
+                      # Pillow cannot decode some legacy premultiplied DXT2 DDS files.
+                      # ImageMagick's DDS coder is used as a second decoder.
+                      result = subprocess.run(
+                          ["magick", str(dds), "-alpha", "on", str(target)],
+                          capture_output=True, text=True
+                      )
+                      if result.returncode != 0 or not target.exists():
+                          print(f"SKIP unsupported DDS {dds}: Pillow={pillow_error}; ImageMagick={result.stderr}")
+                          continue
                   converted += 1
           if converted == 0:
               raise SystemExit("No DDS textures were converted")
@@ -113,6 +125,10 @@ jobs:
           shutil.copy2("converted_glb/m_ss_war.glb", out_dir / "ran-male-original.glb")
           shutil.copy2("converted_glb/s_m_a_zt.glb", out_dir / "ran-warrior-male-a.glb")
           shutil.copy2("converted_glb/s_m_f_zt.glb", out_dir / "ran-warrior-male-f.glb")
+          # Publish the female underwear body as a separate candidate asset.
+          # Do not replace the active female player until its head/body assembly is validated.
+          shutil.copy2("converted_glb/s_w_bs.glb", out_dir / "ran-female-underwear-body.glb")
+          shutil.copy2("converted_glb/s_w_face.glb", out_dir / "ran-female-face-source.glb")
           print(f"Converted {converted} DDS textures and patched all GLB texture references.")
           PY
 
@@ -127,6 +143,7 @@ jobs:
               Path("public/models/ran-male-original.glb"),
               Path("public/models/ran-warrior-male-a.glb"),
               Path("public/models/ran-warrior-male-f.glb"),
+              Path("public/models/ran-female-underwear-body.glb"),
           ]
           for path in files:
               raw = path.read_bytes()
@@ -136,12 +153,16 @@ jobs:
               doc = json.loads(raw[20:20+length].decode("utf-8").rstrip(" "))
               skins = doc.get("skins", [])
               meshes = doc.get("meshes", [])
-              if not skins or not meshes:
-                  raise SystemExit(f"Missing skin or mesh: {path}")
+              if not meshes:
+                  raise SystemExit(f"Missing mesh: {path}")
+              # Some source accessory/face meshes are intentionally static;
+              # the female underwear body must have a real skin and weights.
+              if "female-underwear" in path.name and not skins:
+                  raise SystemExit(f"Female underwear body has no skin: {path}")
               for mesh in meshes:
                   for primitive in mesh.get("primitives", []):
                       attrs = primitive.get("attributes", {})
-                      if "JOINTS_0" not in attrs or "WEIGHTS_0" not in attrs or "TEXCOORD_0" not in attrs:
+                      if skins and ("JOINTS_0" not in attrs or "WEIGHTS_0" not in attrs or "TEXCOORD_0" not in attrs):
                           raise SystemExit(f"Missing skin weights or UVs: {path}")
               for image in doc.get("images", []):
                   if image.get("uri", "").lower().endswith(".dds"):
@@ -165,7 +186,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/*.png
+          git add public/models/ran-male-original.glb public/models/ran-warrior-male-a.glb public/models/ran-warrior-male-f.glb public/models/ran-female-underwear-body.glb public/models/ran-female-face-source.glb public/models/*.png
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
             git pull --rebase origin main
