@@ -134,6 +134,12 @@ jobs:
               if not target.exists() and skin_fallback.exists():
                   import shutil
                   shutil.copy2(skin_fallback, target)
+          # The alternate s_w1_head.x GLB references a face normal map that is
+          # not present in the uploaded DDS set. Supply a neutral tangent-space
+          # normal (RGB 128,128,255) so GLTFLoader does not fail the whole model.
+          face_normal_fallback = out_dir / "w1_face01_n.png"
+          if not face_normal_fallback.exists():
+              Image.new("RGB", (64, 64), (128, 128, 255)).save(face_normal_fallback)
           for name in ["w1_hair00.png", "w1_hair02.png", "w1_hair03.png", "w1_hair04.png"]:
               target = out_dir / name
               if not target.exists():
