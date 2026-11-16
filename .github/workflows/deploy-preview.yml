@@ -65,15 +65,10 @@ jobs:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
         run: node scripts/smoke-male-skinning-preview.mjs
 
-      - name: Verify male independent equipment slots
+      - name: Verify male body face and hair using the confirmed female assembly logic
         env:
           PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
-        run: node scripts/smoke-male-parts-preview.mjs
-
-      - name: Verify female independent equipment slots
-        env:
-          PREVIEW_URL: https://carmenykm-oss.github.io/PROJECT_RAN/
-        run: node scripts/smoke-female-parts-preview.mjs
+        run: node scripts/smoke-male-base-parts-preview.mjs
 
       - name: Verify in-game fitting panel interactions
         env:
