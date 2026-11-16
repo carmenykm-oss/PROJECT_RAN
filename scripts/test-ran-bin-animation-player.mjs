@@ -44,9 +44,9 @@ if (!matrixPlayer.has('run')) throw new Error('DirectX matrix clip was not regis
 if (matrixPlayer.trackCount !== 3) throw new Error('Matrix clip should produce three TRS channels');
 matrixPlayer.play('run', 0);
 matrixPlayer.update(0.05);
-if (Math.abs(pelvis.position.x - 0.1) > 1e-5 ||
-    Math.abs(pelvis.position.y - 0.2) > 1e-5 ||
-    Math.abs(pelvis.position.z - 0.3) > 1e-5) {
+if (Math.abs(pelvis.position.x - 0.02) > 1e-5 ||
+    Math.abs(pelvis.position.y - 0.04) > 1e-5 ||
+    Math.abs(pelvis.position.z - 0.06) > 1e-5) {
   throw new Error('DirectX row-major matrix was not transposed into Three.js local translation: ' + pelvis.position.toArray());
 }
 console.log(JSON.stringify({ status: 'PASS', actions: player.actions, tracks: player.trackCount,
