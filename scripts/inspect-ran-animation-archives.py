@@ -5,7 +5,7 @@ This is a format-discovery tool, not a decoder. It records signatures, lengths,
 header markers and pair coverage so future parser work can be tested reproducibly.
 """
 from __future__ import annotations
-import argparse, collections, hashlib, io, json, zipfile
+import argparse, collections, hashlib, io, json, zipfile, math
 from pathlib import Path
 
 def read_archives(path: Path):
@@ -34,6 +34,37 @@ def header(data: bytes):
         "byte_diversity_after_132": round(len(set(data[132:])) / max(1, len(data[132:])), 8),
         "top_bytes_after_132": [{"hex": f"{b:02x}", "count": n}
                                 for b, n in collections.Counter(data[132:]).most_common(8)],
+        "structure": structural_probe(data),
+    }
+
+def entropy(data: bytes) -> float:
+    if not data:
+        return 0.0
+    counts = collections.Counter(data)
+    size = len(data)
+    return round(-sum((n / size) * math.log2(n / size) for n in counts.values()), 5)
+
+def structural_probe(data: bytes):
+    offsets = {}
+    for marker in (b"AnimContainer", b"SANIMCONINFO"):
+        positions, start = [], 0
+        while True:
+            pos = data.find(marker, start)
+            if pos < 0:
+                break
+            positions.append(pos)
+            start = pos + 1
+        offsets[marker.decode("ascii")] = positions[:16]
+    return {
+        "markers": offsets,
+        "u32_le_at_128": int.from_bytes(data[128:132], "little") if len(data) >= 132 else None,
+        "bytes_132_144_hex": data[132:144].hex() if len(data) >= 144 else None,
+        "entropy_first_128": entropy(data[:128]),
+        "entropy_128_512": entropy(data[128:512]),
+        "entropy_512_end": entropy(data[512:]),
+        "length_mod_8": len(data) % 8,
+        "length_mod_16": len(data) % 16,
+        "length_mod_32": len(data) % 32,
     }
 
 def main():
@@ -58,7 +89,8 @@ def main():
         "matched_basename_pairs": len(pairs),
         "bin_without_cfg": sorted(bin_stems - cfg_stems),
         "cfg_without_bin": sorted(cfg_stems - bin_stems),
-        "samples": {s: {"bin": header(bins[s + ".bin"]), "cfg": header(cfgs[s + ".cfg"])}
+        "samples": {s: {"bin": header(bins[s + ".bin"]), "cfg": header(cfgs[s + ".cfg"]),
+                        "bin_cfg_prefix_match_bytes": sum(a == b for a, b in zip(bins[s + ".bin"][132:1084], cfgs[s + ".cfg"]))}
                     for s in chosen if s + ".bin" in bins and s + ".cfg" in cfgs},
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
