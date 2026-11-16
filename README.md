@@ -26,38 +26,62 @@ Controls:
 - `1` / `2`: trigger sample skill poses
 - Mouse drag: rotate the camera
 
-## Character base-model testing
+## Selected character bases and independent equipment
 
-- **Female base model:** `public/models/ran-female-underwear-body.glb` is the only active female body base for integration and browser smoke tests.
-- **Male base model:** `public/models/ran-male.glb` is the male base-model target for integration and browser smoke tests.
-- The former original female character model and its dedicated smoke test are retired from the active workflow. Its source files may remain in the repository as archived reference material, but they are not part of current development or acceptance checks.
-- Current acceptance priority for both base models: a stable upright idle stance, then visibly natural walking and running without body folding, curling, or broken limb deformation.
-- Head, hair, face and wearable equipment are subsequent attachment tasks. Equipment must remain separate replaceable parts rather than being merged into one inseparable character mesh.
+Only the two selected base characters are active:
+- **Female:** `public/models/ran-female-underwear-body.glb`
+- **Male:** `public/models/ran-male.glb`, split for rendering into body, face and hair assets while preserving the original base file.
 
-## Shared male/female equipment-part standard
-
-Both selected base characters must support the same six independently equippable slots:
+Both characters support six separate fitting categories:
 1. Hair
 2. Face
 3. Upper clothing
-4. Gloves (left/right attachment points where the source supports them)
+4. Gloves
 5. Lower clothing
-6. Shoes (left/right attachment points where the source supports them)
+6. Shoes
 
-The body/rig remains the character base. Each equipment item must remain a separate skinned GLB (or a separately addressable mesh asset) with its own materials/textures and a validated mapping to the selected character skeleton. Removing or replacing one slot must not replace or merge the other slots.
+Every part stays a separate skinned GLB/mesh. It is not flattened into one full-outfit model. The browser rebinds each part to the selected character skeleton and validates bone references.
 
-**Male split assets generated from the selected `ran-male.glb`:**
-- `ran-male-body.glb`: the four original body meshes (hand, leg, torso, foot).
-- `ran-male-face.glb`: the original `m2_face00` mesh.
-- `ran-male-hair.glb`: the original `m_hair00` mesh.
+### Open the male/female fitting room
 
-The original `ran-male.glb` remains unchanged as the selected base. The conversion workflow also extracts separate upper/hand/lower/foot equipment candidates from the two male source outfit models, but these are equipment candidates only, not alternate playable base characters. Their bone names are checked against the selected male rig; in-game visual fit still needs validation.
+Use either link in a browser:
+- Female fitting room: `https://carmenykm-oss.github.io/PROJECT_RAN/?preview=1&character=female&underwear=1&headCandidate=1&hairCandidate=1&skinning=1`
+- Male fitting room: `https://carmenykm-oss.github.io/PROJECT_RAN/?preview=1&character=male&skinning=1`
 
-Female head and hair candidates are already separate. Female outfit source models have been found, but include extra helper bones not present in the selected female base rig; these need deliberate remapping before they can be approved as wearable parts.
+The preview-only **角色換裝試衣間** panel lets you:
+- Switch between male and female models.
+- Independently show or remove the face and hair.
+- Choose from nine female hairstyles.
+- Independently equip or remove upper clothing, gloves, lower clothing and shoes.
+- Choose outfit A or F for male slots; female outfit A is currently the validated set.
 
-Do not manufacture a head, hairstyle, glove, or shoe asset by renaming a full-body/outfit GLB. The source inventory workflow records original X files and inspects converted mesh nodes, skins, joints, and materials. A slot remains pending until a genuine source mesh is isolated, converted, aligned, and validated in the browser.
+Changing a selection reloads the preview with that combination. It does not replace the other slots.
 
-Run `python3 scripts/inspect-character-parts.py` after X-to-GLB conversion to generate `logs/character-part-inventory.json`.
+### Current asset coverage
+
+**Male**
+- Selected base body, face and hair are separate.
+- Two outfit source variants have been split into independent upper, gloves, lower and shoes candidates.
+- Both outfit variants passed browser attachment tests; the four slots can be loaded independently.
+
+**Female**
+- Selected underwear body remains the base.
+- Face is a separate skinned asset.
+- Nine hairstyles are separate skinned GLBs.
+- Female outfit A has separate upper, gloves, lower and shoes assets. Its extra helper bones are retained and reparented to the selected female rig.
+- The second female outfit source is not enabled yet because its texture references still need matching.
+
+### Validation status
+
+The latest GitHub Actions browser run passed:
+- Male and female model loading.
+- Male and female independent equipment-slot attachment.
+- Zero equipment bone-binding mismatches in the tested combinations.
+- Female hairstyle selection and face/hair removal.
+- Male face/hair removal and restoration.
+- Male idle/walk/run bone-pose checks.
+
+The fitting room is currently a preview/testing workflow. The existing server inventory/economy equipment system has not yet been connected to these six 3D appearance slots, and the screenshots still show a T-pose validation stance. Do not treat the preview fitting panel as a completed persistent player inventory feature.
 
 ## Original animation conversion
 
@@ -77,9 +101,4 @@ JavaScript syntax has been checked. Browser rendering, live WebSocket login, and
 
 ## Publish the preview online
 
-The repository's GitHub Pages site has not been enabled yet. To publish the static preview once:
-1. Open repository **Settings → Pages**.
-2. Set **Build and deployment → Source** to **GitHub Actions**.
-3. Open **Actions → Deploy PROJECT RAN character preview → Run workflow**.
-
-The deployed URL will be `https://carmenykm-oss.github.io/PROJECT_RAN/?preview=1`.
+The static preview is deployed through GitHub Actions at `https://carmenykm-oss.github.io/PROJECT_RAN/?preview=1`.
