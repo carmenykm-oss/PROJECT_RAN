@@ -289,6 +289,27 @@ const server = http.createServer(async (req, res) => {
         bounds:{ min:parsed.vMin, max:parsed.vMax }, vertices, triangles, meshes });
     } catch (e) { return json(res, 422, { error:e.message }); }
   }
+
+  if (req.method === 'GET' && pathname === '/api/ran-map/texture') {
+    try {
+      const url = new URL(req.url, 'http://localhost');
+      const name = String(url.searchParams.get('name') || '').replace(/\\\\/g, '/');
+      if (!name || name.startsWith('/') || /^[A-Za-z]:/.test(name) || name.split('/').some(part => !part || part === '.' || part === '..')) {
+        return json(res, 400, { error:'Invalid texture path' });
+      }
+      if (!/\\.(dds|tga|png|jpe?g|bmp)$/i.test(name)) return json(res, 400, { error:'Unsupported texture format' });
+      const roots = ['textures','Textures','texture','Texture','map',''].map(folder => path.resolve(RAN_DATA_ROOT, folder));
+      let file = null;
+      for (const root of roots) {
+        const candidate = path.resolve(root, name);
+        if (!candidate.startsWith(root + path.sep)) continue;
+        if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) { file = candidate; break; }
+      }
+      if (!file) return json(res, 404, { error:'Texture not found', name });
+      res.writeHead(200, { 'Content-Type':'application/octet-stream', 'Cache-Control':'public, max-age=3600' });
+      return fs.createReadStream(file).pipe(res);
+    } catch (e) { return json(res, 400, { error:e.message }); }
+  }
   if (pathname.startsWith('/api/')) return json(res, 404, { error: 'API not found' });
   let filePath = pathname === '/' ? path.join(ROOT, 'index.html') : path.resolve(ROOT, '.' + decodeURIComponent(pathname));
   if (filePath !== ROOT && !filePath.startsWith(ROOT + path.sep)) { res.writeHead(403); return res.end('Forbidden'); }
