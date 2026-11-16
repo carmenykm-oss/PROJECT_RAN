@@ -59,6 +59,7 @@ def structural_probe(data: bytes):
         "markers": offsets,
         "u32_le_at_128": int.from_bytes(data[128:132], "little") if len(data) >= 132 else None,
         "bytes_132_144_hex": data[132:144].hex() if len(data) >= 144 else None,
+        "bytes_144_160_hex": data[144:160].hex() if len(data) >= 160 else None,
         "entropy_first_128": entropy(data[:128]),
         "entropy_128_512": entropy(data[128:512]),
         "entropy_512_end": entropy(data[512:]),
@@ -89,6 +90,8 @@ def main():
         "matched_basename_pairs": len(pairs),
         "bin_without_cfg": sorted(bin_stems - cfg_stems),
         "cfg_without_bin": sorted(cfg_stems - bin_stems),
+        "bin_prefix_132_144_distribution": [{"hex": prefix.hex(), "count": count}
+            for prefix, count in collections.Counter(d[132:144] for d in bins.values() if len(d) >= 144).most_common(20)],
         "samples": {s: {"bin": header(bins[s + ".bin"]), "cfg": header(cfgs[s + ".cfg"]),
                         "bin_cfg_prefix_match_bytes": sum(a == b for a, b in zip(bins[s + ".bin"][132:1084], cfgs[s + ".cfg"]))}
                     for s in chosen if s + ".bin" in bins and s + ".cfg" in cfgs},
