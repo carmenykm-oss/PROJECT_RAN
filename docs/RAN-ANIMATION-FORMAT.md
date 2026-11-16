@@ -74,6 +74,8 @@ The exact C++ structures are in `DxAniKeys.h`. In the source layout, `SQuatPosKe
 
 That is 36 bytes under the source's expected 4-byte packing.
 
+`SMatrixKey` is serialized as `sizeof(SMatrixKey)` in `SAnimation::Load_0100`, `Load_0101`, and `Load`. The structure contains a DWORD followed by `D3DXMATRIXA16`; because the matrix is 16-byte aligned, the matrix begins at byte offset 16 and the complete record is 80 bytes (4-byte time + 12-byte alignment padding + 64-byte matrix). The BIN parser therefore uses an 80-byte matrix-key stride for versions 0x0100, 0x0101, and 0x0102. This is now supported by the actual source structure and raw `ReadBuffer(sizeof(SMatrixKey) * count)` calls, rather than being an unverified guess.
+
 ## Compressed quaternion
 
 The source packs x/y into the first DWORD and z/w into the second DWORD, each as 16-bit values. Its decompression formula is:
