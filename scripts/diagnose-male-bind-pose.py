@@ -43,6 +43,11 @@ def trs(node):
       *t, 1
     ]
 
+def determinant3(m):
+    # Determinant of the upper-left 3x3 in a column-major 4x4 matrix.
+    a,b,c=m[0],m[4],m[8]; d,e,f=m[1],m[5],m[9]; g,h,i=m[2],m[6],m[10]
+    return a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)
+
 def accessor_bounds(doc, accessor_index):
     acc=doc.get("accessors",[])[accessor_index]
     return {"min":acc.get("min"),"max":acc.get("max"),"count":acc.get("count"),"type":acc.get("type")}
@@ -65,7 +70,9 @@ def inspect(path):
             n=nodes[ji]; m=world(ji)
             names.append(n.get("name",str(ji)))
             joint_rows.append({"skin":si,"name":n.get("name",str(ji)),
-                "worldTranslation":[round(m[12],5),round(m[13],5),round(m[14],5)]})
+                "parent":nodes[parents[ji]].get("name") if ji in parents else None,
+                "worldTranslation":[round(m[12],5),round(m[13],5),round(m[14],5)],
+                "worldBasisDeterminant":round(determinant3(m),6)})
     mesh_rows=[]
     for ni,n in enumerate(nodes):
         if "mesh" not in n: continue
@@ -78,12 +85,15 @@ def inspect(path):
           "skin":n.get("skin"),"nodeTranslation":n.get("translation",[0,0,0]),
           "nodeRotation":n.get("rotation",[0,0,0,1]),"nodeScale":n.get("scale",[1,1,1]),
           "worldTranslation":[round(world(ni)[12],5),round(world(ni)[13],5),round(world(ni)[14],5)],
+          "worldBasisDeterminant":round(determinant3(world(ni)),6),
+          "parent":nodes[parents[ni]].get("name") if ni in parents else None,
           "primitives":prims})
     return {"file":str(path),"bytes":path.stat().st_size,"skins":[
       {"name":s.get("name"),"jointCount":len(s.get("joints",[])),
        "skeleton":nodes[s["skeleton"]].get("name") if "skeleton" in s else None,
-       "inverseBindMatrices":s.get("inverseBindMatrices")} for s in skins],
-      "meshNodes":mesh_rows,"jointSamples":joint_rows[:12]}
+       "inverseBindMatricesAccessor":s.get("inverseBindMatrices")} for s in skins],
+      "sceneRoots":doc.get("scenes",[{}])[doc.get("scene",0)].get("nodes",[]),
+      "meshNodes":mesh_rows,"jointTransforms":joint_rows}
 
 def main():
     missing=[f for f in FILES if not Path(f).is_file()]
@@ -96,6 +106,8 @@ def main():
         for mesh in item["meshNodes"]:
             print(json.dumps(mesh,ensure_ascii=False))
         print("SKINS",json.dumps(item["skins"],ensure_ascii=False))
+        print("ROOTS",json.dumps(item["sceneRoots"],ensure_ascii=False))
+        print("JOINTS",json.dumps(item["jointTransforms"],ensure_ascii=False))
     print("\nWrote logs/male-bind-pose-diagnostics.json")
 
 if __name__=="__main__": main()
