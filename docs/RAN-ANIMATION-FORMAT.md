@@ -114,3 +114,23 @@ Do not blindly strip 12 bytes or apply `compbyte` to all data. First compare the
 ### Archive-wide prefix survey
 
 A fresh local pass over the uploaded outer archive found 3,676 `AnimContainer` BIN files. The 12-byte region at offsets 132-143 is not a shared constant: 3,667 distinct prefixes occur across those 3,676 files. In the three reference clips (`wait`, `walk`, `run`), the prefix is different for each clip, while the first 16 bytes from offset 144 share a highly similar pattern. This supports treating offsets 132-143 as a per-file field or prefix, but does not yet identify its semantics. The archive inspector now reports the top 20 values of this prefix distribution and records bytes 144-159 for each selected sample.
+
+
+## Reproducible codec/prefix probe (2026-11-16)
+
+Added `scripts/probe-ran-animation-prefix.py` (commit `d1114194112962e623d04ff7a9ccfc251295550e`). It probes the three representative clips at offsets 132 and 144, applies the exact public-source compbyte inverse table at both candidate starts, and tests several RC4 key derivations from the 12-byte prefix.
+
+Results on the uploaded archive:
+- All three clips have the same first DWORD at offset 144: `0x2A2A2A80`, despite different 12-byte values at offsets 132-143.
+- Applying the public compbyte inverse at offset 132 produces different implausible DWORDs; applying it at offset 144 produces `0x4F4F4F87` for all three. Neither is a valid animation count.
+- RC4 with the raw 12-byte prefix, MD5(prefix), SHA1(prefix), and MD5(file bytes 0-143) does not produce a plausible first DWORD.
+- Therefore the 12-byte field is not yet identified as a usable RC4 key, and the repeated pattern at offset 144 is not explained by the public compbyte table.
+
+The current reference source also shows that RCC entries marked with ZIP's encrypted flag are opened using password `tkqwlf`; however, the supplied outer ZIP's representative BIN entries are not ZIP-encrypted (their ZIP flag only indicates a data descriptor). This is a separate archive-layer behavior, not evidence that the BIN payload itself uses that password.
+
+Run the probe with:
+```bash
+python scripts/probe-ran-animation-prefix.py /path/to/animation.zip
+```
+
+This is a diagnostic checkpoint only. No BIN-to-GLB animation export or original animation playback is claimed yet.
