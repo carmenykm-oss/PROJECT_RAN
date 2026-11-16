@@ -14,11 +14,26 @@ const errors = [];
 page.on('pageerror', error => errors.push(error.message));
 page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
 
-const sampleThigh = () => page.evaluate(() => {
-  const bone = window.__ranCharacterDebugRoot?.getObjectByName('Bip01_L_Thigh');
-  return bone ? bone.quaternion.toArray() : null;
+const samplePose = () => page.evaluate(() => {
+  const root = window.__ranCharacterDebugRoot;
+  if (!root) return null;
+  const pose = {};
+  root.traverse(node => {
+    if (node.isBone && node.name?.startsWith('Bip01')) {
+      pose[node.name] = [...node.position.toArray(), ...node.quaternion.toArray(), ...node.scale.toArray()];
+    }
+  });
+  return pose;
 });
-const delta = (a, b) => a && b ? Math.max(...a.map((v, i) => Math.abs(v - b[i]))) : 0;
+const delta = (a, b) => {
+  if (!a || !b) return 0;
+  let max = 0;
+  for (const [name, values] of Object.entries(a)) {
+    const other = b[name];
+    if (other) for (let i = 0; i < values.length; i++) max = Math.max(max, Math.abs(values[i] - other[i]));
+  }
+  return max;
+};
 
 try {
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
@@ -29,20 +44,28 @@ try {
   }, { timeout: 60000 });
   const status = (await page.locator('#connection').innerText()).trim();
   const debug = await page.evaluate(() => window.__ranCharacterDebug || null);
+  await page.waitForFunction(() => {
+    const d = window.__ranOriginalAnimationDebug;
+    return d && d.status !== undefined && d.status !== 'waiting-for-real-bin-clips';
+  }, { timeout: 60000 });
+  const original = await page.evaluate(() => window.__ranOriginalAnimationDebug);
+  if (original.status !== 'compatible' || !['idle', 'walk', 'run'].every(name => original.actions?.includes(name))) {
+    throw new Error('Original RAN BIN clips are not compatible with the male rig: ' + JSON.stringify(original));
+  }
   await page.waitForTimeout(500);
-  const idlePose = await sampleThigh();
+  const idlePose = await samplePose();
   await page.screenshot({ path: 'preview-screenshots/male-rebound-idle.png' });
 
   await page.keyboard.down('w');
   await page.waitForTimeout(900);
-  const walkPose = await sampleThigh();
+  const walkPose = await samplePose();
   await page.screenshot({ path: 'preview-screenshots/male-rebound-walk.png' });
   await page.keyboard.up('w');
 
   await page.keyboard.down('Shift');
   await page.keyboard.down('w');
   await page.waitForTimeout(900);
-  const runPose = await sampleThigh();
+  const runPose = await samplePose();
   await page.screenshot({ path: 'preview-screenshots/male-rebound-run.png' });
   await page.keyboard.up('w');
   await page.keyboard.up('Shift');
@@ -55,12 +78,12 @@ try {
     throw new Error('Male rebound skinning incomplete: ' + JSON.stringify(debug));
   }
   if (!idlePose || !walkPose || !runPose || walkDelta < 0.001 || runDelta < 0.001) {
-    throw new Error('Walk/run did not change the left-thigh bone pose: ' + JSON.stringify({ idlePose, walkPose, runPose, walkDelta, runDelta }));
+    throw new Error('Original BIN walk/run clips did not change male bone poses: ' + JSON.stringify({ walkDelta, runDelta, original }));
   }
   if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
   console.log(JSON.stringify({
-    status: 'PASS', url, modelStatus: status, debug,
-    poseChecks: { walkDelta, runDelta, idlePose, walkPose, runPose },
+    status: 'PASS', url, modelStatus: status, debug, originalBinAnimation: original,
+    poseChecks: { walkDelta, runDelta, boneCount: Object.keys(idlePose || {}).length },
     screenshots: ['male-rebound-idle.png', 'male-rebound-walk.png', 'male-rebound-run.png']
   }, null, 2));
 } finally { await browser.close(); }
