@@ -23,7 +23,7 @@ def probe(name: str, data: bytes):
     prefix=data[132:144]; body=data[144:]
     result={'file':name,'size':len(data),'header_version':u32(data[128:132]),
       'prefix_132_143_hex':prefix.hex(),'raw_132_first_dword':u32(data[132:]),
-      'raw_144_first_dword':u32(body),'raw_144_first_16_hex':body[:16].hex(),
+      'raw_144_first_dword':u32(body),'raw_144_first_16_hex':body[:16].hex(),\n      'xor_2a_candidate':{'container_count':u32(bytes(x^0x2a for x in body[:4])),'first_record_version':u32(bytes(x^0x2a for x in body[4:8])),'valid_first_record_version':u32(bytes(x^0x2a for x in body[4:8])) in (0x100,0x101,0x102)},
       'compbyte_decode_132_first_dword':u32(bytes(INV[x] for x in data[132:136])),
       'compbyte_decode_144_first_dword':u32(bytes(INV[x] for x in body[:4])),'rc4_candidates':{}}
     keys={'prefix12':prefix,'md5_prefix12':hashlib.md5(prefix).digest(),
