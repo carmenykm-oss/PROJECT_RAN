@@ -133,6 +133,19 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
   try {
     const gltf = await gltfLoader.loadAsync(resolvedUrl);
     const model = gltf.scene;
+    // The native underwear body X omits the separate face/hair asset.
+    // Attach its matching source GLB and retarget its six facial joints to
+    // the same named bones in the 45-joint body skeleton.
+    const femaleFaceParts = new Set();
+    if (useFemaleUnderwearCandidate) {
+      const faceUrl = new URL('./models/ran-female-face-source.glb', import.meta.url).href;
+      const faceGltf = await gltfLoader.loadAsync(faceUrl);
+      faceGltf.scene.updateMatrixWorld(true);
+      faceGltf.scene.traverse((obj) => {
+        if (obj.isSkinnedMesh && obj.skeleton) femaleFaceParts.add(obj);
+      });
+      model.add(faceGltf.scene);
+    }
 
     // Some original RAN X -> GLB exports contain valid skinned body mesh nodes
     // that are present in the GLB JSON but accidentally omitted from the active
@@ -175,10 +188,19 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       model.traverse((obj) => { if (obj.isSkinnedMesh && obj.skeleton) sourceParts.push(obj); });
       model.updateMatrixWorld(true);
       for (const source of sourceParts) {
-        const skeleton = source.skeleton;
-        skeleton.calculateInverses();
+        let skeleton = source.skeleton;
+        let geometry = source.geometry.clone();
+        if (femaleFaceParts.has(source)) {
+          // Bake the face part's imported frame hierarchy into body-root
+          // coordinates before sharing the body's named skeleton bones.
+          const relative = model.matrixWorld.clone().invert().multiply(source.matrixWorld);
+          geometry.applyMatrix4(relative);
+          const sharedBones = source.skeleton.bones.map((bone) => model.getObjectByName(bone.name) || bone);
+          skeleton = new THREE.Skeleton(sharedBones);
+          skeleton.calculateInverses();
+        }
         skeleton.update();
-        const rebound = new THREE.SkinnedMesh(source.geometry.clone(), source.material);
+        const rebound = new THREE.SkinnedMesh(geometry, source.material);
         rebound.name = source.name + '_rebound_skin';
         rebound.castShadow = true;
         rebound.receiveShadow = true;
