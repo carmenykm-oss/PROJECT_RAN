@@ -3565,7 +3565,7 @@
   },
   {
     "file": "public/models/ran-male-face.glb",
-    "bytes": 274720,
+    "bytes": 272272,
     "skins": [
       {
         "name": "skin",
@@ -3701,7 +3701,7 @@
   },
   {
     "file": "public/models/ran-male-hair.glb",
-    "bytes": 265652,
+    "bytes": 263864,
     "skins": [
       {
         "name": "skin",
