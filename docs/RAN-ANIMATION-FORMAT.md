@@ -185,3 +185,12 @@ This explains both earlier observations:
 Added `scripts/decode-ran2-animation-bins.py`, which recursively opens nested ZIP/RCC archives, applies the exact published RAN2 substitution table from byte 132 onward, strips the 12-byte RAN2 prefix, and checks the first container count and first SAnimation version. The workflow now runs this structural probe on each uploaded animation archive and stores a JSON validation report under `logs/`.
 
 Important validation status: the algorithm is source-verified and the decoder/probe is committed, but the actual uploaded wait/walk/run samples have not yet been run through the new CI probe in this turn. Do not claim successful BIN parsing until the workflow report confirms plausible counts and valid record versions across those clips.
+
+
+## Full record-boundary parser added (2026-11-16)
+
+The RAN2 probe has been extended beyond the first-count gate. It now validates the entire container layout for versions 0100/0101/0102, walks both lower-body and upper-body animation groups in the version-specific order, parses each SAnimation record, bounds-checks every key array, validates the NUL-terminated serialized bone name, and records per-bone key counts. Key record byte sizes follow the public `DxAniKeys.h` layouts: position 16 bytes, rotation 20 bytes, scale 16 bytes, matrix 68 bytes, and quaternion-position 36 bytes. The string reader follows `CSerialFile::operator>>(std::string&)`: DWORD byte length including the NUL terminator.
+
+A one-line marker validation bug in the new parser was corrected to use `startswith(b"AnimContainer")` (the marker is 13 bytes). This prevents a false failure before any payload parsing.
+
+The full parser is now committed in `scripts/decode-ran2-animation-bins.py`. The uploaded 221 MB animation ZIP is not present in the public repository tree, so GitHub Actions cannot read that Library upload directly. The code is ready to process the archive when it is made available to the runner; no claim is made yet that the uploaded wait/walk/run files passed the full parser.
