@@ -359,6 +359,10 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     if (requestedCharacter === 'female') {
       loadRanBinAnimationPlayer(model, THREE, new URL('./animations/', import.meta.url).href)
         .then(player => {
+          if (!player) {
+            window.__ranOriginalAnimationDebug = { status: 'waiting-for-real-bin-clips' };
+            return;
+          }
           target.userData.ranOriginalAnimation = player;
           player.play('idle', 0);
           window.__ranOriginalAnimationDebug = {
