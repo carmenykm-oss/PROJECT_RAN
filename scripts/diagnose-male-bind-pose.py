@@ -48,6 +48,14 @@ def determinant3(m):
     a,b,c=m[0],m[4],m[8]; d,e,f=m[1],m[5],m[9]; g,h,i=m[2],m[6],m[10]
     return a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)
 
+def basis_axes(m):
+    # Column-major local X/Y/Z axes expressed in world coordinates.
+    return {
+      "x":[round(m[0],5),round(m[1],5),round(m[2],5)],
+      "y":[round(m[4],5),round(m[5],5),round(m[6],5)],
+      "z":[round(m[8],5),round(m[9],5),round(m[10],5)]
+    }
+
 def accessor_bounds(doc, accessor_index):
     acc=doc.get("accessors",[])[accessor_index]
     return {"min":acc.get("min"),"max":acc.get("max"),"count":acc.get("count"),"type":acc.get("type")}
@@ -72,6 +80,7 @@ def inspect(path):
             joint_rows.append({"skin":si,"name":n.get("name",str(ji)),
                 "parent":nodes[parents[ji]].get("name") if ji in parents else None,
                 "worldTranslation":[round(m[12],5),round(m[13],5),round(m[14],5)],
+                "worldBasisAxes":basis_axes(m),
                 "worldBasisDeterminant":round(determinant3(m),6)})
     mesh_rows=[]
     for ni,n in enumerate(nodes):
@@ -85,6 +94,7 @@ def inspect(path):
           "skin":n.get("skin"),"nodeTranslation":n.get("translation",[0,0,0]),
           "nodeRotation":n.get("rotation",[0,0,0,1]),"nodeScale":n.get("scale",[1,1,1]),
           "worldTranslation":[round(world(ni)[12],5),round(world(ni)[13],5),round(world(ni)[14],5)],
+          "worldBasisAxes":basis_axes(world(ni)),
           "worldBasisDeterminant":round(determinant3(world(ni)),6),
           "parent":nodes[parents[ni]].get("name") if ni in parents else None,
           "primitives":prims})
