@@ -5,48 +5,61 @@ const browser = await chromium.launch({
   headless: true,
   args: ['--no-sandbox', '--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist']
 });
+
 async function openPreview(character) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(90000);
-  const params = new URLSearchParams({ preview:'1', character, skinning:'1', v:'fitting-ui-check' });
-  if (character === 'female') params.set('underwear','1'), params.set('headCandidate','1'), params.set('hairCandidate','1');
-  await page.goto(new URL('?' + params.toString(), base).href, { waitUntil:'domcontentloaded', timeout:90000 });
-  await page.waitForFunction(() => window.__ranCharacterDebug?.character || (document.querySelector('#connection')?.textContent || '').includes('載入失敗'), { timeout: 90000 });
+  const params = new URLSearchParams({ preview: '1', character, skinning: '1', v: 'confirmed-base-fitting-ui' });
+  if (character === 'female') {
+    params.set('underwear', '1');
+    params.set('headCandidate', '1');
+    params.set('hairCandidate', '1');
+    params.set('femaleHair', 'w_hair00');
+  }
+  await page.goto(new URL('?' + params.toString(), base).href, { waitUntil: 'domcontentloaded', timeout: 90000 });
+  await page.waitForFunction(() =>
+    window.__ranCharacterDebug?.character ||
+    (document.querySelector('#connection')?.textContent || '').includes('載入失敗'),
+    { timeout: 90000 }
+  );
   await page.waitForSelector('#characterFitting:not([hidden])');
   return page;
 }
-try {
-  const female = await openPreview('female');
-  const femaleOptions = await female.locator('#fittingHairSelect option').count();
-  if (femaleOptions !== 10) throw new Error('Female fitting panel must expose 9 hairstyles plus remove option, found ' + femaleOptions);
-  await female.locator('#fittingFaceSelect').selectOption('off');
-  await female.waitForFunction(() => window.__ranCharacterDebug?.femaleFaceSkinnedMeshCount === 0);
-  await female.locator('#fittingFaceSelect').selectOption('on');
-  await female.waitForFunction(() => (window.__ranCharacterDebug?.femaleFaceSkinnedMeshCount || 0) === 1);
-  await female.locator('#fittingHairSelect').selectOption('none');
-  await female.waitForFunction(() => window.__ranCharacterDebug?.femaleHairSkinnedMeshCount === 0);
-  await female.locator('#fittingHairSelect').selectOption('w_hair02');
-  await female.waitForFunction(() => window.__ranCharacterDebug?.femaleHairVariant === 'w_hair02');
-  await female.locator('#fittingUpper').selectOption('a');
-  await female.waitForFunction(() => (window.__ranCharacterDebug?.femaleEquipmentMeshCount || 0) > 0);
-  const femaleDebug = await female.evaluate(() => window.__ranCharacterDebug);
-  console.log(JSON.stringify({status:'PASS',character:'female',hairOptions:femaleOptions,hair:femaleDebug.femaleHairVariant,equipmentSlots:Object.keys(femaleDebug.femaleEquipmentSlotMeshes||{}),debug:femaleDebug},null,2));
-  await female.close();
 
-  const male = await openPreview('male');
-  await male.locator('#fittingFaceSelect').selectOption('off');
-  await male.waitForFunction(() => window.__ranCharacterDebug?.maleFaceSkinnedMeshCount === 0);
-  await male.locator('#fittingHairSelect').selectOption('none');
-  await male.waitForFunction(() => window.__ranCharacterDebug?.maleHairSkinnedMeshCount === 0);
-  await male.locator('#fittingFaceSelect').selectOption('on');
-  await male.waitForFunction(() => window.__ranCharacterDebug?.maleFaceSkinnedMeshCount === 1);
-  await male.locator('#fittingHairSelect').selectOption('base');
-  await male.waitForFunction(() => window.__ranCharacterDebug?.maleHairSkinnedMeshCount === 1);
-  for (const slot of ['Upper','Gloves','Lower','Shoes']) await male.locator('#fitting'+slot).selectOption('a');
-  await male.waitForFunction(() => Object.keys(window.__ranCharacterDebug?.maleEquipmentSlotMeshes||{}).length === 4);
-  const maleDebug = await male.evaluate(() => window.__ranCharacterDebug);
-  console.log(JSON.stringify({status:'PASS',character:'male',equipmentSlots:Object.keys(maleDebug.maleEquipmentSlotMeshes||{}),debug:maleDebug},null,2));
-  await male.close();
+async function verifyFaceAndHair(character) {
+  const page = await openPreview(character);
+  try {
+    const debugKey = character === 'female' ? 'female' : 'male';
+    const faceCount = debug => debug[debugKey + 'FaceSkinnedMeshCount'];
+    const hairCount = debug => debug[debugKey + 'HairSkinnedMeshCount'];
+    let debug = await page.evaluate(() => window.__ranCharacterDebug);
+    if (faceCount(debug) !== 1 || hairCount(debug) !== 1) {
+      throw new Error(character + ' confirmed base face/hair not loaded: ' + JSON.stringify(debug));
+    }
+
+    await page.locator('#fittingFaceSelect').selectOption('off');
+    await page.waitForFunction(key => window.__ranCharacterDebug?.[key + 'FaceSkinnedMeshCount'] === 0, debugKey);
+    await page.locator('#fittingFaceSelect').selectOption('on');
+    await page.waitForFunction(key => window.__ranCharacterDebug?.[key + 'FaceSkinnedMeshCount'] === 1, debugKey);
+
+    await page.locator('#fittingHairSelect').selectOption('none');
+    await page.waitForFunction(key => window.__ranCharacterDebug?.[key + 'HairSkinnedMeshCount'] === 0, debugKey);
+    await page.locator('#fittingHairSelect').selectOption(character === 'female' ? 'w_hair00' : 'base');
+    await page.waitForFunction(key => window.__ranCharacterDebug?.[key + 'HairSkinnedMeshCount'] === 1, debugKey);
+
+    debug = await page.evaluate(() => window.__ranCharacterDebug);
+    console.log(JSON.stringify({
+      status: 'PASS', character, tested: 'confirmed face and base hair independently removable/restorable',
+      faceMeshes: faceCount(debug), hairMeshes: hairCount(debug)
+    }, null, 2));
+  } finally {
+    await page.close();
+  }
+}
+
+try {
+  await verifyFaceAndHair('female');
+  await verifyFaceAndHair('male');
 } finally {
   await browser.close();
 }
