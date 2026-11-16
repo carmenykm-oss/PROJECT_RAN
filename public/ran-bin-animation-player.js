@@ -16,7 +16,24 @@ export function createRanBinAnimationPlayer(model, THREE, clipDataByAction) {
       const boneName = actualNames.get(normalize(source.bone));
       if (!boneName) { missing.push(source.bone); continue; }
 
-      // SQuatPosKey stores one complete transform per key. Prefer it when present.
+      // RAN SetTime() uses matrix keys first when present. Convert the DirectX
+      // row-major matrix payload to Three.js column-major form before decomposing.
+      if (source.matrix?.length) {
+        const positions = [], rotations = [], scales = [];
+        for (const key of source.matrix) {
+          const matrix = new THREE.Matrix4().fromArray(key.matrix);
+          const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
+          matrix.decompose(p, q, s);
+          positions.push(...p.toArray()); rotations.push(...q.toArray()); scales.push(...s.toArray());
+        }
+        const times = source.matrix.map(k => k.time / (data.timebase || 4800));
+        tracks.push(new THREE.VectorKeyframeTrack(boneName + '.position', times, positions));
+        tracks.push(new THREE.QuaternionKeyframeTrack(boneName + '.quaternion', times, rotations));
+        tracks.push(new THREE.VectorKeyframeTrack(boneName + '.scale', times, scales));
+        continue;
+      }
+
+      // SQuatPosKey is the source runtime's fallback when no matrix array exists.
       if (source.quat_position?.length) {
         const keys = source.quat_position;
         const times = keys.map(k => k.time / (data.timebase || 4800));
@@ -37,7 +54,7 @@ export function createRanBinAnimationPlayer(model, THREE, clipDataByAction) {
         tracks.push(new THREE.QuaternionKeyframeTrack(
           boneName + '.quaternion',
           source.rotation.map(k => k.time / (data.timebase || 4800)),
-          source.rotation.flatMap(k => normalizeQuaternion(k.value))
+          source.rotation.flatMap(k => normalizeQuaternion([k.value[0], k.value[1], k.value[2], -k.value[3]]))
         ));
       }
       if (source.scale?.length) {
@@ -47,24 +64,7 @@ export function createRanBinAnimationPlayer(model, THREE, clipDataByAction) {
           source.scale.flatMap(k => k.value)
         ));
       }
-      // Legacy matrix-only clips are decomposed into standard glTF TRS channels.
-      if (!source.quat_position?.length && !source.rotation?.length && source.matrix?.length) {
-        const positions = [], rotations = [], scales = [];
-        for (const key of source.matrix) {
-          const m = key.matrix;
-          const matrix = new THREE.Matrix4().set(
-            m[0],m[1],m[2],m[3], m[4],m[5],m[6],m[7],
-            m[8],m[9],m[10],m[11], m[12],m[13],m[14],m[15]
-          );
-          const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
-          matrix.decompose(p,q,s);
-          positions.push(...p.toArray()); rotations.push(...q.toArray()); scales.push(...s.toArray());
-        }
-        const times = source.matrix.map(k => k.time / (data.timebase || 4800));
-        tracks.push(new THREE.VectorKeyframeTrack(boneName + '.position', times, positions));
-        tracks.push(new THREE.QuaternionKeyframeTrack(boneName + '.quaternion', times, rotations));
-        tracks.push(new THREE.VectorKeyframeTrack(boneName + '.scale', times, scales));
-      }
+
     }
     const duration = tracks.reduce((max, track) => Math.max(max, track.times[track.times.length - 1] || 0), 0);
     if (tracks.length && duration > 0) clips.set(actionName, new THREE.AnimationClip('RAN_' + actionName, duration, tracks));
