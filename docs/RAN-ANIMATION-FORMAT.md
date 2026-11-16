@@ -210,3 +210,18 @@ Synthetic tests now exercise full key-array extraction and the Three.js animatio
 ## Current hard gate
 
 The user's 221 MB `Animation.zip` is still stored in the ChatGPT Library and is not checked into the public PROJECT_RAN repository. The container execution service has repeatedly failed when opening the materialized ZIP, so the new extractor has **not yet been run on the real wait/walk/run BIN files**. Consequently, the game has no real extracted JSON clips yet and is still using its procedural fallback at runtime. Do not describe original BIN animation playback as successful until the real archive produces three valid clip JSON files, their bone names map to the female skeleton, and a browser smoke test confirms changing poses while idle/walking/running.
+
+
+The extractor can now also compare extracted bone names with a GLB skeleton and generate the browser manifest after all three target clips are present:
+
+```bash
+python scripts/extract-ran2-animation-clips.py Animation.zip \
+  --output-dir public/animations \
+  --match a_x01bs_lv1_wait.bin \
+  --match a_x01bs_lv1_walk.bin \
+  --match a_x01bs_lv1_run.bin \
+  --skeleton-glb public/models/ran-female.glb \
+  --write-manifest
+```
+
+Use `--strict-skeleton` only when every track is expected to map to the female GLB; optional accessory/helper bones may otherwise be reported as unmatched without blocking the clip export. The game loader reads `public/animations/manifest.json` first and does not request the clip JSON files while the manifest is pending, so the preview remains clean before the real archive has been extracted.
