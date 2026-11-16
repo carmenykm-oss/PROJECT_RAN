@@ -495,6 +495,14 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         if (baseRigBones.get(bone.name) !== bone) warriorOverlayBoneBindingMismatchCount++;
       }
     });
+    const maleEquipmentReboundNames = new Set([...maleEquipmentParts].map(part => part.name + '_rebound_skin'));
+    let maleEquipmentBoneBindingMismatchCount = 0;
+    model.traverse((obj) => {
+      if (!obj.isSkinnedMesh || !maleEquipmentReboundNames.has(obj.name)) return;
+      for (const bone of obj.skeleton?.bones || []) {
+        if (baseRigBones.get(bone.name) !== bone) maleEquipmentBoneBindingMismatchCount++;
+      }
+    });
 
     let meshCount = 0, skinnedMeshCount = 0;
     model.traverse((obj) => {
@@ -675,6 +683,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       maleEquipmentMeshCount: maleEquipmentParts.size,
       maleEquipmentSlotMeshes: maleEquipmentSlotMeshes,
       maleEquipmentReboundCount: [...maleEquipmentParts].filter(part => model.getObjectByName(part.name + '_rebound_skin')).length,
+      maleEquipmentBoneBindingMismatchCount,
       femaleFaceSkinnedMeshCount: femaleFaceParts.size,
       femaleHairSkinnedMeshCount: femaleHairParts.size,
       femaleHeadCandidate: useFemaleHeadCandidate,
