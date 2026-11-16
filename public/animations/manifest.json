@@ -1,0 +1,5 @@
+{
+  "status": "pending",
+  "clips": {},
+  "note": "Set status to ready and provide idle/walk/run JSON clip filenames after real BIN extraction."
+}
