@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DDSLoader } from 'three/addons/loaders/DDSLoader.js';
 import { createRanCharacterAnimator } from './character-animation.js';
 import { loadRanBinAnimationPlayer } from './ran-bin-animation-player.js';
 
@@ -128,11 +129,18 @@ async function mountOriginalRanTerrain(mapName = 'LDG02') {
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     if (!geometry.getAttribute('normal')) geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
-    const key = source.bucket + ':' + (source.colors ? 'vertex-colour' : 'plain');
+    const key = source.bucket + ':' + (source.name || 'untextured') + ':' + (source.colors ? 'vertex-colour' : 'plain');
     if (!materialCache.has(key)) materialCache.set(key, new THREE.MeshStandardMaterial({
       color: 0xffffff, vertexColors: !!source.colors, roughness: .96,
       side: THREE.DoubleSide
     }));
+    const terrainMaterial = materialCache.get(key);
+    if (source.name && /\\.(dds|tga)$/i.test(source.name) && !terrainMaterial.userData.ranTextureRequested) {
+      terrainMaterial.userData.ranTextureRequested = true;
+      ranDdsLoader.loadAsync('/api/ran-map/texture?name=' + encodeURIComponent(source.name))
+        .then(texture => { texture.colorSpace = THREE.SRGBColorSpace; terrainMaterial.map = texture; terrainMaterial.needsUpdate = true; })
+        .catch(error => console.warn('[PROJECT RAN] Terrain texture unavailable:', source.name, error.message));
+    }
     const mesh = new THREE.Mesh(geometry, materialCache.get(key));
     mesh.name = source.name || 'RAN terrain mesh';
     mesh.castShadow = true;
@@ -196,6 +204,7 @@ ranCoordinateProof.visible = diagnosticMode;
 // Load the reconstructed RAN Online character assets into the live campus scene.
 // Resolve from this module URL so GitHub Pages subpaths and local hosting behave identically.
 const gltfLoader = new GLTFLoader();
+const ranDdsLoader = new DDSLoader();
 const requestedCharacter = new URLSearchParams(location.search).get('character') === 'male' ? 'male' : 'female';
 // Use the full original 67-bone male rig with separately skinned face and hair meshes.
 const useFemaleUnderwearCandidate = requestedCharacter === 'female' && new URLSearchParams(location.search).get('underwear') === '1';
