@@ -142,30 +142,35 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     if (useFemaleUnderwearCandidate) {
       const faceUrl = new URL('./models/ran-female-face-source.glb', import.meta.url).href;
       const faceGltf = await gltfLoader.loadAsync(faceUrl);
-      faceGltf.scene.updateMatrixWorld(true);
-      faceGltf.scene.traverse((obj) => {
-        // The face-source X also bundles several legacy hair variants. Remove
-        // those meshes so only the separately selected original w_hair00 style
-        // is shown; otherwise a second hairstyle can appear near the feet.
+      const faceScene = faceGltf.scene || faceGltf.scenes?.[0];
+      if (!faceScene) throw new Error('女角色臉部 GLB 沒有可載入場景');
+      faceScene.updateMatrixWorld(true);
+      const legacyFaceHair = [];
+      faceScene.traverse((obj) => {
+        // The face-source X also bundles several legacy hair variants. Collect
+        // them first and remove after traversal so Three.js child iteration is stable.
         if (obj.isMesh && /hair/i.test(obj.name)) {
-          obj.parent?.remove(obj);
+          legacyFaceHair.push(obj);
           return;
         }
         if (obj.isSkinnedMesh && obj.skeleton) femaleFaceParts.add(obj);
       });
-      model.add(faceGltf.scene);
+      for (const part of legacyFaceHair) part.parent?.remove(part);
+      model.add(faceScene);
 
       // Restore one original RAN female hairstyle as its own removable/equippable
       // skinned part. The source X contains several alternative styles; use the
       // native w_hair00 mesh only so the variants do not stack on top of each other.
       const hairUrl = new URL('./models/ran-female-hair.glb', import.meta.url).href;
       const hairGltf = await gltfLoader.loadAsync(hairUrl);
-      hairGltf.scene.updateMatrixWorld(true);
-      hairGltf.scene.traverse((obj) => {
+      const hairScene = hairGltf.scene || hairGltf.scenes?.[0];
+      if (!hairScene) throw new Error('女角色原版髮型 GLB 沒有可載入場景');
+      hairScene.updateMatrixWorld(true);
+      hairScene.traverse((obj) => {
         if (obj.isMesh && obj.name !== 'w_hair00') femaleHairHiddenParts.add(obj);
         if (obj.isSkinnedMesh && obj.skeleton && obj.name === 'w_hair00') femaleHairParts.add(obj);
       });
-      model.add(hairGltf.scene);
+      model.add(hairScene);
       if (!femaleHairParts.size) throw new Error('原版女角髮型 w_hair00 未找到可蒙皮網格');
     }
 
