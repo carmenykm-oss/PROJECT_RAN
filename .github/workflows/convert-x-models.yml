@@ -54,6 +54,22 @@ jobs:
             done
           fi
 
+      - name: Decode and validate RAN2 animation BIN payloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p logs
+          mapfile -t archives < <(find source_assets -maxdepth 1 -type f -iname '*animation*.zip' | sort)
+          if [ ${#archives[@]} -eq 0 ]; then
+            echo "No animation ZIP found; skipping RAN2 decode probe."
+          else
+            for archive in "${archives[@]}"; do
+              base="$(basename "${archive%.zip}")"
+              python3 scripts/decode-ran2-animation-bins.py "$archive" \
+                --output "logs/${base}-ran2-decode-validation.json"
+            done
+          fi
+
       - name: Install Assimp and DDS image support
         run: |
           sudo apt-get update
