@@ -137,6 +137,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     // Attach its matching source GLB and retarget its six facial joints to
     // the same named bones in the 45-joint body skeleton.
     const femaleFaceParts = new Set();
+    const femaleHairParts = new Set();
     if (useFemaleUnderwearCandidate) {
       const faceUrl = new URL('./models/ran-female-face-source.glb', import.meta.url).href;
       const faceGltf = await gltfLoader.loadAsync(faceUrl);
@@ -145,6 +146,19 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
         if (obj.isSkinnedMesh && obj.skeleton) femaleFaceParts.add(obj);
       });
       model.add(faceGltf.scene);
+
+      // Restore one original RAN female hairstyle as its own removable/equippable
+      // skinned part. The source X contains several alternative styles; use the
+      // native w_hair00 mesh only so the variants do not stack on top of each other.
+      const hairUrl = new URL('./models/ran-female-hair.glb', import.meta.url).href;
+      const hairGltf = await gltfLoader.loadAsync(hairUrl);
+      hairGltf.scene.updateMatrixWorld(true);
+      hairGltf.scene.traverse((obj) => {
+        if (obj.isMesh && obj.name !== 'w_hair00') obj.visible = false;
+        if (obj.isSkinnedMesh && obj.skeleton && obj.name === 'w_hair00') femaleHairParts.add(obj);
+      });
+      model.add(hairGltf.scene);
+      if (!femaleHairParts.size) throw new Error('原版女角髮型 w_hair00 未找到可蒙皮網格');
     }
 
     // Some original RAN X -> GLB exports contain valid skinned body mesh nodes
@@ -190,12 +204,16 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
       for (const source of sourceParts) {
         let skeleton = source.skeleton;
         let geometry = source.geometry.clone();
-        if (femaleFaceParts.has(source)) {
-          // Bake the face part's imported frame hierarchy into body-root
-          // coordinates before sharing the body's named skeleton bones.
+        if (femaleFaceParts.has(source) || femaleHairParts.has(source)) {
+          // Bake imported face/hair frame transforms into body-root coordinates,
+          // then bind to the matching native Bip01 bones on the body skeleton.
           const relative = model.matrixWorld.clone().invert().multiply(source.matrixWorld);
           geometry.applyMatrix4(relative);
-          const sharedBones = source.skeleton.bones.map((bone) => model.getObjectByName(bone.name) || bone);
+          const sharedBones = source.skeleton.bones.map((bone) => {
+            const shared = model.getObjectByName(bone.name);
+            if (!shared) throw new Error(`女角部件缺少對應骨骼：${bone.name}`);
+            return shared;
+          });
           skeleton = new THREE.Skeleton(sharedBones);
           skeleton.calculateInverses();
         }
