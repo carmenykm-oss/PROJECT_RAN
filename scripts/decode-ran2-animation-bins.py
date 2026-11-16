@@ -97,7 +97,7 @@ def parse_container(data: bytes) -> dict:
             counts["position"] = read_u32(); skip_bytes(counts["position"] * 16, "position keys")
             counts["rotation"] = read_u32(); skip_bytes(counts["rotation"] * 20, "rotation keys")
             counts["scale"] = read_u32(); skip_bytes(counts["scale"] * 16, "scale keys")
-            counts["matrix"] = read_u32(); skip_bytes(counts["matrix"] * 68, "matrix keys")
+            counts["matrix"] = read_u32(); skip_bytes(counts["matrix"] * 80, "matrix keys")
             if version == 0x0101:
                 counts["quat_position"] = read_u32(); skip_bytes(counts["quat_position"] * 36, "quat-position keys")
             bone = read_string()
