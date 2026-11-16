@@ -7,6 +7,31 @@ const PORT = process.env.PORT || 3000;
 const ROOT = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'accounts.json');
+
+// Local original RAN map access. Set RAN_DATA_ROOT to the installed client's RData folder
+// when it is not at the default Windows installation path.
+const RAN_DATA_ROOT = process.env.RAN_DATA_ROOT || 'C:\\Program Files (x86)\\XtraVision\\Ran2Online\\General\\RData';
+const RAN_MAP_DIR = process.env.RAN_MAP_DIR || path.join(RAN_DATA_ROOT, 'map');
+function safeMapFile(name, ext) {
+  const base = String(name || '').replace(/\\.(wld0?|WLD0?)$/i, '');
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(base)) throw new Error('Invalid map name');
+  const file = path.resolve(RAN_MAP_DIR, base + ext);
+  if (!file.startsWith(path.resolve(RAN_MAP_DIR) + path.sep)) throw new Error('Invalid map path');
+  return file;
+}
+function readMapCatalog() {
+  if (!fs.existsSync(RAN_MAP_DIR)) return { available:false, mapDir:RAN_MAP_DIR, maps:[] };
+  const names = new Set();
+  for (const file of fs.readdirSync(RAN_MAP_DIR)) {
+    const m = file.match(/^(.+)\\.wld0?$/i);
+    if (m) names.add(m[1]);
+  }
+  return { available:true, maps:[...names].sort().map(name => ({
+    name, wld:fs.existsSync(safeMapFile(name,'.wld')),
+    wld0:fs.existsSync(safeMapFile(name,'.wld0'))
+  })) };
+}
+
 fs.mkdirSync(DATA_DIR, { recursive: true });
 let db = { accounts: {} };
 try { if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch (e) { console.error('Could not read account database:', e.message); }
@@ -226,6 +251,43 @@ const server = http.createServer(async (req, res) => {
         return json(res, 201, { character: publicCharacter(account.character) });
       }
     } catch (e) { return json(res, 400, { error: e.message || '請求格式錯誤。' }); }
+  }
+
+  if (req.method === 'GET' && pathname === '/api/ran-map/catalog') {
+    try { return json(res, 200, readMapCatalog()); }
+    catch (e) { return json(res, 500, { error:e.message }); }
+  }
+  if (req.method === 'GET' && pathname === '/api/ran-map/terrain') {
+    try {
+      const url = new URL(req.url, 'http://localhost');
+      const mapName = url.searchParams.get('map') || 'LDG02';
+      const file = safeMapFile(mapName, '.wld0');
+      if (!fs.existsSync(file)) return json(res, 404, { error:'找不到地形檔', file });
+      const SM = require('./scripts/ran-map/staticmesh');
+      const parsed = SM.parse(fs.readFileSync(file));
+      const meshes = [];
+      let vertices = 0, triangles = 0;
+      for (const bucket of parsed.buckets) for (const mesh of bucket.meshes) {
+        if (!mesh.octree) continue;
+        for (const node of mesh.octree.nodes || []) {
+          const g = node.geometry;
+          if (!g || !g.vertexCount || !g.indices?.length) continue;
+          const item = {
+            name: mesh.texName || mesh.key || bucket.name,
+            bucket: bucket.name,
+            positions: Array.from(g.positions),
+            indices: Array.from(g.indices),
+            uvs: g.uvs ? Array.from(g.uvs) : null,
+            colors: g.vbColors ? Array.from(g.vbColors) : null,
+            normals: g.vbNormals ? Array.from(g.vbNormals) : null
+          };
+          meshes.push(item); vertices += g.vertexCount; triangles += g.indices.length / 3;
+        }
+      }
+      if (!meshes.length) return json(res, 422, { error:'WLD0 已讀取，但沒有可用三角形地形', map:mapName, version:parsed.version });
+      return json(res, 200, { map:mapName, file:path.basename(file), version:parsed.version,
+        bounds:{ min:parsed.vMin, max:parsed.vMax }, vertices, triangles, meshes });
+    } catch (e) { return json(res, 422, { error:e.message }); }
   }
   if (pathname.startsWith('/api/')) return json(res, 404, { error: 'API not found' });
   let filePath = pathname === '/' ? path.join(ROOT, 'index.html') : path.resolve(ROOT, '.' + decodeURIComponent(pathname));
