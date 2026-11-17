@@ -2,14 +2,14 @@
 """Extract male outfit components as separate skinned equipment candidates.
 
 Only source meshes whose complete joint-name set is compatible with the selected
-ran-male.glb skeleton are published. Original base and source GLBs are untouched.
+ran-male-underwear-body.glb skeleton are published. Original base and source GLBs are untouched.
 """
 from pathlib import Path
 import copy
 import json
 import struct
 
-BASE = Path("public/models/ran-male.glb")
+BASE = Path("public/models/ran-male-underwear-body.glb")
 OUT = Path("public/models")
 SOURCES = {
     "a": Path("converted_glb/s_m_a_zt.glb"),
@@ -84,7 +84,7 @@ def extract(source, output, selected_names, base_joints):
         raise SystemExit(f"{output}: output contains unexpected meshes {sorted(visible)}")
     if not check.get("skins") or not check.get("materials") or not check.get("images"):
         raise SystemExit(f"{output}: missing skin/material/texture data")
-    print(f"PASS {output}: isolated {', '.join(sorted(visible))}; joints map to selected male rig")
+    print(f"PASS {output}: isolated {', '.join(sorted(visible))}; joints map to new M1 male underwear rig")
 
 def main():
     base_doc, _, _ = read_glb(BASE)
