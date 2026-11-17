@@ -10,8 +10,7 @@ from pathlib import Path
 import json, math, struct
 
 FILES = [
-    "public/models/ran-male.glb",
-    "public/models/ran-male-body.glb",
+    "public/models/ran-male-underwear-body.glb",
     "public/models/ran-male-face.glb",
     "public/models/ran-male-hair.glb",
 ] + [f"public/models/ran-male-outfit-{v}-{s}.glb"
