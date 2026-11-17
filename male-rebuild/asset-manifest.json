@@ -1,0 +1,60 @@
+{
+  "project": "PROJECT_RAN male clean rebuild",
+  "branch": "male-rebuild-clean",
+  "authority": "source_assets/",
+  "female_assets_must_remain_unchanged": true,
+  "generated_male_outputs_are_valid_inputs": false,
+  "male_native_sources": [
+    {
+      "path": "source_assets/s_m_bs.X",
+      "role": "male base body candidate",
+      "note": "native male body with four skinned mesh parts"
+    },
+    {
+      "path": "source_assets/s_m_face.X",
+      "role": "male face variants"
+    },
+    {
+      "path": "source_assets/s_m_hair00.x",
+      "role": "male hair variants"
+    },
+    {
+      "path": "source_assets/s_m_a_zt.x",
+      "role": "male equipment variant A"
+    },
+    {
+      "path": "source_assets/s_m_f_zt.X",
+      "role": "male equipment variant F"
+    },
+    {
+      "path": "source_assets/m_ss_war.x",
+      "role": "male warrior model candidate"
+    }
+  ],
+  "male_texture_candidates": [
+    "source_assets/m2_bs_body.DDS",
+    "source_assets/m2_face00.dds",
+    "source_assets/m2_face01.dds",
+    "source_assets/m2_face02.dds",
+    "source_assets/m2_face03.dds",
+    "source_assets/m2_face04.dds",
+    "source_assets/m2_face05.dds",
+    "source_assets/m2_face_m.dds",
+    "source_assets/m2_wdb_body1.dds",
+    "source_assets/m2_wdb_body2.dds",
+    "source_assets/m2_wdb_foot.dds",
+    "source_assets/m2_wdb_hand.dds",
+    "source_assets/m2_wdb_leg.dds",
+    "source_assets/m_face00.dds",
+    "source_assets/m_face01.dds",
+    "source_assets/m_face02.dds",
+    "source_assets/m_face03.dds",
+    "source_assets/m_face04.dds",
+    "source_assets/m_face05.dds",
+    "source_assets/m_hair00.dds",
+    "source_assets/m_ss_war_body_a.dds",
+    "source_assets/m_ss_war_leg.dds"
+  ],
+  "known_risk": "Previous male base publisher redirected m2_bs_* atlas references to m1_bs_* images without UV-to-atlas validation.",
+  "first_gate": "Audit original X material texture references and UV0 against the original male DDS atlases. Missing native atlases must be located or explicitly reported; never silently substitute M1/female textures."
+}
