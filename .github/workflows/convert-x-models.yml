@@ -192,20 +192,23 @@ jobs:
                   raise SystemExit(f"Missing native male head texture source: {source_texture}")
               shutil.copy2(source_texture, target)
 
-          # Temporary visual fallback: original s_m_bs hand/leg/foot atlases
-          # were not included in the uploaded source set. Replace when found.
-          male_base_texture_fallbacks = {
-              "m2_bs_hand.png": "m2_wdb_hand.png",
-              "m2_bs_leg.png": "m2_wdb_leg.png",
-              "m2_bs_foot.png": "m2_wdb_foot.png",
+          # Replace the old M2 / denim-style male base atlases with the newly
+          # uploaded M1 base-skin atlases. The s_m_bs.X mesh names still request
+          # m2_bs_* filenames, so publish the M1 underwear/skin textures under
+          # those exact runtime names. Always overwrite: never keep the old DDS.
+          male_base_texture_replacements = {
+              "m2_bs_body.png": "m1_bs_body.png",
+              "m2_bs_hand.png": "m1_bs_arm.png",
+              "m2_bs_leg.png": "m1_bs_leg.png",
+              "m2_bs_foot.png": "m1_bs_foot.png",
           }
-          for target_name, source_name in male_base_texture_fallbacks.items():
+          for target_name, source_name in male_base_texture_replacements.items():
               target = out_dir / target_name
               source_texture = out_dir / source_name
-              if not target.exists():
-                  if not source_texture.exists():
-                      raise SystemExit(f"Missing male base fallback texture source: {source_texture}")
-                  shutil.copy2(source_texture, target)
+              if not source_texture.is_file():
+                  raise SystemExit(f"Missing newly uploaded male base texture: {source_texture}")
+              shutil.copy2(source_texture, target)
+              print(f"REPLACED male base texture: {target_name} <= {source_name}")
 
           if converted == 0:
               raise SystemExit("No DDS textures were converted")
