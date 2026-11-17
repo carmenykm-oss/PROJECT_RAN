@@ -274,12 +274,9 @@ jobs:
           print(f"Converted {converted} DDS textures and patched all GLB texture references.")
           PY
 
-      - name: Split selected male base into body, face and hair GLBs
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 scripts/split-selected-character-glbs.py
-
+      # Legacy split-selected-character-glbs.py consumed the deleted ran-male.glb.
+      # The authoritative male body now comes from s_m_bs.X + M1 DDS, and
+      # face/hair are split later from their native X sources.
       - name: Publish native s_m_bs.X as male underwear/base body
         shell: bash
         run: |
