@@ -379,10 +379,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # The converted model binaries are already versioned in main. Re-publishing
-          # every GLB from a long-running job causes binary rebase conflicts when
-          # another preview commit lands during conversion. Publish only the
-          # fresh diagnostics report from this workflow.
+          # Publish the male base body and its M1 textures as tracked assets.
+          # The live Pages site must serve these exact files; artifact-only output
+          # is not a durable public model URL.
+          git add public/models/ran-male-underwear-body.glb
+          git add public/models/m1_bs_arm.png public/models/m1_bs_body.png public/models/m1_bs_foot.png public/models/m1_bs_head.png public/models/m1_bs_leg.png
           git add logs/male-bind-pose-diagnostics.json
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
