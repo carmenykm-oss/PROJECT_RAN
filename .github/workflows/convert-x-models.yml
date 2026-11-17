@@ -384,6 +384,8 @@ jobs:
           # is not a durable public model URL.
           git add public/models/ran-male-underwear-body.glb
           git add public/models/m1_bs_arm.png public/models/m1_bs_body.png public/models/m1_bs_foot.png public/models/m1_bs_head.png public/models/m1_bs_leg.png
+          # Publish native male face/hair atlas files and their exact X-model URI aliases.
+          git add public/models/m_face00.png public/models/m2_face00.png public/models/m_hair00.png public/models/m_hair00_a.png
           git add logs/male-bind-pose-diagnostics.json
           if ! git diff --cached --quiet; then
             git commit -m "Add converted original RAN warrior models and textures"
