@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DDSLoader } from 'three/addons/loaders/DDSLoader.js';
 import { createRanCharacterAnimator } from './character-animation.js';
-import { createRanMaleCharacterAnimator } from './character-animation-male.js';
 import { loadRanBinAnimationPlayer } from './ran-bin-animation-player.js';
 
 const mount = document.getElementById('game');
@@ -750,9 +749,7 @@ async function loadRANCharacter(url, target, desiredHeight = 2.65) {
     });
     target.userData.ranModel = model;
     target.userData.ranPivot = pivot;
-    target.userData.ranAnimator = requestedCharacter === 'male'
-      ? createRanMaleCharacterAnimator(model, THREE)
-      : createRanCharacterAnimator(model, THREE);
+    target.userData.ranAnimator = createRanCharacterAnimator(model, THREE);
     target.userData.ranOriginalAnimation = null;
     // Test the extracted original RAN BIN clips against both reconstructed rigs.
     // The player is enabled only when the essential body bones map; otherwise
